@@ -38,7 +38,7 @@ if [ "$MEDIACENTER" = "kodi" ]; then
   for i in $SKINS; do
     PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET $MEDIACENTER-theme-$i"
   done
-  
+
 # some python stuff needed for various addons
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET Pillow"
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET simplejson"
@@ -47,4 +47,34 @@ if [ "$MEDIACENTER" = "kodi" ]; then
 
 # other packages
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET LibreELEC-settings"
+
+# PVR Addons
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.argustv"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.demo"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.dvblink"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.dvbviewer"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.filmon"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.hts"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.hdhomerun"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.iptvsimple"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.mediaportal.tvserver"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.mythtv"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.nextpvr"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.njoy"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.pctv"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.stalker"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.vbox"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.vdr.vnsi"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.vuplus"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET pvr.wmc"
+
+# visualization addons
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET visualization.spectrum"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET visualization.waveform"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET visualization.shadertoy"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET visualization.wavforhue"
+
+# screensaver addons
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET screensaver.shadertoy"
+
 fi
