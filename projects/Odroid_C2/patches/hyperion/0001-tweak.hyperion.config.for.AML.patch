@@ -1,0 +1,25 @@
+commit b7c0086511fe7851b0fe969fa85cc557e961c851
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Mon May 9 23:36:56 2016 +0800
+
+    Tweak hyperion config for AML
+
+diff --git a/config/hyperion.config.json b/config/hyperion.config.json
+index 5d54907..c78b988 100644
+--- a/config/hyperion.config.json
++++ b/config/hyperion.config.json
+@@ -9,6 +9,14 @@
+ 	/// ---------SPI---------, APA102, WS2801, P9813, LPD6803, LPD8806, ---------PWM---------, WS2812b (just RPi1), WS281X (RPi1, RPi2, RPi3), --------OTHER--------, PhilipsHUE, AtmoOrb, PiBlaster, Tinkerforge, FadeCandy, RawHID (USB), UDP, SEDU, TPM2, USBASP-WS2801, USBASP-WS2812, ------3rd PARTY------, Adalight, AdalightAPA102, AmbiLed, Atmo, Lightpack, Multi-Lightpack, Paintpack, Test (file), None)
+ 	/// * [device type specific configuration]
+ 	/// * 'colorOrder' : The order of the color bytes ('rgb', 'rbg', 'bgr', etc.).
++
++	"amlgrabber" :
++	 {
++		"width" : 64,
++		"height" : 64,
++		"frequency_Hz" : 20.0
++	},
++
+ 	"device" :
+ 	{
+ 		"name"       : "MyHyperionConfig",
