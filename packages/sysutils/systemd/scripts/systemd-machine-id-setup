@@ -24,7 +24,9 @@
 # anonymous. The machine-id is used by dbus and systemd, and to collect basic
 # active-installation statistics on LibreELEC users.
 
-if [ -e "/sys/class/net/eth0/address" ]; then
+if [ -e "/storage/.cache/machine-id" ]; then
+  MACHINEID=`cat /storage/.cache/machine-id`
+elif [ -e "/sys/class/net/eth0/address" ]; then
   MAC_ADDRESS=`cat /sys/class/net/eth0/address`
 elif [ -e "/sys/class/net/wlan0/address" ]; then
   MAC_ADDRESS=`cat /sys/class/net/wlan0/address`
@@ -32,6 +34,8 @@ else
   MAC_ADDRESS=`/usr/bin/dbus-uuidgen`
 fi
 
-MACHINEID=`echo $MAC_ADDRESS | md5sum | cut -f1 -d" "`
+if [ -z "$MACHINEID" ]; then
+  MACHINEID=`echo $MAC_ADDRESS | md5sum | cut -f1 -d" "`
+fi
 
 echo "$MACHINEID" > /storage/.cache/machine-id
