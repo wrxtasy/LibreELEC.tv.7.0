@@ -1,0 +1,36 @@
+commit 3afa4b2df50ef5c9806e0efa7c77a1bfee0cc1f3
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Sun May 8 16:15:52 2016 +0800
+
+    Increased Frame Buffer reserved memory for 2160p display modes
+
+diff --git a/arch/arm64/boot/dts/meson64_odroidc2.dts b/arch/arm64/boot/dts/meson64_odroidc2.dts
+index b47490b..6d73e2f 100644
+--- a/arch/arm64/boot/dts/meson64_odroidc2.dts
++++ b/arch/arm64/boot/dts/meson64_odroidc2.dts
+@@ -61,7 +61,7 @@
+ 
+ 		fb_reserved:linux,meson-fb {
+ 			compatible = "amlogic, fb-memory";
+-			size = <0x0 0x8000000>;
++			size = <0x0 0x4480000>;
+ 			no-map;
+ 		};
+ 
+@@ -124,11 +124,11 @@
+                 interrupts = <0 3 1
+                         0 89 1>;
+ 		interrupt-names = "viu-vsync", "rdma";
+-		mem_size = <0x06000000 0x00100000>; /* fb0/fb1 memory size */
+-                vmode = <4>;	/* 720p60hz */
+-		scale_mode = <1>;
+-                4k2k_fb = <1>;
+-		display_size_default = <1280 720 1280 1440 32>;
++		mem_size = <0x04380000 0x00100000>; /* fb0/fb1 memory size */
++ 		vmode = <4>; /** 0:VMODE_720P 1:VMODE_LCD 2:VMODE_LVDS_1080P 3:VMODE_1080P */
++ 		scale_mode = <1>; /** 0:VPU free scale 1:OSD free scale 2:OSD super scale */
++		4k2k_fb = <1>;
++ 		display_size_default = <1920 1080 1920 3240 32>; //1920*1080*4*3 = 0x17BB000
+ 	};
+ 
+ 	ge2d {

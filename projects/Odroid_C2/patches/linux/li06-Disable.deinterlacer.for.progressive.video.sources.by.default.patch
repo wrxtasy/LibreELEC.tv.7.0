@@ -1,0 +1,35 @@
+commit 9f68a7c77ddd7f1ead27fcac832cb15e18493c5c
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Sun May 8 16:47:02 2016 +0800
+
+    Disable.deinterlacer.for.progressive.video.sources.by.default
+
+diff --git a/drivers/amlogic/deinterlace/deinterlace.c b/drivers/amlogic/deinterlace/deinterlace.c
+index 1e127ce..42e1753 100644
+--- a/drivers/amlogic/deinterlace/deinterlace.c
++++ b/drivers/amlogic/deinterlace/deinterlace.c
+@@ -154,18 +154,18 @@ static struct class *di_clsp;
+ #define INIT_FLAG_NOT_LOAD 0x80
+ /* enable nr clock when di enabled */
+ static const char version_s[] = "2015-8-03a";
+-static unsigned char boot_init_flag;
++static unsigned char boot_init_flag = 0;
+ static int receiver_is_amvideo = 1;
+ 
+-static unsigned char new_keep_last_frame_enable;
++static unsigned char new_keep_last_frame_enable = 0;
+ static int bypass_state = 1;
+-static int bypass_prog;
+-static int bypass_hd_prog;
+-static int bypass_interlace_output;
++static int bypass_prog = 1;
++static int bypass_hd_prog = 0;
++static int bypass_interlace_output = 0;
+ #ifdef CONFIG_AM_DEINTERLACE_SD_ONLY
+ static int bypass_hd = 1;
+ #else
+-static int bypass_hd;
++static int bypass_hd = 0;
+ #endif
+ static int bypass_superd = 1;
+ static int bypass_all;

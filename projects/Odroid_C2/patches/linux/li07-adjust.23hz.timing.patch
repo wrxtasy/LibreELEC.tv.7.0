@@ -1,0 +1,23 @@
+commit 439ed0ff9540b6f1630b9155b564051dab5096ab
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Wed Apr 13 17:51:14 2016 +0800
+
+    linux-adjust.23hz.timing
+
+diff --git a/drivers/amlogic/display/vout2/tv_vout2.h b/drivers/amlogic/display/vout2/tv_vout2.h
+index 0f2b77c..c3e153d 100644
+--- a/drivers/amlogic/display/vout2/tv_vout2.h
++++ b/drivers/amlogic/display/vout2/tv_vout2.h
+@@ -425,9 +425,9 @@ static const struct vinfo_s tv_info[] = {
+ 		.field_height      = 1080,
+ 		.aspect_ratio_num  = 16,
+ 		.aspect_ratio_den  = 9,
+-		.sync_duration_num = 2397,
+-		.sync_duration_den = 100,
+-		.video_clk         = 74250000,
++		.sync_duration_num = 24000,
++		.sync_duration_den = 1001,
++		.video_clk         = 74176000,
+ 	},
+ #endif
+ 	{ /* VMODE_4K2K_30HZ */

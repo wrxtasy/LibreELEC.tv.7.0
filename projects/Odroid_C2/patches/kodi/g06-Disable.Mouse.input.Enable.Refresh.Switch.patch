@@ -1,0 +1,37 @@
+commit 66dd58d49371d3598f50ff2912f56d7da9353008
+Author: Jamie Coldhill <kodi@Ubuntu.12.04.5>
+Date:   Wed Dec 16 13:36:14 2015 +0800
+
+    test again
+
+diff --git a/system/settings/settings.xml b/system/settings/settings.xml
+index 11d4d7c..49d9574 100644
+--- a/system/settings/settings.xml
++++ b/system/settings/settings.xml
+@@ -546,7 +546,7 @@
+       <group id="3">
+         <setting id="videoplayer.adjustrefreshrate" type="integer" label="170" help="36164">
+           <level>2</level>
+-          <default>0</default> <!-- ADJUST_REFRESHRATE_OFF -->
++          <default>2</default> <!-- ADJUST_REFRESHRATE_OFF -->
+           <constraints>
+             <options>
+               <option label="351">0</option> <!-- ADJUST_REFRESHRATE_OFF -->
+@@ -558,7 +558,7 @@
+         </setting>
+         <setting id="videoplayer.pauseafterrefreshchange" type="integer" parent="videoplayer.adjustrefreshrate" label="13550" help="36165">
+           <level>2</level>
+-          <default>0</default>
++          <default>0</default>
+           <constraints>
+             <options>refreshchangedelays</options>
+           </constraints>
+@@ -2753,7 +2753,7 @@
+         <setting id="input.enablemouse" type="boolean" label="21369" help="36377">
+           <level>0</level>
+           <control type="toggle" />
+-          <default>true</default>
++          <default>true</default>
+         </setting>
+         <setting id="input.enablejoystick" type="boolean" label="35100" help="36378">
+           <requirement>HAS_SDL_JOYSTICK</requirement>

@@ -1,0 +1,36 @@
+commit 1a2025007d93a2e6d788fb21cee82a5a289c4405
+Author: Jamie Coldhill <kodi@Ubuntu.12.04.5>
+Date:   Fri Jan 15 22:20:04 2016 +0800
+
+    Use.a.custom.SysInfo.display.patch
+
+diff --git a/xbmc/windows/GUIWindowSystemInfo.cpp b/xbmc/windows/GUIWindowSystemInfo.cpp
+index a977552..fbed769 100644
+--- a/xbmc/windows/GUIWindowSystemInfo.cpp
++++ b/xbmc/windows/GUIWindowSystemInfo.cpp
+@@ -57,7 +57,7 @@ bool CGUIWindowSystemInfo::OnMessage(CGUIMessage& message)
+     case GUI_MSG_WINDOW_INIT:
+     {
+       CGUIWindow::OnMessage(message);
+-      SET_CONTROL_LABEL(52, CSysInfo::GetAppName() + " " + CSysInfo::GetVersion());
++      SET_CONTROL_LABEL(52, "ODROID C2 running " + CSysInfo::GetAppName() + " " + CSysInfo::GetVersion());
+       SET_CONTROL_LABEL(53, CSysInfo::GetBuildDate());
+       CONTROL_ENABLE_ON_CONDITION(CONTROL_BT_PVR, PVR::CPVRManager::GetInstance().IsStarted());
+       return true;
+@@ -100,7 +100,6 @@ void CGUIWindowSystemInfo::FrameMove()
+     SetControlLabel(i++, "%s %s", 13283, SYSTEM_OS_VERSION_INFO);
+     SetControlLabel(i++, "%s: %s", 12390, SYSTEM_UPTIME);
+     SetControlLabel(i++, "%s: %s", 12394, SYSTEM_TOTALUPTIME);
+-    SetControlLabel(i++, "%s: %s", 12395, SYSTEM_BATTERY_LEVEL);
+   }
+ 
+   else if (m_section == CONTROL_BT_STORAGE)
+@@ -123,8 +122,6 @@ void CGUIWindowSystemInfo::FrameMove()
+     SetControlLabel(i++, "%s: %s", 150, NETWORK_IP_ADDRESS);
+     SetControlLabel(i++, "%s: %s", 13159, NETWORK_SUBNET_MASK);
+     SetControlLabel(i++, "%s: %s", 13160, NETWORK_GATEWAY_ADDRESS);
+-    SetControlLabel(i++, "%s: %s", 13161, NETWORK_DNS1_ADDRESS);
+-    SetControlLabel(i++, "%s: %s", 20307, NETWORK_DNS2_ADDRESS);
+   }
+ 
+   else if (m_section == CONTROL_BT_VIDEO)
