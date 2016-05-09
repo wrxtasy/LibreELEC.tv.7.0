@@ -51,7 +51,7 @@ ORIGIN_URL="$(git remote -v | awk '$1 == "origin" { print $2 }' | head -1 | sed 
 if [ "$OFFICIAL" = "yes" ]; then
   LIBREELEC_BUILD="official"
 else
-  LIBREELEC_BUILD="community"
+  LIBREELEC_BUILD="WRXTASY"
 fi
 
 TARGET_VERSION="$PROJECT.$TARGET_ARCH-$LIBREELEC_VERSION"
@@ -431,6 +431,10 @@ fi
     # cleanup release dir
       rm -rf $RELEASE_DIR
 
+    # lets get rid of things we don't care about in $TARGET_IMG
+      mv $TARGET_IMG/$IMAGE_NAME.system $INSTALL/../SYSTEM
+      mv $TARGET_IMG/$IMAGE_NAME.kernel $INSTALL/../KERNEL
+
   elif [ "$1" = "noobs" ]; then
 
     RELEASE_DIR="$TARGET_IMG/${IMAGE_NAME}-$1"
@@ -483,7 +487,6 @@ fi
         cp -PR $BUILD/bcm2835-bootloader-*/bootcode.bin $RELEASE_DIR/${DISTRONAME}_${PROJECT}/System/
         cp -PR $BUILD/bcm2835-bootloader-*/fixup_x.dat $RELEASE_DIR/${DISTRONAME}_${PROJECT}/System/fixup.dat
         cp -PR $BUILD/bcm2835-bootloader-*/start_x.elf $RELEASE_DIR/${DISTRONAME}_${PROJECT}/System/start.elf
-        [ -f $BUILD/bcm2835-bootloader-*/dt-blob.bin ] && cp -PR $BUILD/bcm2835-bootloader-*/dt-blob.bin $RELEASE_DIR/${DISTRONAME}_${PROJECT}/System/dt-blob.bin
 
       # copy system files
         cp $TARGET_IMG/$IMAGE_NAME.system $RELEASE_DIR/${DISTRONAME}_${PROJECT}/System/SYSTEM
