@@ -1,0 +1,20 @@
+commit bc7782f93f6d46960ea71d38ad6374fc5f048302
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Wed May 11 14:32:48 2016 +0800
+
+    [pvr]: fix epg search
+    https://github.com/xbmc/xbmc/pull/9601
+
+diff --git a/xbmc/pvr/windows/GUIWindowPVRSearch.cpp b/xbmc/pvr/windows/GUIWindowPVRSearch.cpp
+index f0786f7..9ee1207 100644
+--- a/xbmc/pvr/windows/GUIWindowPVRSearch.cpp
++++ b/xbmc/pvr/windows/GUIWindowPVRSearch.cpp
+@@ -159,6 +159,7 @@ void CGUIWindowPVRSearch::OnPrepareFileItems(CFileItemList &items)
+ 
+     bAddSpecialSearchItem = true;
+ 
++    items.Clear();
+     CGUIDialogProgress* dlgProgress = (CGUIDialogProgress*)g_windowManager.GetWindow(WINDOW_DIALOG_PROGRESS);
+     if (dlgProgress)
+     {
+
