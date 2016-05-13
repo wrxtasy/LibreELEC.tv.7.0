@@ -1,0 +1,8 @@
+1.1.2
+- fixed missing version bumps from 1.1.1
+
+1.1.1
+- change the addon icon
+
+1.1.0
+- initial LibreELEC version
