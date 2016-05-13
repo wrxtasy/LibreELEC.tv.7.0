@@ -3392,56 +3392,6 @@ Install this to add support for iMon MCE remote controls.
   </extension>
 </addon>
 
-<addon id="service.downloadmanager.rTorrent"
-       name="rTorrent"
-       version="7.0.1"
-       provider-name="Daniel Forsberg (jenkins101)">
-  <requires>
-    <import addon="os.libreelec.tv" version="7.0"/>
-    <import addon="xbmc.python" version="2.1.0"/>
-
-    <import addon="tools.php" version="0.0.0" />
-    <import addon="tools.dtach" version="0.0.0" />
-  </requires>
-  <extension point="xbmc.service" library="default.py">
-    <provides></provides>
-  </extension>
-  <extension point="xbmc.addon.metadata">
-    <summary>rTorrent: This is the free BitTorrent client rtorrent packed for OpenELEC</summary>
-    <description>
-rTorrent BitTorrent client can handle multiple watch dirs and post actions. [CR][CR]After changing settings you need to disable and re-enable the addon. [CR][CR]How this addon is intended to work: [CR][CR]You add base dirs. [CR]torrents: /storage/downloads/torrents/ [CR]downloads: /storage/downloads [CR]complete: /storege [CR][CR]then you add watch dirs separated by: ,[CR]videos,tvshows,music [CR][CR]What will happen then is: [CR][CR]Directories will be created if they dont exist: [CR]/storage/downloads/torrents/videos [CR]/storage/downloads/videos [CR]/storege/videos [CR][CR]then rtorrent will start detached. [CR][CR]Now if you add a torrent file to: /storage/downloads/torrents/videos it will be downloaded to /storage/downloads/videos [CR][CR]On completion it will be Linked or Moved to /storege/videos [CR][CR]The same for every watch dir added... [CR][CR]Nice ha...
-    </description>
-    <disclaimer>
-
-    </disclaimer>
-    <platform>all</platform>
-  </extension>
-</addon>
-
-<addon id="service.downloadmanager.transmission"
-       name="transmission"
-       version="7.0.1"
-       provider-name="unofficial.addon.pro">
-  <requires>
-    <import addon="os.libreelec.tv" version="7.0"/>
-    <import addon="xbmc.python" version="2.1.0"/>
-
-  </requires>
-  <extension point="xbmc.service" library="default.py">
-    <provides></provides>
-  </extension>
-  <extension point="xbmc.addon.metadata">
-    <summary>transmission: a fast, easy and free BitTorrent client</summary>
-    <description>
-transmission is a fast, easy and free BitTorrent client
-    </description>
-    <disclaimer>
-
-    </disclaimer>
-    <platform>all</platform>
-  </extension>
-</addon>
-
 <addon id="service.hyperion"
        name="Hyperion"
        version="7.0.101"
@@ -3540,6 +3490,32 @@ VDR(2.2.0) is a TV streaming server for Linux supporting DVB-S/S2, DVB-C, DVB-T/
   </extension>
 </addon>
 
+<addon id="service.rTorrent"
+       name="rTorrent"
+       version="7.0.1"
+       provider-name="Daniel Forsberg (jenkins101)">
+  <requires>
+    <import addon="os.libreelec.tv" version="7.0"/>
+    <import addon="xbmc.python" version="2.1.0"/>
+
+    <import addon="tools.php" version="0.0.0" />
+    <import addon="tools.dtach" version="0.0.0" />
+  </requires>
+  <extension point="xbmc.service" library="default.py">
+    <provides></provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary>rTorrent: This is the free BitTorrent client rtorrent packed for OpenELEC</summary>
+    <description>
+rTorrent BitTorrent client can handle multiple watch dirs and post actions. [CR][CR]After changing settings you need to disable and re-enable the addon. [CR][CR]How this addon is intended to work: [CR][CR]You add base dirs. [CR]torrents: /storage/downloads/torrents/ [CR]downloads: /storage/downloads [CR]complete: /storege [CR][CR]then you add watch dirs separated by: ,[CR]videos,tvshows,music [CR][CR]What will happen then is: [CR][CR]Directories will be created if they dont exist: [CR]/storage/downloads/torrents/videos [CR]/storage/downloads/videos [CR]/storege/videos [CR][CR]then rtorrent will start detached. [CR][CR]Now if you add a torrent file to: /storage/downloads/torrents/videos it will be downloaded to /storage/downloads/videos [CR][CR]On completion it will be Linked or Moved to /storege/videos [CR][CR]The same for every watch dir added... [CR][CR]Nice ha...
+    </description>
+    <disclaimer>
+
+    </disclaimer>
+    <platform>all</platform>
+  </extension>
+</addon>
+
 <addon id="service.softcam.oscam"
        name="OSCam"
        version="7.0.100"
@@ -3604,6 +3580,30 @@ Inadyn is a small and simple DDNS client with HTTPS support. It is commonly avai
     <summary>tinc Virtual Private Network Daemon</summary>
     <description>
 tinc is a virtual private network (VPN) daemon that uses tunnelling and encryption to create a secure private network between hosts on the Internet. Because the VPN appears to the IP level network code as a normal network device, there is no need to adapt any existing software. This allows VPN sites to share information with each other over the Internet without exposing any information to others.
+    </description>
+    <disclaimer>
+
+    </disclaimer>
+    <platform>all</platform>
+  </extension>
+</addon>
+
+<addon id="service.transmission"
+       name="transmission"
+       version="7.0.1"
+       provider-name="unofficial.addon.pro">
+  <requires>
+    <import addon="os.libreelec.tv" version="7.0"/>
+    <import addon="xbmc.python" version="2.1.0"/>
+
+  </requires>
+  <extension point="xbmc.service" library="default.py">
+    <provides></provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary>transmission: a fast, easy and free BitTorrent client</summary>
+    <description>
+transmission is a fast, easy and free BitTorrent client
     </description>
     <disclaimer>
 
