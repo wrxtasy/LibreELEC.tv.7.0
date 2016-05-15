@@ -612,7 +612,7 @@ Install this to add support for HDHomeRun devices.
 
 <addon id="driver.dvb.sundtek-mediatv"
        name="Sundtek MediaTV"
-       version="7.0.101"
+       version="7.0.102"
        provider-name="libreelec.tv">
   <requires>
     <import addon="os.libreelec.tv" version="7.0"/>
