@@ -3708,6 +3708,30 @@ This bundle currently includes bwm-ng, iftop, iperf, irssi, iw, lftp, ncftp, ngr
   </extension>
 </addon>
 
+<addon id="virtual.system-tools"
+       name="System Tools"
+       version="7.0.100"
+       provider-name="libreelec.tv">
+  <requires>
+    <import addon="os.libreelec.tv" version="7.0"/>
+    <import addon="xbmc.python" version="2.1.0"/>
+
+  </requires>
+  <extension point="xbmc.python.script" library="default.py">
+    <provides></provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary>A bundle of system tools and programs</summary>
+    <description>
+This bundle currently includes autossh, diffutils, dtach, efibootmgr, evtest, fdupes, file, getscancodes, hddtemp, hd-idle, hid_mapper, i2c-tools, jq, lshw, mrxvt, mtpfs, p7zip, patch, pv, screen, strace, unrar and usb-modeswitch.
+    </description>
+    <disclaimer>
+
+    </disclaimer>
+    <platform>all</platform>
+  </extension>
+</addon>
+
 <addon
   id="visualization.shadertoy"
   version="1.0.6"
