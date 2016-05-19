@@ -3498,8 +3498,6 @@ VDR(2.2.0) is a TV streaming server for Linux supporting DVB-S/S2, DVB-C, DVB-T/
     <import addon="os.libreelec.tv" version="7.0"/>
     <import addon="xbmc.python" version="2.1.0"/>
 
-    <import addon="tools.php" version="0.0.0" />
-    <import addon="tools.dtach" version="0.0.0" />
   </requires>
   <extension point="xbmc.service" library="default.py">
     <provides></provides>
