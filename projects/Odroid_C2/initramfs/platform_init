@@ -45,10 +45,13 @@ case $mode in
   1600x900p60hz*)  export X=1600 Y=900  ;;
   1680x1050p60hz*) export X=1680 Y=1050 ;;
   1920x1200p60hz*) export X=1920 Y=1200 ;;
+  2560x1080p60hz*) export X=2560 Y=1080 ;;
+  2560x1440p60hz*) export X=2560 Y=1440 ;;
+  2560x1600p60hz*) export X=1920 Y=1600 ;;
 esac
 
 common_display_setup
 
 # Console unblack
 echo 0 > /sys/class/graphics/fb0/blank
-echo 0 > /sys/class/graphics/fb1/blank
+echo 1 > /sys/class/graphics/fb1/blank
