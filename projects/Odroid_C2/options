@@ -102,7 +102,9 @@
   # for a list of additinoal drivers see packages/linux-drivers
   # Space separated list is supported,
   # e.g. ADDITIONAL_DRIVERS="DRIVER1 DRIVER2"
-    ADDITIONAL_DRIVERS="RTL8192CU RTL8192DU RTL8188EU RTL8192EU RTL8812AU"
+
+  # Revert LE Wireless drivers and use HK working drivers
+  # ADDITIONAL_DRIVERS="RTL8192CU RTL8192DU RTL8188EU RTL8192EU RTL8812AU"
 
   # additional Firmware to use (dvb-firmware, misc-firmware, wlan-firmware)
   # Space separated list is supported,
@@ -138,5 +140,4 @@
 
   # set the addon dirs
     ADDON_PATH="addons/$ADDON_VERSION/$PROJECT/$TARGET_ARCH"
-    ADDON_URL="wrxtasy.libreeelec.tv/$ADDON_PATH"
-  #  ADDON_URL="https://www.dropbox.com/sh/0o6ai6pexdq9bh3/AABVublHsJ7I6d-fdqxgKqZsa?dl=0"
+    ADDON_URL="$ADDON_SERVER_URL/$ADDON_PATH"

@@ -57,10 +57,10 @@
   KODI_DVDCSS_SUPPORT="yes"
 
 # additional drivers to install:
-# for a list of additinoal drivers see packages/linux-drivers
+# for a list of additional drivers see packages/linux-drivers
 # Space separated list is supported,
 # e.g. ADDITIONAL_DRIVERS="DRIVER1 DRIVER2"
-  ADDITIONAL_DRIVERS="RTL8192CU RTL8192DU RTL8192EU RTL8188EU RTL8812AU dvbhdhomerun"
+  ADDITIONAL_DRIVERS="dvbhdhomerun"
 
 # build and install bluetooth support (yes / no)
   BLUETOOTH_SUPPORT="yes"
@@ -196,7 +196,7 @@
   DISTRO_SRC="http://sources.libreelec.tv/$LIBREELEC_VERSION"
 
 # Addon Server Url
-  ADDON_SERVER_URL="http://addons.libreelec.tv"
+  ADDON_SERVER_URL="https://raw.github.com/wrxtasy/LibreELEC.tv.7.0/LE-7.0.Addons"
 
 # set the addon dirs
   ADDON_PATH="$ADDON_VERSION/$PROJECT/$TARGET_ARCH"
