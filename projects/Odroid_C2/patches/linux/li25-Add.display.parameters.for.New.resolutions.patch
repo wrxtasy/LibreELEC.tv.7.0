@@ -1,0 +1,61 @@
+From e073002f31de5991af4020faf61786d16657f3f8 Mon Sep 17 00:00:00 2001
+From: Joy Cho <joy.cho@hardkernel.com>
+Date: Tue, 24 May 2016 11:55:09 +0900
+Subject: [PATCH] ODROID-C2: Add display param. for new resolutions
+
+- 2560x1440
+- 2560x1600
+- 2560x1080
+
+Change-Id: I474897604d91f2d96ec23e384f5b449da2e4b1c6
+---
+ drivers/amlogic/display/logo/logo.c  |  3 +++
+ drivers/amlogic/display/osd/osd_fb.c | 21 +++++++++++++++++++++
+ 2 files changed, 24 insertions(+)
+
+diff --git a/drivers/amlogic/display/logo/logo.c b/drivers/amlogic/display/logo/logo.c
+index a11301b..419f861 100644
+--- a/drivers/amlogic/display/logo/logo.c
++++ b/drivers/amlogic/display/logo/logo.c
+@@ -71,6 +71,9 @@ static struct para_pair_s mode_infos[] = {
+ 	{"1600x900p60hz", TVMODE_1600x900p60hz},
+ 	{"1680x1050p60hz", TVMODE_1680x1050p60hz},
+ 	{"1920x1200p60hz", TVMODE_1920x1200p60hz},
++	{"2560x1440p60hz", TVMODE_2560x1440p60hz},
++	{"2560x1600p60hz", TVMODE_2560x1600p60hz},
++	{"2560x1080p60hz", TVMODE_2560x1080p60hz},
+ 	{"480cvbs", VMODE_480CVBS},
+ 	{"576cvbs", VMODE_576CVBS},
+ 	{"480i60hz", VMODE_480I},
+diff --git a/drivers/amlogic/display/osd/osd_fb.c b/drivers/amlogic/display/osd/osd_fb.c
+index ba38d401..ac1cfba 100644
+--- a/drivers/amlogic/display/osd/osd_fb.c
++++ b/drivers/amlogic/display/osd/osd_fb.c
+@@ -393,6 +393,27 @@ static int osd_set_res_bootargs(int index, enum vmode_e mode)
+ 		fb_def_var[index].yres_virtual = 2400;
+ 		fb_def_var[index].bits_per_pixel = 32;
+ 		break;
++	case TVMODE_2560x1440p60hz:
++		fb_def_var[index].xres = 2560;
++		fb_def_var[index].yres = 1440;
++		fb_def_var[index].xres_virtual = 2560;
++		fb_def_var[index].yres_virtual = 2880;
++		fb_def_var[index].bits_per_pixel = 32;
++		break;
++	case TVMODE_2560x1600p60hz:
++		fb_def_var[index].xres = 2560;
++		fb_def_var[index].yres = 1600;
++		fb_def_var[index].xres_virtual = 2560;
++		fb_def_var[index].yres_virtual = 3200;
++		fb_def_var[index].bits_per_pixel = 32;
++		break;
++	case TVMODE_2560x1080p60hz:
++		fb_def_var[index].xres = 2560;
++		fb_def_var[index].yres = 1080;
++		fb_def_var[index].xres_virtual = 2560;
++		fb_def_var[index].yres_virtual = 2160;
++		fb_def_var[index].bits_per_pixel = 32;
++		break;
+ 	case VMODE_480P:
+ 	case VMODE_480I:
+ 		fb_def_var[index].xres = 720;

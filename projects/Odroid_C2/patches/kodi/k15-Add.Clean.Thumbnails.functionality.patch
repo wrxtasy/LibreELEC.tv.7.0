@@ -276,11 +276,13 @@ diff --git a/xbmc/settings/Settings.h b/xbmc/settings/Settings.h
 index 55e150d..0266332 100644
 --- a/xbmc/settings/Settings.h
 +++ b/xbmc/settings/Settings.h
-@@ -364,6 +364,7 @@ public:
+@@ -364,6 +366,8 @@ public:
    static const std::string SETTING_GENERAL_ADDONNOTIFICATIONS;
    static const std::string SETTING_GENERAL_ADDONFOREIGNFILTER;
    static const std::string SETTING_GENERAL_ADDONBROKENFILTER;
 +  static const std::string SETTING_THUMBNAILS_CLEANUP;
++
  
    /*!
     \brief Creates a new settings wrapper around a new settings manager.
+

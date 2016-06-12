@@ -1,0 +1,61 @@
+From b773a3ef0218e4cfdaec876b88e441295faeede7 Mon Sep 17 00:00:00 2001
+From: janbar <jlbarriere68@gmail.com>
+Date: Sat, 23 Apr 2016 11:10:56 +0200
+Subject: [PATCH] fix crash returning wrong type for CEpgPtr
+
+0x00007fd0b2db6558 in vtable for __cxxabiv1::__si_class_type_info () from /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+0x0000000000f98c21 in PVR::CPVRChannel::GetEPG (this=0x7fd004076530) at PVRChannel.cpp:175
+---
+ xbmc/epg/EpgContainer.cpp        | 8 ++++----
+ xbmc/pvr/channels/PVRChannel.cpp | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/xbmc/epg/EpgContainer.cpp b/xbmc/epg/EpgContainer.cpp
+index 279d920..7574ef9 100644
+--- a/xbmc/epg/EpgContainer.cpp
++++ b/xbmc/epg/EpgContainer.cpp
+@@ -389,11 +389,11 @@ void CEpgContainer::Process(void)
+ CEpgPtr CEpgContainer::GetById(int iEpgId) const
+ {
+   if (iEpgId < 0)
+-    return NULL;
++    return CEpgPtr();
+ 
+   CSingleLock lock(m_critSection);
+   const auto &epgEntry = m_epgs.find((unsigned int) iEpgId);
+-  return epgEntry != m_epgs.end() ? epgEntry->second : NULL;
++  return epgEntry != m_epgs.end() ? epgEntry->second : CEpgPtr();
+ }
+ 
+ CEpgInfoTagPtr CEpgContainer::GetTagById(unsigned int iBroadcastId) const
+@@ -415,7 +415,7 @@ CEpgPtr CEpgContainer::GetByChannel(const CPVRChannel &channel) const
+       return epgEntry.second;
+   }
+ 
+-  return NULL;
++  return CEpgPtr();
+ }
+ 
+ void CEpgContainer::InsertFromDatabase(int iEpgID, const std::string &strName, const std::string &strScraperName)
+@@ -447,7 +447,7 @@ void CEpgContainer::InsertFromDatabase(int iEpgID, const std::string &strName, c
+ CEpgPtr CEpgContainer::CreateChannelEpg(CPVRChannelPtr channel)
+ {
+   if (!channel)
+-    return NULL;
++    return CEpgPtr();
+ 
+   WaitForUpdateFinish(true);
+   LoadFromDB();
+diff --git a/xbmc/pvr/channels/PVRChannel.cpp b/xbmc/pvr/channels/PVRChannel.cpp
+index 9957537..a2b158f 100644
+--- a/xbmc/pvr/channels/PVRChannel.cpp
++++ b/xbmc/pvr/channels/PVRChannel.cpp
+@@ -171,7 +171,7 @@ CEpgPtr CPVRChannel::GetEPG(void) const
+       iEpgId = m_iEpgId;
+   }
+ 
+-  return iEpgId > 0 ? g_EpgContainer.GetById(iEpgId) : NULL;
++  return iEpgId > 0 ? g_EpgContainer.GetById(iEpgId) : CEpgPtr();
+ }
+ 
+ bool CPVRChannel::UpdateFromClient(const CPVRChannelPtr &channel)

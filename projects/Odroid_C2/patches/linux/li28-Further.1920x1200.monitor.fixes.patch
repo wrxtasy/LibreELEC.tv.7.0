@@ -1,0 +1,258 @@
+From 410234c2d63e531af568866dba62473ffa9e2940 Mon Sep 17 00:00:00 2001
+From: Phil Endecott <git@chezphil.org>
+Date: Mon, 30 May 2016 11:53:07 +0900
+Subject: [PATCH] Modify 1920x1200 video mode to use reduced blanking, for
+ compatibility with monitors whose maximum pixel clock rate is too low for the
+ normal mode.
+
+Change-Id: I560165b0c3c1cc938e103e2c63daca47d21d0834
+---
+ drivers/amlogic/clk/gxbb_hdmi_clk.c                | 17 ++++++++++++++-
+ drivers/amlogic/display/vout/tv_vout.h             |  2 +-
+ drivers/amlogic/display/vout/tvregs.h              |  1 +
+ drivers/amlogic/hdmi/hdmi_common/hdmi_parameters.c | 24 +++++++++++-----------
+ 4 files changed, 30 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/amlogic/clk/gxbb_hdmi_clk.c b/drivers/amlogic/clk/gxbb_hdmi_clk.c
+index c6b6eb2..a1438e4 100644
+--- a/drivers/amlogic/clk/gxbb_hdmi_clk.c
++++ b/drivers/amlogic/clk/gxbb_hdmi_clk.c
+@@ -127,6 +127,7 @@ static struct amlogic_pll_rate_table hpll_phy_tbl[] = {
+ 	HPLL_FVCO_RATE(2685000, 0x6f, 0x1, 1, 0),
+ 	HPLL_FVCO_RATE(1936200, 0x50, 0x1, 1, 0),
+ 	HPLL_FVCO_RATE(1855800, 0x4d, 0x1, 1, 0),
++	HPLL_FVCO_RATE(1540000, 0x40, 0x1, 1, 0),
+ 	HPLL_FVCO_RATE(1485000, 0x3d, 0x1, 1, 0),
+ 	HPLL_FVCO_RATE(1463600, 0x79, 0x1, 1, 1),
+ 	HPLL_FVCO_RATE(1081700, 0x5a, 0x1, 1, 1),
+@@ -153,6 +154,7 @@ static struct vid_clk_table vid_clk_tbl[] = {
+ 	VID_CLK(148500, 1485000, 0, 1, DIV_5, 1),
+ 	VID_CLK(193620, 1936200, 0, 1, DIV_5, 1),
+ 	VID_CLK(185580, 1855800, 0, 1, DIV_5, 1),
++	VID_CLK(154000, 1540000, 0, 1, DIV_5, 1),
+ 	VID_CLK(146360, 1463600, 0, 1, DIV_5, 1),
+ 	VID_CLK(108000, 1080000, 0, 1, DIV_5, 1),
+ 	VID_CLK(106700, 1067000, 0, 1, DIV_5, 1),
+@@ -494,7 +496,18 @@ static int	hpll_clk_set(struct clk_hw *hw, unsigned long drate,
+ 			readl(hiu_base + HHI_HDMI_PLL_CNTL));
+ 		hdmi_update_bits(HHI_HDMI_PLL_CNTL2, 0xffff, 0x4e00);
+ 		break;
+-
++	case 1540000:
++		writel(0x58000240, hiu_base + HHI_HDMI_PLL_CNTL);
++		writel(0x00000000, hiu_base + HHI_HDMI_PLL_CNTL2);
++		writel(0x0d5c5091, hiu_base + HHI_HDMI_PLL_CNTL3);
++		writel(0x801da72c, hiu_base + HHI_HDMI_PLL_CNTL4);
++		writel(0x71486980, hiu_base + HHI_HDMI_PLL_CNTL5);
++		writel(0x00000e55, hiu_base + HHI_HDMI_PLL_CNTL6);
++		set_pll(rate_tbl);
++		pr_info("hpll reg: 0x%x\n",
++			readl(hiu_base + HHI_HDMI_PLL_CNTL));
++		/* Don't know if this is needed. */
++		hdmi_update_bits(HHI_HDMI_PLL_CNTL2, 0xffff, 0x4e00);
+ 	default:
+ 		pr_info("wrong drate %ld\n", drate);
+ 		break;
+@@ -765,6 +778,7 @@ static struct cts_encx_table cts_encp_tbl[] = {
+ 	CTS_XXX_TBL(148500, 148500, 1, 1),
+ 	CTS_XXX_TBL(193620, 193620, 1, 1),
+ 	CTS_XXX_TBL(185580, 185580, 1, 1),
++	CTS_XXX_TBL(154000, 154000, 1, 1),
+ 	CTS_XXX_TBL(146360, 146360, 1, 1),
+ 	CTS_XXX_TBL(108000, 108000, 1, 1),
+ 	CTS_XXX_TBL(106700, 106700, 1, 1),
+@@ -795,6 +809,7 @@ static struct cts_encx_table cts_pixel_tbl[] = {
+ 	CTS_XXX_TBL(148500, 148500, 1, 1),
+ 	CTS_XXX_TBL(193620, 193620, 1, 1),
+ 	CTS_XXX_TBL(185580, 185580, 1, 1),
++	CTS_XXX_TBL(154000, 154000, 1, 1),
+ 	CTS_XXX_TBL(146360, 146360, 1, 1),
+ 	CTS_XXX_TBL(108000, 108000, 1, 1),
+ 	CTS_XXX_TBL(106700, 106700, 1, 1),
+diff --git a/drivers/amlogic/display/vout/tv_vout.h b/drivers/amlogic/display/vout/tv_vout.h
+index b301cca..3a333c9 100644
+--- a/drivers/amlogic/display/vout/tv_vout.h
++++ b/drivers/amlogic/display/vout/tv_vout.h
+@@ -1080,7 +1080,7 @@ static struct vinfo_s tv_info[] = {
+ 		.aspect_ratio_den  = 5,
+ 		.sync_duration_num = 60,
+ 		.sync_duration_den = 1,
+-		.video_clk         = 193250000,
++		.video_clk         = 154000000,
+ 	},
+ 	{
+ 		.name              = "2560x1440p60hz",
+diff --git a/drivers/amlogic/display/vout/tvregs.h b/drivers/amlogic/display/vout/tvregs.h
+index dad0553..bf5286f 100644
+--- a/drivers/amlogic/display/vout/tvregs.h
++++ b/drivers/amlogic/display/vout/tvregs.h
+@@ -436,6 +436,7 @@ static const struct reg_s tvregs_vesa_1680x1050p_enc[] = {
+ };
+ 
+ static const struct reg_s tvregs_vesa_1920x1200p_enc[] = {
++	{MREG_END_MARKER,            0      }
+ };
+ 
+ static const struct reg_s tvregs_vesa_2560x1440_enc[] = {
+diff --git a/drivers/amlogic/hdmi/hdmi_common/hdmi_parameters.c b/drivers/amlogic/hdmi/hdmi_common/hdmi_parameters.c
+index a7eeece..9796062 100644
+--- a/drivers/amlogic/hdmi/hdmi_common/hdmi_parameters.c
++++ b/drivers/amlogic/hdmi/hdmi_common/hdmi_parameters.c
+@@ -1078,25 +1078,25 @@ static struct hdmi_format_para fmt_para_vesa_1920x1200p60_8x5 = {
+ 	.progress_mode = 1,
+ 	.scrambler_en = 0,
+ 	.tmds_clk_div40 = 0,
+-	.tmds_clk = 193250,
++	.tmds_clk = 154000,
+ 	.timing = {
+-		.pixel_freq = 193250,
+-		.h_freq = 74700,
++		.pixel_freq = 154000,
++		.h_freq = 74040,
+ 		.v_freq = 60000,
+-		.vsync_polarity = 1,
++		.vsync_polarity = 0,
+ 		.hsync_polarity = 1,
+ 		.h_active = 1920,
+-		.h_total = 2592,
+-		.h_blank = 672,
+-		.h_front = 136,
+-		.h_sync = 200,
+-		.h_back = 336,
++		.h_total = 2080,
++		.h_blank = 160,
++		.h_front = 48,
++		.h_sync = 32,
++		.h_back = 80,
+ 		.v_active = 1200,
+-		.v_total = 1245,
+-		.v_blank = 45,
++		.v_total = 1235,
++		.v_blank = 35,
+ 		.v_front = 3,
+ 		.v_sync = 6,
+-		.v_back = 36,
++		.v_back = 26,
+ 		.v_sync_ln = 1,
+ 	},
+ };
+From d6312439eeefbbb9d909b9885d888c0873ad4ec2 Mon Sep 17 00:00:00 2001
+From: Joy Cho <joy.cho@hardkernel.com>
+Date: Mon, 30 May 2016 11:58:55 +0900
+Subject: [PATCH] ODROID-C2: Adjust M value of hdmi pll control for 1920x1200
+
+- pixel clock : 154MHz
+- H clock : 74KHz
+- V clock : 60Hz
+
+Change-Id: I2db5581eac7a74ef2fef408cc5b4b868dd383e9b
+---
+ drivers/amlogic/clk/gxbb_hdmi_clk.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/amlogic/clk/gxbb_hdmi_clk.c b/drivers/amlogic/clk/gxbb_hdmi_clk.c
+index a1438e4..fa137ff 100644
+--- a/drivers/amlogic/clk/gxbb_hdmi_clk.c
++++ b/drivers/amlogic/clk/gxbb_hdmi_clk.c
+@@ -127,7 +127,7 @@ static struct amlogic_pll_rate_table hpll_phy_tbl[] = {
+ 	HPLL_FVCO_RATE(2685000, 0x6f, 0x1, 1, 0),
+ 	HPLL_FVCO_RATE(1936200, 0x50, 0x1, 1, 0),
+ 	HPLL_FVCO_RATE(1855800, 0x4d, 0x1, 1, 0),
+-	HPLL_FVCO_RATE(1540000, 0x40, 0x1, 1, 0),
++	HPLL_FVCO_RATE(1540000, 0x3f, 0x1, 1, 0),
+ 	HPLL_FVCO_RATE(1485000, 0x3d, 0x1, 1, 0),
+ 	HPLL_FVCO_RATE(1463600, 0x79, 0x1, 1, 1),
+ 	HPLL_FVCO_RATE(1081700, 0x5a, 0x1, 1, 1),
+@@ -497,7 +497,7 @@ static int	hpll_clk_set(struct clk_hw *hw, unsigned long drate,
+ 		hdmi_update_bits(HHI_HDMI_PLL_CNTL2, 0xffff, 0x4e00);
+ 		break;
+ 	case 1540000:
+-		writel(0x58000240, hiu_base + HHI_HDMI_PLL_CNTL);
++		writel(0x5800023f, hiu_base + HHI_HDMI_PLL_CNTL);
+ 		writel(0x00000000, hiu_base + HHI_HDMI_PLL_CNTL2);
+ 		writel(0x0d5c5091, hiu_base + HHI_HDMI_PLL_CNTL3);
+ 		writel(0x801da72c, hiu_base + HHI_HDMI_PLL_CNTL4);
+From e4a32d13aa6630c12e7c4f5e7343d8faa5806983 Mon Sep 17 00:00:00 2001
+From: Joy Cho <joy.cho@hardkernel.com>
+Date: Tue, 7 Jun 2016 15:44:03 +0900
+Subject: [PATCH] Add some missed hdmi pll configuration for 1920x1200 video
+ mode
+
+- Modify 1920x1200 video mode to use reduced blanking
+
+Change-Id: I305a0e1ceaea1c943fbc3c6ff6654531a87bdaa1
+(cherry picked from commit d5b827f06d39624770accdc874f177d72a3e4724)
+---
+ drivers/amlogic/hdmi/hdmi_tx_20/hw/enc_cfg_hw.c | 24 ++++++++++++------------
+ drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c | 14 +++++++-------
+ 2 files changed, 19 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_20/hw/enc_cfg_hw.c b/drivers/amlogic/hdmi/hdmi_tx_20/hw/enc_cfg_hw.c
+index 375896d..6093417 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_20/hw/enc_cfg_hw.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_20/hw/enc_cfg_hw.c
+@@ -885,18 +885,18 @@ static const struct reg_s tvregs_vesa_1920x1200p60hz[] = {
+ 
+ 	{P_ENCP_VIDEO_MODE, 0x4040,},
+ 	{P_ENCP_VIDEO_MODE_ADV, 0x18,},
+-	{P_ENCP_VIDEO_MAX_PXCNT, 0xA1F,},
+-	{P_ENCP_VIDEO_MAX_LNCNT, 0x4DC,},
+-	{P_ENCP_VIDEO_HAVON_BEGIN, 0x218,},
+-	{P_ENCP_VIDEO_HAVON_END, 0x997,},
+-	{P_ENCP_VIDEO_VAVON_BLINE, 0x2A,},
+-	{P_ENCP_VIDEO_VAVON_ELINE, 0x4D9,},
+-	{P_ENCP_VIDEO_HSO_BEGIN, 0x0,},
+-	{P_ENCP_VIDEO_HSO_END, 0xC8,},
+-	{P_ENCP_VIDEO_VSO_BEGIN, 0x1E,},
+-	{P_ENCP_VIDEO_VSO_END, 0x32,},
+-	{P_ENCP_VIDEO_VSO_BLINE, 0x0,},
+-	{P_ENCP_VIDEO_VSO_ELINE, 0x6,},
++	{P_ENCP_VIDEO_MAX_PXCNT,   2079,},
++	{P_ENCP_VIDEO_MAX_LNCNT,   1234,},
++	{P_ENCP_VIDEO_HAVON_BEGIN,  112,},
++	{P_ENCP_VIDEO_HAVON_END,   2031,},
++	{P_ENCP_VIDEO_VAVON_BLINE,   32,},
++	{P_ENCP_VIDEO_VAVON_ELINE, 1231,},
++	{P_ENCP_VIDEO_HSO_BEGIN,      0,},
++	{P_ENCP_VIDEO_HSO_END,       48,},
++	{P_ENCP_VIDEO_VSO_BEGIN,   0x1E,},
++	{P_ENCP_VIDEO_VSO_END,     0x32,},
++	{P_ENCP_VIDEO_VSO_BLINE,      0,},
++	{P_ENCP_VIDEO_VSO_ELINE,      6,},
+ 
+ 	{P_ENCP_DACSEL_0, 0x0543,},
+ 	{P_ENCP_DACSEL_1, 0x0000,},
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c b/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c
+index b527b83..2d5bd0b 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_20/hw/hdmi_tx_hw.c
+@@ -353,7 +353,7 @@ static struct hdmitx_clk hdmitx_clk[] = {
+ 	{HDMIV_1440x900p60hz, 24000, 1067000, 106700, 106700, -1, 106700},
+ 	{HDMIV_1600x900p60hz, 24000, 1080000, 108000, 108000, -1, 108000},
+ 	{HDMIV_1680x1050p60hz, 24000, 1463600, 146360, 146360, -1, 146360},
+-	{HDMIV_1920x1200p60hz, 24000, 1936200, 193620, 193620, -1, 193620},
++	{HDMIV_1920x1200p60hz, 24000, 1540000, 154000, 154000, -1, 154000},
+ 	{HDMIV_2560x1440p60hz, 24000, 2415000, 241500, 241500, -1, 241500},
+ 	{HDMIV_2560x1600p60hz, 24000, 2685000, 268500, 268500, -1, 268500},
+ 	{HDMIV_2560x1080p60hz, 24000, 1855800, 185580, 185580, -1, 185580},
+@@ -1511,14 +1511,14 @@ static void hdmi_tvenc_set(struct hdmitx_vidpara *param)
+ 		PIXEL_REPEAT_HDMI   = 0;
+ 		ACTIVE_PIXELS       = 1920;
+ 		ACTIVE_LINES        = 1200;
+-		LINES_F0            = 1245;
+-		LINES_F1            = 1245;
+-		FRONT_PORCH         = 136;
+-		HSYNC_PIXELS        = 200;
+-		BACK_PORCH          = 336;
++		LINES_F0            = 1235;
++		LINES_F1            = 1235;
++		FRONT_PORCH         = 48;
++		HSYNC_PIXELS        = 32;
++		BACK_PORCH          = 80;
+ 		EOF_LINES           = 3;
+ 		VSYNC_LINES         = 6;
+-		SOF_LINES           = 36;
++		SOF_LINES           = 26;
+ 		break;
+ 	case HDMIV_2560x1440p60hz:
+ 		INTERLACE_MODE      = 0;

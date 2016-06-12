@@ -1,0 +1,85 @@
+From 2587af41df84cd7eb7060eaf782ff6898d768af0 Mon Sep 17 00:00:00 2001
+From: "Mauro (mdrjr) Ribeiro" <mauro.ribeiro@hardkernel.com>
+Date: Tue, 24 May 2016 13:26:30 +0900
+Subject: [PATCH] amlogic/video: allow write access to those entries
+
+Those entries are required by Kodi
+
+Change-Id: I74ef0fd12cd773affcc04c8327708825cab28577
+---
+ drivers/amlogic/amports/tsync.c            | 2 +-
+ drivers/amlogic/amports/video.c            | 6 +++---
+ drivers/amlogic/audiodsp/audiodsp_module.c | 2 +-
+ drivers/amlogic/ppmgr/ppmgr_drv.c          | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/amlogic/amports/tsync.c b/drivers/amlogic/amports/tsync.c
+index b98b2ea..7cc6816 100644
+--- a/drivers/amlogic/amports/tsync.c
++++ b/drivers/amlogic/amports/tsync.c
+@@ -1786,7 +1786,7 @@ static struct class_attribute tsync_class_attrs[] = {
+ 	__ATTR(pts_audio, S_IRUGO | S_IWUSR | S_IWGRP, show_apts, store_apts),
+ 	__ATTR(dobly_av_sync, S_IRUGO | S_IWUSR | S_IWGRP, dobly_show_sync,
+ 	dobly_store_sync),
+-	__ATTR(pts_pcrscr, S_IRUGO | S_IWUSR | S_IWGRP, show_pcrscr,
++	__ATTR(pts_pcrscr, 0666, show_pcrscr,
+ 	store_pcrscr),
+ 	__ATTR(event, S_IRUGO | S_IWUSR | S_IWGRP, NULL, store_event),
+ 	__ATTR(mode, S_IRUGO | S_IWUSR | S_IWGRP, show_mode, store_mode),
+diff --git a/drivers/amlogic/amports/video.c b/drivers/amlogic/amports/video.c
+index 0c385f8..24361df 100644
+--- a/drivers/amlogic/amports/video.c
++++ b/drivers/amlogic/amports/video.c
+@@ -6406,7 +6406,7 @@ static ssize_t show_first_frame_nosync_store(struct class *cla,
+ 
+ static struct class_attribute amvideo_class_attrs[] = {
+ 	__ATTR(axis,
+-	       S_IRUGO | S_IWUSR | S_IWGRP,
++	       0666,
+ 	       video_axis_show,
+ 	       video_axis_store),
+ 	__ATTR(crop,
+@@ -6418,7 +6418,7 @@ static struct class_attribute amvideo_class_attrs[] = {
+ 	       video_global_offset_show,
+ 	       video_global_offset_store),
+ 	__ATTR(screen_mode,
+-	       S_IRUGO | S_IWUSR | S_IWGRP,
++	       0666,
+ 	       video_screen_mode_show,
+ 	       video_screen_mode_store),
+ 	__ATTR(blackout_policy,
+@@ -6426,7 +6426,7 @@ static struct class_attribute amvideo_class_attrs[] = {
+ 	       video_blackout_policy_show,
+ 	       video_blackout_policy_store),
+ 	__ATTR(disable_video,
+-	       S_IRUGO | S_IWUSR | S_IWGRP,
++	       0666,
+ 	       video_disable_show,
+ 	       video_disable_store),
+ 	__ATTR(zoom,
+diff --git a/drivers/amlogic/audiodsp/audiodsp_module.c b/drivers/amlogic/audiodsp/audiodsp_module.c
+index 8e45468..b30f8dd1 100644
+--- a/drivers/amlogic/audiodsp/audiodsp_module.c
++++ b/drivers/amlogic/audiodsp/audiodsp_module.c
+@@ -1122,7 +1122,7 @@ static struct class_attribute audiodsp_attrs[] = {
+ 	       codec_fatal_err_show, codec_fatal_err_store),
+ 	/* __ATTR_RO(swap_buf_ptr), */
+ 	/* __ATTR_RO(dsp_working_status), */
+-	__ATTR(digital_raw, S_IRUGO | S_IWUSR | S_IWGRP, digital_raw_show,
++	__ATTR(digital_raw, 0666, digital_raw_show,
+ 	       digital_raw_store),
+ 	__ATTR(digital_codec, S_IRUGO | S_IWUSR | S_IWGRP, digital_codec_show,
+ 	       digital_codec_store),
+diff --git a/drivers/amlogic/ppmgr/ppmgr_drv.c b/drivers/amlogic/ppmgr/ppmgr_drv.c
+index 09ef05d..984469b 100644
+--- a/drivers/amlogic/ppmgr/ppmgr_drv.c
++++ b/drivers/amlogic/ppmgr/ppmgr_drv.c
+@@ -1073,7 +1073,7 @@ __ATTR(orientation,
+ 		receiver_write),
+ #ifdef CONFIG_POST_PROCESS_MANAGER_3D_PROCESS
+ 	__ATTR(ppmgr_3d_mode,
+-		S_IRUGO | S_IWUSR,
++		S_IRUGO | S_IWUGO,
+ 		_3dmode_read,
+ 		_3dmode_write),
+ 	__ATTR(viewmode,

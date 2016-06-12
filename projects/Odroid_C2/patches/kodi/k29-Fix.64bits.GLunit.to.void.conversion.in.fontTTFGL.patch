@@ -1,0 +1,19 @@
+commit a326c1a37e9bd21e152bdc80ad200c1f990f0732
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Mon May 30 13:59:11 2016 +0800
+
+    FIX: [64bits] GLuint <-> void* conversion in fontTTFGL
+
+diff --git a/xbmc/guilib/GUIFontTTFGL.cpp b/xbmc/guilib/GUIFontTTFGL.cpp
+index 0705132..96448cd 100644
+--- a/xbmc/guilib/GUIFontTTFGL.cpp
++++ b/xbmc/guilib/GUIFontTTFGL.cpp
+@@ -232,7 +232,7 @@ void CGUIFontTTFGL::LastEnd()
+       glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glMatrixModview.Get());
+ 
+       // Bind the buffer to the OpenGL context's GL_ARRAY_BUFFER binding point
+-      glBindBuffer(GL_ARRAY_BUFFER, (unsigned long) m_vertexTrans[i].vertexBuffer->bufferHandle);
++      glBindBuffer(GL_ARRAY_BUFFER, (GLuint) ((long)(m_vertexTrans[i].vertexBuffer->bufferHandle) & 0xffff));
+ 
+       // Do the actual drawing operation, split into groups of characters no
+       // larger than the pre-determined size of the element array
