@@ -104,7 +104,7 @@
   # e.g. ADDITIONAL_DRIVERS="DRIVER1 DRIVER2"
 
   # Revert LE Wireless drivers and use HK working drivers
-  # ADDITIONAL_DRIVERS=""
+    ADDITIONAL_DRIVERS=""
 
   # additional Firmware to use (dvb-firmware, misc-firmware, wlan-firmware)
   # Space separated list is supported,
