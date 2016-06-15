@@ -1,0 +1,42 @@
+From c8e1baf6a5b962ffa6696112cbd07b3fe6f876b5 Mon Sep 17 00:00:00 2001
+From: Pablo <pablo@localhost.localdomain>
+Date: Wed, 15 Jun 2016 12:05:53 +0200
+Subject: [PATCH] Enable hdmitx=forcergb on kernel boot in attempt to fix buggy
+ TV firmwares
+
+---
+ drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c      | 3 +++
+ drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c | 3 +++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c b/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c
+index 685a1e4..a02ec07 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c
+@@ -2135,6 +2135,9 @@ static  int __init hdmitx_boot_para_setup(char *s)
+ 			hdmitx_device.cec_func_config = list;
+ 		hdmi_print(INF, CEC "HDMI hdmi_cec_func_config:0x%x\n",
+ 			hdmitx_device.cec_func_config);
++		} else if (strcmp(token, "forcergb") == 0) {
++			hdmitx_output_rgb();
++			hdmi_print(IMP, "Forced RGB colorspace output\n");
+ 		}
+ 	}
+ 		offset = token_offset;
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+index 74d4502..1ac1f2a 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+@@ -2470,6 +2470,9 @@ static  int __init hdmitx_boot_para_setup(char *s)
+ 				hdmitx_device.cec_func_config = list;
+ 			hdmi_print(INF, CEC "HDMI hdmi_cec_func_config:0x%x\n",
+ 				   hdmitx_device.cec_func_config);
++		} else if (strcmp(token, "forcergb") == 0) {
++			hdmitx_output_rgb();
++			hdmi_print(IMP, "Forced RGB colorspace output\n");
+ 		}
+ 	}
+ 		offset = token_offset;
+-- 
+2.8.3
+
