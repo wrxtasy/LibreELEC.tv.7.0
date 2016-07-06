@@ -17,22 +17,28 @@
 ################################################################################
 
 PKG_NAME="u-boot"
-if [ "$UBOOT_VERSION" = "default" ]; then
-  PKG_VERSION="2011.03-rc1"
-  PKG_SITE="http://www.denx.de/wiki/U-Boot/WebHome"
-  PKG_URL="ftp://ftp.denx.de/pub/u-boot/$PKG_NAME-$PKG_VERSION.tar.bz2"
-elif [ "$UBOOT_VERSION" = "imx6-cuboxi" ]; then
+PKG_DEPENDS_TARGET="toolchain"
+if [ "$UBOOT_VERSION" = "imx6-cuboxi" ]; then
   PKG_VERSION="imx6-408544d"
   PKG_SITE="http://imx.solid-run.com/wiki/index.php?title=Building_the_kernel_and_u-boot_for_the_CuBox-i_and_the_HummingBoard"
   # https://github.com/SolidRun/u-boot-imx6.git
   PKG_URL="$DISTRO_SRC/$PKG_NAME-$PKG_VERSION.tar.xz"
+elif [ "$UBOOT_VERSION" = "hardkernel" ]; then
+  PKG_VERSION="2011.03+e7d4447"
+  PKG_SITE="http://www.denx.de/wiki/U-Boot/WebHome"
+  PKG_URL="https://dl.dropboxusercontent.com/u/27641650/ODROID/C1/$PKG_NAME-$PKG_VERSION.tar.xz"
+#  PKG_URL="http://freeweb.mine.nu/zalaare/$PKG_NAME-$PKG_VERSION.tar.xz"
+#  PKG_VERSION="502b13b"
+#  PKG_SITE="https://github.com/hardkernel/u-boot"
+#  PKG_URL="https://github.com/hardkernel/u-boot/archive/$PKG_VERSION.tar.gz"
+  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET gcc-linaro-arm-none-eabi:host"
 else
   exit 0
 fi
+
 PKG_REV="1"
-PKG_ARCH="arm"
+PKG_ARCH="arm aarch64"
 PKG_LICENSE="GPL"
-PKG_DEPENDS_TARGET="toolchain"
 PKG_PRIORITY="optional"
 PKG_SECTION="tools"
 PKG_SHORTDESC="u-boot: Universal Bootloader project"
@@ -65,10 +71,17 @@ make_target() {
   done
 
   for UBOOT_TARGET in $UBOOT_CONFIG; do
-    make CROSS_COMPILE="$TARGET_PREFIX" ARCH="$TARGET_ARCH" mrproper
-    make CROSS_COMPILE="$TARGET_PREFIX" ARCH="$TARGET_ARCH" $UBOOT_TARGET
-    make CROSS_COMPILE="$TARGET_PREFIX" ARCH="$TARGET_ARCH" HOSTCC="$HOST_CC" HOSTSTRIP="true"
-
+    if [ "$PROJECT" = "Odroid_C1" ]; then
+      export PATH=$ROOT/$TOOLCHAIN/lib/gcc-linaro-arm-none-eabi/bin/:$PATH
+      make CROSS_COMPILE=arm-none-eabi- ARCH=arm mrproper
+      make CROSS_COMPILE=arm-none-eabi- ARCH=arm $UBOOT_CONFIG
+      make CROSS_COMPILE=arm-none-eabi- ARCH=arm HOSTCC="$HOST_CC" HOSTSTRIP="true"
+    else
+      make CROSS_COMPILE="$TARGET_PREFIX" ARCH=arm mrproper
+      make CROSS_COMPILE="$TARGET_PREFIX" ARCH=arm $UBOOT_TARGET
+      make CROSS_COMPILE="$TARGET_PREFIX" ARCH=arm HOSTCC="$HOST_CC" HOSTSTRIP="true"
+    fi
+ 
     # rename files in case of multiple targets
     if [ $UBOOT_TARGET_CNT -gt 1 ]; then
       if [ "$UBOOT_TARGET" = "mx6_cubox-i_config" ]; then
@@ -110,13 +123,22 @@ makeinstall_target() {
 
   mkdir -p $INSTALL/usr/share/bootloader
 
-  cp ./u-boot*.imx $INSTALL/usr/share/bootloader 2>/dev/null || :
-  cp ./u-boot*.img $INSTALL/usr/share/bootloader 2>/dev/null || :
-  cp ./SPL* $INSTALL/usr/share/bootloader 2>/dev/null || :
+  cp $ROOT/$PKG_BUILD/u-boot*.imx $INSTALL/usr/share/bootloader 2>/dev/null || :
+  cp $ROOT/$PKG_BUILD/u-boot*.img $INSTALL/usr/share/bootloader 2>/dev/null || :
+  cp $ROOT/$PKG_BUILD/SPL* $INSTALL/usr/share/bootloader 2>/dev/null || :
 
-  cp ./$UBOOT_CONFIGFILE $INSTALL/usr/share/bootloader 2>/dev/null || :
-
-  cp -PRv $PKG_DIR/scripts/update.sh $INSTALL/usr/share/bootloader
+  cp $ROOT/$PKG_BUILD/$UBOOT_CONFIGFILE $INSTALL/usr/share/bootloader 2>/dev/null || :
 
   cp -PR $PROJECT_DIR/$PROJECT/bootloader/uEnv*.txt $INSTALL/usr/share/bootloader 2>/dev/null || :
+
+  case $PROJECT in
+    Odroid_C1)
+      cp -PRv $PKG_DIR/scripts/update-c1.sh $INSTALL/usr/share/bootloader/update.sh
+      cp -PRv $ROOT/$PKG_BUILD/sd_fuse/bl1.bin.hardkernel $INSTALL/usr/share/bootloader/bl1
+      cp -PRv $ROOT/$PKG_BUILD/sd_fuse/u-boot.bin $INSTALL/usr/share/bootloader/u-boot
+      ;;
+    imx6)
+      cp -PRv $PKG_DIR/scripts/update.sh $INSTALL/usr/share/bootloader
+      ;;
+  esac
 }

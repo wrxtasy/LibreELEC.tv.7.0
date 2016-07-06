@@ -24,8 +24,20 @@ if [ -z "$UBOOT_CONFIGFILE" ]; then
   UBOOT_CONFIGFILE="boot.scr"
 fi
 
+# generate uInitrd
+mkdir -p $RELEASE_DIR/target
+  mkimage -A arm -T ramdisk -n RootFS\ [$PROJECT] -C none -d $INSTALL/../initramfs.cpio \
+    $RELEASE_DIR/target/INITRD
+  ( cd $RELEASE_DIR; md5sum -t target/INITRD > target/INITRD.md5; )
+#  mkimage -A arm -T ramdisk -n RootFS\ [$PROJECT] -C none -d $INSTALL/../initramfs.cpio \
+#    $INSTALL/../INITRD
+
+
 mkdir -p $RELEASE_DIR/3rdparty/bootloader
-  cp -PR $BUILD/u-boot-*/$UBOOT_CONFIGFILE $RELEASE_DIR/3rdparty/bootloader 2>/dev/null || :
+  if [ -e $BUILD/u-boot-*/$UBOOT_CONFIGFILE ]; then
+    cp -PR $BUILD/u-boot-*/$UBOOT_CONFIGFILE $RELEASE_DIR/3rdparty/bootloader
+  fi
+
   cp -PR $BUILD/u-boot-*/SPL* $RELEASE_DIR/3rdparty/bootloader 2>/dev/null || :
   cp -PR $BUILD/u-boot-*/u-boot*.imx $RELEASE_DIR/3rdparty/bootloader 2>/dev/null || :
   cp -PR $BUILD/u-boot-*/u-boot*.img $RELEASE_DIR/3rdparty/bootloader 2>/dev/null || :
@@ -35,3 +47,11 @@ mkdir -p $RELEASE_DIR/3rdparty/bootloader
   cp -PR $HOME/.openelec/projects/$PROJECT/bootloader/* $RELEASE_DIR/3rdparty/bootloader 2>/dev/null || :
 
   cp -PR $BUILD/linux-*/arch/$TARGET_KERNEL_ARCH/boot/dts/*.dtb $RELEASE_DIR/3rdparty/bootloader 2>/dev/null || :
+
+  case $PROJECT in
+    Odroid_C1)
+      cp -PR $BUILD/$BOOTLOADER-*/sd_fuse/bl1.bin.hardkernel $RELEASE_DIR/3rdparty/bootloader/bl1
+      cp -PR $BUILD/$BOOTLOADER-*/sd_fuse/u-boot.bin $RELEASE_DIR/3rdparty/bootloader/u-boot
+      cp -PR $PROJECT_DIR/$PROJECT/bootloader/boot.ini $RELEASE_DIR/3rdparty/bootloader
+      ;;
+  esac
