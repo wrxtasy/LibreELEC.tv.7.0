@@ -71,6 +71,8 @@ if [ "$1" = "cpu" -o "$TEMP" = "0" ]; then
     TEMP=`cat /sys/class/thermal/thermal_zone0/temp`
   fi
 
+  # default to AML Temp
+  TEMP=`cat /sys/class/thermal/thermal_zone0/temp`
   TEMP="$(( $TEMP / 1000 ))"
 fi
 

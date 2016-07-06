@@ -51,7 +51,7 @@ ORIGIN_URL="$(git remote -v | awk '$1 == "origin" { print $2 }' | head -1 | sed 
 if [ "$OFFICIAL" = "yes" ]; then
   LIBREELEC_BUILD="official"
 else
-  LIBREELEC_BUILD="community"
+  LIBREELEC_BUILD="WRXTASY"
 fi
 
 TARGET_VERSION="$PROJECT.$TARGET_ARCH-$LIBREELEC_VERSION"
@@ -322,6 +322,7 @@ fi
       mkdir -p $RELEASE_DIR/target
         cp $TARGET_IMG/$IMAGE_NAME.system $RELEASE_DIR/target/SYSTEM
         cp $TARGET_IMG/$IMAGE_NAME.kernel $RELEASE_DIR/target/KERNEL
+
     # create md5sum's
       ( cd $RELEASE_DIR;
         md5sum -t target/SYSTEM > target/SYSTEM.md5;
@@ -430,6 +431,10 @@ fi
 
     # cleanup release dir
       rm -rf $RELEASE_DIR
+
+    # lets get rid of things we don't care about in $TARGET_IMG
+      mv $TARGET_IMG/$IMAGE_NAME.system $INSTALL/../SYSTEM
+      mv $TARGET_IMG/$IMAGE_NAME.kernel $INSTALL/../KERNEL
 
   elif [ "$1" = "noobs" ]; then
 
