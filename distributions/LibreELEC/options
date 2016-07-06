@@ -12,7 +12,7 @@
   GREETING4=""
 
 # Root password to integrate in the target system
-  ROOT_PASSWORD="libreelec"
+  ROOT_PASSWORD="le"
 
 # Install glibc locales to the build (yes / no)
   GLIBC_LOCALES="yes"
@@ -199,7 +199,7 @@
   ADDON_SERVER_URL="http://addons.libreelec.tv"
 
 # set the addon dirs
-  ADDON_PATH="$ADDON_VERSION/$PROJECT/$TARGET_ARCH"
+  ADDON_PATH="$ADDON_VERSION/WeTek_Play/$TARGET_ARCH"
   ADDON_URL="$ADDON_SERVER_URL/$ADDON_PATH"
 
 # Default size of system partition, in MB, eg. 512
