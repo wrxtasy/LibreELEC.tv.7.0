@@ -1,0 +1,37 @@
+From 347957b1b7ba091c4e18dcaafdd3f63fde2d4034 Mon Sep 17 00:00:00 2001
+From: "S. Davilla" <davilla@4pi.com>
+Date: Mon, 30 May 2016 15:33:49 -0400
+Subject: [PATCH] fixed, cpu percent used. zero out sleeping cpus
+
+---
+ xbmc/utils/CPUInfo.cpp | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/xbmc/utils/CPUInfo.cpp b/xbmc/utils/CPUInfo.cpp
+index f1d07dd..2a5ec83 100644
+--- a/xbmc/utils/CPUInfo.cpp
++++ b/xbmc/utils/CPUInfo.cpp
+@@ -749,6 +749,8 @@ bool CCPUInfo::readProcStat(unsigned long long& user, unsigned long long& nice,
+       total = (double)(coreUser + coreNice + coreSystem + coreIdle + coreIO);
+       if(total != 0.0f)
+         iter->second.m_fPct = ((double)(coreUser + coreNice + coreSystem) * 100.0) / total;
++      else
++        iter->second.m_fPct = 0.0f;
+ 
+       iter->second.m_user += coreUser;
+       iter->second.m_nice += coreNice;
+@@ -787,6 +789,14 @@ bool CCPUInfo::readProcStat(unsigned long long& user, unsigned long long& nice,
+   if (num < 5)
+     io = 0;
+ 
++  // zero out cpu percents, cpu's can idle and disappear.
++  for (int i = 0; i < m_cpuCount; i++)
++  {
++    std::map<int, CoreInfo>::iterator iter = m_cores.find(i);
++    if (iter != m_cores.end())
++      iter->second.m_fPct = 0.0;
++  }
++
+   while (fgets(buf, sizeof(buf), m_fProcStat) && num >= 4)
+   {
+     unsigned long long coreUser, coreNice, coreSystem, coreIdle, coreIO;

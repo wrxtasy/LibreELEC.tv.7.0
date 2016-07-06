@@ -1,0 +1,273 @@
+From b1f01fd5e82d9eac58dfde4ed5256c8f8b284add Mon Sep 17 00:00:00 2001
+From: "Chris \"Koying\" Browet" <cbro@semperpax.com>
+Date: Fri, 6 May 2016 16:14:00 +0200
+Subject: [PATCH] FIXUP: [mysql] smoothen transition to gui
+
+Take the AS values to the GUI, and ignore them forever thereafter
+---
+ system/settings/settings.xml        |  5 ---
+ xbmc/Application.cpp                |  2 +-
+ xbmc/settings/AdvancedSettings.cpp  | 90 ++++++++++++++++++++-----------------
+ xbmc/settings/AdvancedSettings.h    |  4 +-
+ xbmc/settings/SettingConditions.cpp |  1 -
+ 5 files changed, 51 insertions(+), 51 deletions(-)
+
+diff --git a/system/settings/settings.xml b/system/settings/settings.xml
+index a963889..e05fe21 100644
+--- a/system/settings/settings.xml
++++ b/system/settings/settings.xml
+@@ -2388,11 +2388,6 @@
+     <category id="mysql" label="1261" help="1262">
+       <group id="1">
+         <setting id="mysql.enabled" type="boolean" label="24022" help="1263">
+-        <dependencies>
+-            <dependency type="enable">
+-                <condition on="property" operator="!is" name="enablemysqlgui" />
+-            </dependency>
+-          </dependencies>
+           <level>1</level>
+           <default>false</default>
+           <control type="toggle" />
+diff --git a/xbmc/Application.cpp b/xbmc/Application.cpp
+index cb60845..31d4a91 100644
+--- a/xbmc/Application.cpp
++++ b/xbmc/Application.cpp
+@@ -1136,7 +1136,7 @@ bool CApplication::Initialize()
+   {
+     if (g_advancedSettings.m_splashImage)
+       CSplash::GetInstance().Show(g_localizeStrings.Get(12374));
+-    g_advancedSettings.setInetrnalMYSQL(((CSettingBool*)mysqlSetting)->GetValue(), false);
++    g_advancedSettings.setInternalMYSQL(((CSettingBool*)mysqlSetting)->GetValue(), false);
+   }
+ 
+   // initialize (and update as needed) our databases
+diff --git a/xbmc/settings/AdvancedSettings.cpp b/xbmc/settings/AdvancedSettings.cpp
+index 81113cf..e3bbaaf 100755
+--- a/xbmc/settings/AdvancedSettings.cpp
++++ b/xbmc/settings/AdvancedSettings.cpp
+@@ -143,7 +143,7 @@ void CAdvancedSettings::OnSettingChanged(const CSetting *setting)
+            settingId == CSettings::SETTING_MYSQL_VIDEO ||
+            settingId == CSettings::SETTING_MYSQL_MUSIC
+            )
+-    setInetrnalMYSQL(CSettings::GetInstance().GetBool(CSettings::SETTING_MYSQL_ENABLED), true);
++    setInternalMYSQL(CSettings::GetInstance().GetBool(CSettings::SETTING_MYSQL_ENABLED), true);
+ //  CSettings::GetInstance().Save();
+ }
+ 
+@@ -1096,52 +1096,66 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
+   const CSetting *mysqlSetting = CSettings::GetInstance().GetSetting(CSettings::SETTING_MYSQL_ENABLED);
+   if (((CSettingBool*)mysqlSetting)->GetValue())
+   {
+-    setInetrnalMYSQL(((CSettingBool*)mysqlSetting)->GetValue(), false);
++    setInternalMYSQL(((CSettingBool*)mysqlSetting)->GetValue(), false);
+   }
+   else // no mysql settings in guisettings.xml, check advanced settings
+   {
+     pDatabase = pRootElement->FirstChildElement("videodatabase");
+     if (pDatabase)
+     {
+-      CLog::Log(LOGWARNING, "VIDEO database configuration is experimental.");
+-      XMLUtils::GetString(pDatabase, "type", m_databaseVideo.type);
+-      XMLUtils::GetString(pDatabase, "host", m_databaseVideo.host);
+-      XMLUtils::GetString(pDatabase, "port", m_databaseVideo.port);
+-      XMLUtils::GetString(pDatabase, "user", m_databaseVideo.user);
+-      XMLUtils::GetString(pDatabase, "pass", m_databaseVideo.pass);
+-      XMLUtils::GetString(pDatabase, "name", m_databaseVideo.name);
+-      XMLUtils::GetString(pDatabase, "key", m_databaseVideo.key);
+-      XMLUtils::GetString(pDatabase, "cert", m_databaseVideo.cert);
+-      XMLUtils::GetString(pDatabase, "ca", m_databaseVideo.ca);
+-      XMLUtils::GetString(pDatabase, "capath", m_databaseVideo.capath);
+-      XMLUtils::GetString(pDatabase, "ciphers", m_databaseVideo.ciphers);
+-      XMLUtils::GetBoolean(pDatabase, "compression", m_databaseVideo.compression);
+-      CSetting *setting = CSettings::GetInstance().GetSetting(CSettings::SETTING_MYSQL_VIDEO);
+-      if (setting != NULL)
++      if (CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_HOST).empty() &&
++          CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_USER).empty() &&
++          CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_PASS).empty())
+       {
+-        setting->SetVisible(false);
++        CLog::Log(LOGWARNING, "VIDEO database configuration is experimental.");
++        XMLUtils::GetString(pDatabase, "type", m_databaseVideo.type);
++        XMLUtils::GetString(pDatabase, "host", m_databaseVideo.host);
++        XMLUtils::GetString(pDatabase, "port", m_databaseVideo.port);
++        XMLUtils::GetString(pDatabase, "user", m_databaseVideo.user);
++        XMLUtils::GetString(pDatabase, "pass", m_databaseVideo.pass);
++        XMLUtils::GetString(pDatabase, "name", m_databaseVideo.name);
++        XMLUtils::GetString(pDatabase, "key", m_databaseVideo.key);
++        XMLUtils::GetString(pDatabase, "cert", m_databaseVideo.cert);
++        XMLUtils::GetString(pDatabase, "ca", m_databaseVideo.ca);
++        XMLUtils::GetString(pDatabase, "capath", m_databaseVideo.capath);
++        XMLUtils::GetString(pDatabase, "ciphers", m_databaseVideo.ciphers);
++        XMLUtils::GetBoolean(pDatabase, "compression", m_databaseVideo.compression);
++
++        CSettings::GetInstance().SetBool(CSettings::SETTING_MYSQL_ENABLED, true);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_USER, g_advancedSettings.m_databaseVideo.user);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PASS, g_advancedSettings.m_databaseVideo.pass);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PORT, g_advancedSettings.m_databaseVideo.port);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_HOST, g_advancedSettings.m_databaseVideo.host);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_VIDEO, g_advancedSettings.m_databaseVideo.name);
+       }
+     }
+ 
+     pDatabase = pRootElement->FirstChildElement("musicdatabase");
+     if (pDatabase)
+     {
+-      XMLUtils::GetString(pDatabase, "type", m_databaseMusic.type);
+-      XMLUtils::GetString(pDatabase, "host", m_databaseMusic.host);
+-      XMLUtils::GetString(pDatabase, "port", m_databaseMusic.port);
+-      XMLUtils::GetString(pDatabase, "user", m_databaseMusic.user);
+-      XMLUtils::GetString(pDatabase, "pass", m_databaseMusic.pass);
+-      XMLUtils::GetString(pDatabase, "name", m_databaseMusic.name);
+-      XMLUtils::GetString(pDatabase, "key", m_databaseMusic.key);
+-      XMLUtils::GetString(pDatabase, "cert", m_databaseMusic.cert);
+-      XMLUtils::GetString(pDatabase, "ca", m_databaseMusic.ca);
+-      XMLUtils::GetString(pDatabase, "capath", m_databaseMusic.capath);
+-      XMLUtils::GetString(pDatabase, "ciphers", m_databaseMusic.ciphers);
+-      XMLUtils::GetBoolean(pDatabase, "compression", m_databaseMusic.compression);
+-      CSetting *setting = CSettings::GetInstance().GetSetting(CSettings::SETTING_MYSQL_MUSIC);
+-      if (setting != NULL)
++      if (CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_HOST).empty() &&
++          CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_USER).empty() &&
++          CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_PASS).empty())
+       {
+-        setting->SetVisible(false);
++        XMLUtils::GetString(pDatabase, "type", m_databaseMusic.type);
++        XMLUtils::GetString(pDatabase, "host", m_databaseMusic.host);
++        XMLUtils::GetString(pDatabase, "port", m_databaseMusic.port);
++        XMLUtils::GetString(pDatabase, "user", m_databaseMusic.user);
++        XMLUtils::GetString(pDatabase, "pass", m_databaseMusic.pass);
++        XMLUtils::GetString(pDatabase, "name", m_databaseMusic.name);
++        XMLUtils::GetString(pDatabase, "key", m_databaseMusic.key);
++        XMLUtils::GetString(pDatabase, "cert", m_databaseMusic.cert);
++        XMLUtils::GetString(pDatabase, "ca", m_databaseMusic.ca);
++        XMLUtils::GetString(pDatabase, "capath", m_databaseMusic.capath);
++        XMLUtils::GetString(pDatabase, "ciphers", m_databaseMusic.ciphers);
++        XMLUtils::GetBoolean(pDatabase, "compression", m_databaseMusic.compression);
++
++        CSettings::GetInstance().SetBool(CSettings::SETTING_MYSQL_ENABLED, true);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_USER, g_advancedSettings.m_databaseMusic.user);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PASS, g_advancedSettings.m_databaseMusic.pass);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PORT, g_advancedSettings.m_databaseMusic.port);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_HOST, g_advancedSettings.m_databaseMusic.host);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_MUSIC, g_advancedSettings.m_databaseMusic.name);
+       }
+     }
+   }
+@@ -1463,15 +1477,7 @@ std::string CAdvancedSettings::GetMusicExtensions() const
+   return result;
+ }
+ 
+-bool CAdvancedSettings::IsSettingVisible(const std::string &condition, const std::string &value, const CSetting *setting, void *data)
+-{
+-  const CSetting *mysqlSetting = CSettings::GetInstance().GetSetting(CSettings::SETTING_MYSQL_ENABLED);
+-  return (((g_advancedSettings.m_databaseMusic.type == "mysql") || (g_advancedSettings.m_databaseVideo.type == "mysql"))
+-          && !((CSettingBool*)mysqlSetting)->GetValue()
+-          );
+-}
+-
+-void CAdvancedSettings::setInetrnalMYSQL(const bool enable, const bool init)
++void CAdvancedSettings::setInternalMYSQL(const bool enable, const bool init)
+ {
+   if (enable) // ENABLED
+   {
+diff --git a/xbmc/settings/AdvancedSettings.h b/xbmc/settings/AdvancedSettings.h
+index 459f424..06a8590 100644
+--- a/xbmc/settings/AdvancedSettings.h
++++ b/xbmc/settings/AdvancedSettings.h
+@@ -269,6 +269,7 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler, CJob
+     std::string m_fanartImages;
+ 
+     int m_iMusicLibraryRecentlyAddedItems;
++    int m_iMusicLibraryDateAdded;
+     bool m_bMusicLibraryAllItemsOnBottom;
+     bool m_bMusicLibraryCleanOnUpdate;
+     std::string m_strMusicLibraryAlbumFormat;
+@@ -403,8 +404,7 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler, CJob
+ 
+     std::string m_userAgent;
+ 
+-    static bool IsSettingVisible(const std::string &condition, const std::string &value, const CSetting *setting, void *data);
+-    void setInetrnalMYSQL(const bool enable, const bool init);
++    void setInternalMYSQL(const bool enable, const bool init);
+   private:
+     std::string m_musicExtensions;
+     void setExtraLogLevel(const std::vector<CVariant> &components);
+diff --git a/xbmc/settings/SettingConditions.cpp b/xbmc/settings/SettingConditions.cpp
+index 56dd05c..3865d69 100644
+--- a/xbmc/settings/SettingConditions.cpp
++++ b/xbmc/settings/SettingConditions.cpp
+@@ -290,7 +290,6 @@ void CSettingConditions::Initialize()
+   m_complexConditions.insert(std::pair<std::string, SettingConditionCheck>("profilelockmode",               ProfileLockMode));
+   m_complexConditions.insert(std::pair<std::string, SettingConditionCheck>("aesettingvisible",              CAEFactory::IsSettingVisible));
+   m_complexConditions.insert(std::pair<std::string, SettingConditionCheck>("codecoptionvisible",            CDVDVideoCodec::IsSettingVisible));
+-  m_complexConditions.insert(std::pair<std::string, SettingConditionCheck>("enablemysqlgui",  CAdvancedSettings::IsSettingVisible));
+ }
+ 
+ bool CSettingConditions::Check(const std::string &condition, const std::string &value /* = "" */, const CSetting *setting /* = NULL */)
+commit 84868051783885f391dbb558f53ee02828a9707e
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Sat Jun 4 12:14:29 2016 +0800
+
+    MySQL.Fixup.retrieving.music.db.name.and.refactor.for.LE
+
+diff --git a/xbmc/settings/AdvancedSettings.cpp b/xbmc/settings/AdvancedSettings.cpp
+index 23053ed..215764f 100644
+--- a/xbmc/settings/AdvancedSettings.cpp
++++ b/xbmc/settings/AdvancedSettings.cpp
+@@ -1099,7 +1099,6 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
+         XMLUtils::GetString(pDatabase, "port", m_databaseVideo.port);
+         XMLUtils::GetString(pDatabase, "user", m_databaseVideo.user);
+         XMLUtils::GetString(pDatabase, "pass", m_databaseVideo.pass);
+-        XMLUtils::GetString(pDatabase, "name", m_databaseVideo.name);
+         XMLUtils::GetString(pDatabase, "key", m_databaseVideo.key);
+         XMLUtils::GetString(pDatabase, "cert", m_databaseVideo.cert);
+         XMLUtils::GetString(pDatabase, "ca", m_databaseVideo.ca);
+@@ -1108,12 +1107,14 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
+         XMLUtils::GetBoolean(pDatabase, "compression", m_databaseVideo.compression);
+ 
+         CSettings::GetInstance().SetBool(CSettings::SETTING_MYSQL_ENABLED, true);
+-        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_USER, g_advancedSettings.m_databaseVideo.user);
+-        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PASS, g_advancedSettings.m_databaseVideo.pass);
+-        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PORT, g_advancedSettings.m_databaseVideo.port);
+-        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_HOST, g_advancedSettings.m_databaseVideo.host);
+-        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_VIDEO, g_advancedSettings.m_databaseVideo.name);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_USER, m_databaseVideo.user);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PASS, m_databaseVideo.pass);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PORT, m_databaseVideo.port);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_HOST, m_databaseVideo.host);
+       }
++      XMLUtils::GetString(pDatabase, "name", m_databaseVideo.name);
++      if (!m_databaseVideo.name.empty() && CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_VIDEO).empty())
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_VIDEO, m_databaseVideo.name);
+     }
+ 
+     pDatabase = pRootElement->FirstChildElement("musicdatabase");
+@@ -1128,7 +1129,6 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
+         XMLUtils::GetString(pDatabase, "port", m_databaseMusic.port);
+         XMLUtils::GetString(pDatabase, "user", m_databaseMusic.user);
+         XMLUtils::GetString(pDatabase, "pass", m_databaseMusic.pass);
+-        XMLUtils::GetString(pDatabase, "name", m_databaseMusic.name);
+         XMLUtils::GetString(pDatabase, "key", m_databaseMusic.key);
+         XMLUtils::GetString(pDatabase, "cert", m_databaseMusic.cert);
+         XMLUtils::GetString(pDatabase, "ca", m_databaseMusic.ca);
+@@ -1137,12 +1137,15 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
+         XMLUtils::GetBoolean(pDatabase, "compression", m_databaseMusic.compression);
+ 
+         CSettings::GetInstance().SetBool(CSettings::SETTING_MYSQL_ENABLED, true);
+-        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_USER, g_advancedSettings.m_databaseMusic.user);
+-        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PASS, g_advancedSettings.m_databaseMusic.pass);
+-        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PORT, g_advancedSettings.m_databaseMusic.port);
+-        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_HOST, g_advancedSettings.m_databaseMusic.host);
+-        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_MUSIC, g_advancedSettings.m_databaseMusic.name);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_USER, m_databaseMusic.user);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PASS, m_databaseMusic.pass);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_PORT, m_databaseMusic.port);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_HOST, m_databaseMusic.host);
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_MUSIC, m_databaseMusic.name);
+       }
++      XMLUtils::GetString(pDatabase, "name", m_databaseMusic.name);
++      if (!m_databaseVideo.name.empty() && CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_MUSIC).empty())
++        CSettings::GetInstance().SetString(CSettings::SETTING_MYSQL_MUSIC, m_databaseMusic.name);
+     }
+   }
+   pDatabase = pRootElement->FirstChildElement("tvdatabase");

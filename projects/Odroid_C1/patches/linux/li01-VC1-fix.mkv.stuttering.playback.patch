@@ -1,0 +1,20 @@
+commit 2574bdc00e30b33a4e75b7b2a6f5d0a300e8baff
+Author: Jamie Coldhill <kodi@Ubuntu.12.04.5>
+Date:   Sat Feb 27 11:34:38 2016 +0800
+
+    [aml] Disable deinterlacer for progressive sources by default - Fixes VC1 in mkv playback.
+    https://github.com/codesnake/linux-amlogic/commit/91820c0f4711d0fb63e9d7d2a7a15ff7ed06b73b
+
+diff --git a/drivers/amlogic/deinterlace/deinterlace.c b/drivers/amlogic/deinterlace/deinterlace.c
+index a065650..b4f2e13 100644
+--- a/drivers/amlogic/deinterlace/deinterlace.c
++++ b/drivers/amlogic/deinterlace/deinterlace.c
+@@ -204,7 +204,7 @@ static int receiver_is_amvideo = 1;
+ 
+ static unsigned char new_keep_last_frame_enable = 0;
+ static int bypass_state = 1;
+-static int bypass_prog = 0;
++static int bypass_prog = 1;
+ static int bypass_hd_prog = 0;
+ #if (MESON_CPU_TYPE>=MESON_CPU_TYPE_MESON8)
+ static int bypass_interlace_output = 0;

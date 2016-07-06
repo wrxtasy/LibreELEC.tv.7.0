@@ -1,0 +1,624 @@
+From dfbf25365f696544c9913d281a6e8b842a7fd8c0 Mon Sep 17 00:00:00 2001
+From: "S. Davilla" <davilla@4pi.com>
+Date: Sun, 8 Nov 2015 15:02:18 -0500
+Subject: [PATCH] added, move mysql setup to internal gui
+
+---
+ .../resource.language.en_gb/resources/strings.po   |  53 +++++-
+ system/settings/settings.xml                       |  81 ++++++++++
+ xbmc/Application.cpp                               |  11 +-
+ xbmc/profiles/dialogs/GUIDialogLockSettings.cpp    |  14 +-
+ xbmc/profiles/dialogs/GUIDialogLockSettings.h      |   5 +-
+ xbmc/settings/AdvancedSettings.cpp                 | 180 +++++++++++++++++----
+ xbmc/settings/AdvancedSettings.h                   |   6 +-
+ xbmc/settings/SettingConditions.cpp                |   2 +
+ xbmc/settings/Settings.cpp                         |  15 ++
+ xbmc/settings/Settings.h                           |  11 +-
+ 10 files changed, 334 insertions(+), 44 deletions(-)
+
+diff --git a/addons/resource.language.en_gb/resources/strings.po b/addons/resource.language.en_gb/resources/strings.po
+index ca72b43..5e5fe04 100644
+--- a/addons/resource.language.en_gb/resources/strings.po
++++ b/addons/resource.language.en_gb/resources/strings.po
+@@ -4092,7 +4092,41 @@ msgctxt "#1260"
+ msgid "Announce services to other systems"
+ msgstr ""
+ 
+-#empty strings from id 1261 to 1267
++#: system/settings/settings.xml
++msgctxt "#1261"
++msgid "MySQL"
++msgstr ""
++
++#: system/settings/settings.xml
++msgctxt "#1262"
++msgid "Setup remote MySQL database connection"
++msgstr ""
++
++#: system/settings/settings.xml
++msgctxt "#1263"
++msgid "Enable/Disable MySQL setup"
++msgstr ""
++
++#: system/settings/settings.xml
++msgctxt "#1264"
++msgid "Define server port"
++msgstr ""
++
++#: system/settings/settings.xml
++msgctxt "#1265"
++msgid "Define video database name"
++msgstr ""
++
++#: system/settings/settings.xml
++msgctxt "#1266"
++msgid "Define music database name"
++msgstr ""
++
++#: system/settings/settings.xml
++msgctxt "#1267"
++msgid "Name to be used to connect to or create new database"
++msgstr ""
++
+ 
+ #: system/settings/settings.xml
+ msgctxt "#1268"
+@@ -5292,7 +5326,12 @@ msgctxt "#12373"
+ msgid "Settings & file manager"
+ msgstr ""
+ 
+-#empty strings from id 12374 to 12375
++#: unknown
++msgctxt "#12374"
++msgid "Loading database, please wait"
++msgstr ""
++
++#empty strings from id 12375
+ 
+ #: xbmc\settings\dialogs\GUIDialogAudioDSPSettings.cpp
+ #: xbmc\video\dialogs\GUIDialogAudioSubtitleSettings.cpp
+@@ -15373,7 +15412,15 @@ msgctxt "#36012"
+ msgid "Couldn't initialise the CEC adapter. Please check your settings."
+ msgstr ""
+ 
+-#empty strings from id 36013 to 36014
++#: xbmc/peripherals/devices/peripheralcecadapter.cpp
++msgctxt "#36013"
++msgid "User,password and host must be set,"
++msgstr ""
++
++#: xbmc/peripherals/devices/peripheralcecadapter.cpp
++msgctxt "#36014"
++msgid "disabling MYSQL configuration"
++msgstr ""
+ 
+ #: system/peripherals.xml
+ msgctxt "#36015"
+diff --git a/system/settings/settings.xml b/system/settings/settings.xml
+index 398f4ea..a963889 100644
+--- a/system/settings/settings.xml
++++ b/system/settings/settings.xml
+@@ -2385,6 +2385,87 @@
+         </setting>
+       </group>
+     </category>
++    <category id="mysql" label="1261" help="1262">
++      <group id="1">
++        <setting id="mysql.enabled" type="boolean" label="24022" help="1263">
++        <dependencies>
++            <dependency type="enable">
++                <condition on="property" operator="!is" name="enablemysqlgui" />
++            </dependency>
++          </dependencies>
++          <level>1</level>
++          <default>false</default>
++          <control type="toggle" />
++        </setting>
++        <setting id="mysql.host" type="string" label="706" help="1016">
++        <dependencies>
++            <dependency type="enable">
++                <condition on="property" operator="!is" name="enablemysqlgui" />
++            </dependency>
++          </dependencies>
++          <level>1</level>
++          <constraints>
++            <allowempty>true</allowempty>
++          </constraints>
++          <control type="edit" format="string" />
++        </setting>
++        <setting id="mysql.port" type="string" label="730" help="1264">
++        <dependencies>
++            <dependency type="enable">
++                <condition on="property" operator="!is" name="enablemysqlgui" />
++            </dependency>
++          </dependencies>	
++          <level>1</level>
++          <default>3306</default>
++          <constraints>
++            <minimum>1</minimum>
++            <step>1</step>
++            <maximum>65535</maximum>
++          </constraints>
++          <control type="edit" format="integer" />
++        </setting>
++        <setting id="mysql.user" type="string" label="20142" help="1019">
++        <dependencies>
++            <dependency type="enable">
++                <condition on="property" operator="!is" name="enablemysqlgui" />
++            </dependency>
++          </dependencies> 	
++          <level>1</level>
++          <constraints>
++            <allowempty>true</allowempty>
++          </constraints>
++          <control type="edit" format="string" />
++        </setting> 
++        <setting id="mysql.pass" type="string" label="15052" help="12326">
++        <dependencies>
++            <dependency type="enable">
++                <condition on="property" operator="!is" name="enablemysqlgui" />
++            </dependency>
++          </dependencies>	
++          <level>1</level>
++          <constraints>
++            <allowempty>true</allowempty>
++          </constraints>
++          <control type="edit" format="string" />
++        </setting>                        
++      </group>
++      <group id="2">
++        <setting id="mysql.video" type="string" label="1265" help="1267">
++          <level>1</level>
++          <constraints>
++            <allowempty>true</allowempty>
++          </constraints>
++          <control type="edit" format="string" />
++        </setting> 
++        <setting id="mysql.music" type="string" label="1266" help="1267">
++          <level>1</level>
++          <constraints>
++            <allowempty>true</allowempty>
++          </constraints>
++          <control type="edit" format="string" />
++        </setting> 
++      </group>	
++    </category>
+   </section>
+   <section id="system" label="13000" help="36349">
+     <category id="videoscreen" label="21373" help="36603">
+diff --git a/xbmc/Application.cpp b/xbmc/Application.cpp
+index cc84a87..cb60845 100644
+--- a/xbmc/Application.cpp
++++ b/xbmc/Application.cpp
+@@ -1130,6 +1130,15 @@ bool CApplication::Initialize()
+   g_curlInterface.Load();
+   g_curlInterface.Unload();
+ 
++  // check if we have set internal MYSQL settings and load
++  const CSetting *mysqlSetting = CSettings::GetInstance().GetSetting(CSettings::SETTING_MYSQL_ENABLED);
++  if (((CSettingBool*)mysqlSetting)->GetValue())
++  {
++    if (g_advancedSettings.m_splashImage)
++      CSplash::GetInstance().Show(g_localizeStrings.Get(12374));
++    g_advancedSettings.setInetrnalMYSQL(((CSettingBool*)mysqlSetting)->GetValue(), false);
++  }
++
+   // initialize (and update as needed) our databases
+   CDatabaseManager::GetInstance().Initialize();
+ 
+@@ -1829,7 +1838,7 @@ bool CApplication::LoadUserWindows()
+           {
+             const TiXmlNode *pType = pRootElement->FirstChild("id");
+             if (pType && pType->FirstChild())
+-              id = atol(pType->FirstChild()->Value());
++              id = atoi(pType->FirstChild()->Value());
+           }
+           std::string visibleCondition;
+           CGUIControlFactory::GetConditionalVisibility(pRootElement, visibleCondition);
+diff --git a/xbmc/profiles/dialogs/GUIDialogLockSettings.cpp b/xbmc/profiles/dialogs/GUIDialogLockSettings.cpp
+index 078ad75..7827cb9 100644
+--- a/xbmc/profiles/dialogs/GUIDialogLockSettings.cpp
++++ b/xbmc/profiles/dialogs/GUIDialogLockSettings.cpp
+@@ -54,6 +54,7 @@ CGUIDialogLockSettings::CGUIDialogLockSettings()
+       m_details(true),
+       m_conditionalDetails(false),
+       m_getUser(false),
++      m_getModule(false),
+       m_saveUserDetails(NULL),
+       m_buttonLabel(20091)
+ { }
+@@ -94,7 +95,7 @@ bool CGUIDialogLockSettings::ShowAndGetLock(CProfile::CLock &locks, int buttonLa
+   return true;
+ }
+ 
+-bool CGUIDialogLockSettings::ShowAndGetUserAndPassword(std::string &user, std::string &password, const std::string &url, bool *saveUserDetails)
++bool CGUIDialogLockSettings::ShowAndGetUserAndPassword(std::string &user, std::string &password, const std::string &url, bool *saveUserDetails, bool module /* = false */)
+ {
+   CGUIDialogLockSettings *dialog = static_cast<CGUIDialogLockSettings*>(g_windowManager.GetWindow(WINDOW_DIALOG_LOCK_SETTINGS));
+   if (dialog == NULL)
+@@ -104,7 +105,9 @@ bool CGUIDialogLockSettings::ShowAndGetUserAndPassword(std::string &user, std::s
+   dialog->m_locks.code = password;
+   dialog->m_user = user;
+   dialog->m_url = url;
+-  dialog->m_saveUserDetails = saveUserDetails;
++  dialog->m_getModule = module;
++  if (!module)
++    dialog->m_saveUserDetails = saveUserDetails;
+   dialog->Open();
+ 
+   if (!dialog->m_changed)
+@@ -222,7 +225,12 @@ void CGUIDialogLockSettings::SetupView()
+   
+   // set the title
+   if (m_getUser)
+-    SetHeading(StringUtils::Format(g_localizeStrings.Get(20152).c_str(), CURL::Decode(m_url).c_str()));
++  {
++    int string = 20152;
++    if (m_getModule)
++      string = 24149;
++    SetHeading(StringUtils::Format(g_localizeStrings.Get(string).c_str(), CURL::Decode(m_url).c_str()));
++  }
+   else
+   {
+     SetHeading(20066);
+diff --git a/xbmc/profiles/dialogs/GUIDialogLockSettings.h b/xbmc/profiles/dialogs/GUIDialogLockSettings.h
+index 7110b46..9e0039e 100644
+--- a/xbmc/profiles/dialogs/GUIDialogLockSettings.h
++++ b/xbmc/profiles/dialogs/GUIDialogLockSettings.h
+@@ -32,7 +32,7 @@ class CGUIDialogLockSettings : public CGUIDialogSettingsManualBase
+ 
+   static bool ShowAndGetLock(LockType &lockMode, std::string &password, int header = 20091);
+   static bool ShowAndGetLock(CProfile::CLock &locks, int buttonLabel = 20091, bool conditional = false, bool details = true);
+-  static bool ShowAndGetUserAndPassword(std::string &user, std::string &password, const std::string &url, bool *saveUserDetails);
++  static bool ShowAndGetUserAndPassword(std::string &user, std::string &password, const std::string &url, bool *saveUserDetails,bool module = false);
+ 
+ protected:
+   // implementations of ISettingCallback
+@@ -60,6 +60,7 @@ class CGUIDialogLockSettings : public CGUIDialogSettingsManualBase
+   bool m_details;
+   bool m_conditionalDetails;
+   bool m_getUser;
++  bool m_getModule;
+   bool* m_saveUserDetails;
+   int m_buttonLabel;
+-};
+\ No newline at end of file
++};
+diff --git a/xbmc/settings/AdvancedSettings.cpp b/xbmc/settings/AdvancedSettings.cpp
+index 5b00749..81113cf 100755
+--- a/xbmc/settings/AdvancedSettings.cpp
++++ b/xbmc/settings/AdvancedSettings.cpp
+@@ -29,6 +29,11 @@
+ #include "addons/AudioDecoder.h"
+ #include "addons/IAddon.h"
+ #include "Application.h"
++#include "DatabaseManager.h"
++#include "GUIInfoManager.h"
++#include "dialogs/GUIDialogBusy.h"
++#include "dialogs/GUIDialogKaiToast.h"
++
+ #include "filesystem/File.h"
+ #include "filesystem/SpecialProtocol.h"
+ #include "LangInfo.h"
+@@ -44,7 +49,9 @@
+ #include "utils/SystemInfo.h"
+ #include "utils/URIUtils.h"
+ #include "utils/Variant.h"
++#include "utils/JobManager.h"
+ #include "utils/XMLUtils.h"
++#include "guilib/GUIWindowManager.h"
+ 
+ #if defined(TARGET_DARWIN_IOS)
+ #include "osx/DarwinUtils.h"
+@@ -53,6 +60,32 @@
+ using namespace ADDON;
+ using namespace XFILE;
+ 
++class CAdvancedSettingsJob: public CJob
++{
++public:
++  CAdvancedSettingsJob(CGUIDialogBusy* dialog)
++  : m_dialog(dialog)
++  {
++  }
++  virtual ~CAdvancedSettingsJob()
++  {
++  }
++  virtual bool operator==(const CJob *job) const
++  {
++    return true;
++  }
++  virtual bool DoWork()
++  {
++    CDatabaseManager::GetInstance().Initialize();
++    g_infoManager.ResetCache();
++    g_infoManager.ResetLibraryBools();
++    m_dialog->Close();
++    return true;
++  }
++private:
++  CGUIDialogBusy* m_dialog;
++};
++
+ CAdvancedSettings::CAdvancedSettings()
+ {
+   m_initialized = false;
+@@ -103,6 +136,15 @@ void CAdvancedSettings::OnSettingChanged(const CSetting *setting)
+     m_extraLogEnabled = static_cast<const CSettingBool*>(setting)->GetValue();
+   else if (settingId == CSettings::SETTING_DEBUG_SETEXTRALOGLEVEL)
+     setExtraLogLevel(CSettingUtils::GetList(static_cast<const CSettingList*>(setting)));
++  else if (settingId == CSettings::SETTING_MYSQL_ENABLED ||
++           settingId == CSettings::SETTING_MYSQL_HOST ||
++           settingId == CSettings::SETTING_MYSQL_USER ||
++           settingId == CSettings::SETTING_MYSQL_PASS ||
++           settingId == CSettings::SETTING_MYSQL_VIDEO ||
++           settingId == CSettings::SETTING_MYSQL_MUSIC
++           )
++    setInetrnalMYSQL(CSettings::GetInstance().GetBool(CSettings::SETTING_MYSQL_ENABLED), true);
++//  CSettings::GetInstance().Save();
+ }
+ 
+ void CAdvancedSettings::Initialize()
+@@ -1049,41 +1091,60 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
+     XMLUtils::GetInt(pPVR, "numericchannelswitchtimeout", m_iPVRNumericChannelSwitchTimeout, 50, 60000);
+   }
+ 
+-  TiXmlElement* pDatabase = pRootElement->FirstChildElement("videodatabase");
+-  if (pDatabase)
++  TiXmlElement* pDatabase;
++  // check if we have set internal MYSQL settings and load
++  const CSetting *mysqlSetting = CSettings::GetInstance().GetSetting(CSettings::SETTING_MYSQL_ENABLED);
++  if (((CSettingBool*)mysqlSetting)->GetValue())
+   {
+-    CLog::Log(LOGWARNING, "VIDEO database configuration is experimental.");
+-    XMLUtils::GetString(pDatabase, "type", m_databaseVideo.type);
+-    XMLUtils::GetString(pDatabase, "host", m_databaseVideo.host);
+-    XMLUtils::GetString(pDatabase, "port", m_databaseVideo.port);
+-    XMLUtils::GetString(pDatabase, "user", m_databaseVideo.user);
+-    XMLUtils::GetString(pDatabase, "pass", m_databaseVideo.pass);
+-    XMLUtils::GetString(pDatabase, "name", m_databaseVideo.name);
+-    XMLUtils::GetString(pDatabase, "key", m_databaseVideo.key);
+-    XMLUtils::GetString(pDatabase, "cert", m_databaseVideo.cert);
+-    XMLUtils::GetString(pDatabase, "ca", m_databaseVideo.ca);
+-    XMLUtils::GetString(pDatabase, "capath", m_databaseVideo.capath);
+-    XMLUtils::GetString(pDatabase, "ciphers", m_databaseVideo.ciphers);
+-    XMLUtils::GetBoolean(pDatabase, "compression", m_databaseVideo.compression);
++    setInetrnalMYSQL(((CSettingBool*)mysqlSetting)->GetValue(), false);
+   }
+-
+-  pDatabase = pRootElement->FirstChildElement("musicdatabase");
+-  if (pDatabase)
++  else // no mysql settings in guisettings.xml, check advanced settings
+   {
+-    XMLUtils::GetString(pDatabase, "type", m_databaseMusic.type);
+-    XMLUtils::GetString(pDatabase, "host", m_databaseMusic.host);
+-    XMLUtils::GetString(pDatabase, "port", m_databaseMusic.port);
+-    XMLUtils::GetString(pDatabase, "user", m_databaseMusic.user);
+-    XMLUtils::GetString(pDatabase, "pass", m_databaseMusic.pass);
+-    XMLUtils::GetString(pDatabase, "name", m_databaseMusic.name);
+-    XMLUtils::GetString(pDatabase, "key", m_databaseMusic.key);
+-    XMLUtils::GetString(pDatabase, "cert", m_databaseMusic.cert);
+-    XMLUtils::GetString(pDatabase, "ca", m_databaseMusic.ca);
+-    XMLUtils::GetString(pDatabase, "capath", m_databaseMusic.capath);
+-    XMLUtils::GetString(pDatabase, "ciphers", m_databaseMusic.ciphers);
+-    XMLUtils::GetBoolean(pDatabase, "compression", m_databaseMusic.compression);
+-  }
++    pDatabase = pRootElement->FirstChildElement("videodatabase");
++    if (pDatabase)
++    {
++      CLog::Log(LOGWARNING, "VIDEO database configuration is experimental.");
++      XMLUtils::GetString(pDatabase, "type", m_databaseVideo.type);
++      XMLUtils::GetString(pDatabase, "host", m_databaseVideo.host);
++      XMLUtils::GetString(pDatabase, "port", m_databaseVideo.port);
++      XMLUtils::GetString(pDatabase, "user", m_databaseVideo.user);
++      XMLUtils::GetString(pDatabase, "pass", m_databaseVideo.pass);
++      XMLUtils::GetString(pDatabase, "name", m_databaseVideo.name);
++      XMLUtils::GetString(pDatabase, "key", m_databaseVideo.key);
++      XMLUtils::GetString(pDatabase, "cert", m_databaseVideo.cert);
++      XMLUtils::GetString(pDatabase, "ca", m_databaseVideo.ca);
++      XMLUtils::GetString(pDatabase, "capath", m_databaseVideo.capath);
++      XMLUtils::GetString(pDatabase, "ciphers", m_databaseVideo.ciphers);
++      XMLUtils::GetBoolean(pDatabase, "compression", m_databaseVideo.compression);
++      CSetting *setting = CSettings::GetInstance().GetSetting(CSettings::SETTING_MYSQL_VIDEO);
++      if (setting != NULL)
++      {
++        setting->SetVisible(false);
++      }
++    }
+ 
++    pDatabase = pRootElement->FirstChildElement("musicdatabase");
++    if (pDatabase)
++    {
++      XMLUtils::GetString(pDatabase, "type", m_databaseMusic.type);
++      XMLUtils::GetString(pDatabase, "host", m_databaseMusic.host);
++      XMLUtils::GetString(pDatabase, "port", m_databaseMusic.port);
++      XMLUtils::GetString(pDatabase, "user", m_databaseMusic.user);
++      XMLUtils::GetString(pDatabase, "pass", m_databaseMusic.pass);
++      XMLUtils::GetString(pDatabase, "name", m_databaseMusic.name);
++      XMLUtils::GetString(pDatabase, "key", m_databaseMusic.key);
++      XMLUtils::GetString(pDatabase, "cert", m_databaseMusic.cert);
++      XMLUtils::GetString(pDatabase, "ca", m_databaseMusic.ca);
++      XMLUtils::GetString(pDatabase, "capath", m_databaseMusic.capath);
++      XMLUtils::GetString(pDatabase, "ciphers", m_databaseMusic.ciphers);
++      XMLUtils::GetBoolean(pDatabase, "compression", m_databaseMusic.compression);
++      CSetting *setting = CSettings::GetInstance().GetSetting(CSettings::SETTING_MYSQL_MUSIC);
++      if (setting != NULL)
++      {
++        setting->SetVisible(false);
++      }
++    }
++  }
+   pDatabase = pRootElement->FirstChildElement("tvdatabase");
+   if (pDatabase)
+   {
+@@ -1401,3 +1462,60 @@ std::string CAdvancedSettings::GetMusicExtensions() const
+ 
+   return result;
+ }
++
++bool CAdvancedSettings::IsSettingVisible(const std::string &condition, const std::string &value, const CSetting *setting, void *data)
++{
++  const CSetting *mysqlSetting = CSettings::GetInstance().GetSetting(CSettings::SETTING_MYSQL_ENABLED);
++  return (((g_advancedSettings.m_databaseMusic.type == "mysql") || (g_advancedSettings.m_databaseVideo.type == "mysql"))
++          && !((CSettingBool*)mysqlSetting)->GetValue()
++          );
++}
++
++void CAdvancedSettings::setInetrnalMYSQL(const bool enable, const bool init)
++{
++  if (enable) // ENABLED
++  {
++    // We must have HOST, USER and PASS
++    if (!CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_HOST).empty() &&
++        !CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_USER).empty() &&
++        !CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_PASS).empty())
++    {
++      g_advancedSettings.m_databaseMusic.type = "mysql";
++      g_advancedSettings.m_databaseMusic.user = CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_USER);
++      g_advancedSettings.m_databaseMusic.pass = CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_PASS);
++      g_advancedSettings.m_databaseMusic.port = CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_PORT);
++      g_advancedSettings.m_databaseMusic.host = CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_HOST);
++      g_advancedSettings.m_databaseMusic.name = CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_MUSIC);
++      
++      g_advancedSettings.m_databaseVideo.type = "mysql";
++      g_advancedSettings.m_databaseVideo.user = CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_USER);
++      g_advancedSettings.m_databaseVideo.pass = CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_PASS);
++      g_advancedSettings.m_databaseVideo.port = CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_PORT);
++      g_advancedSettings.m_databaseVideo.host = CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_HOST);
++      g_advancedSettings.m_databaseVideo.name = CSettings::GetInstance().GetString(CSettings::SETTING_MYSQL_VIDEO);
++      
++    }
++    else //if not, set ENABLED to false
++    {
++      CGUIDialogKaiToast::QueueNotification(CGUIDialogKaiToast::Info, g_localizeStrings.Get(36013), g_localizeStrings.Get(36014), 3000, true);
++      const CSetting *mysqlSetting = CSettings::GetInstance().GetSetting(CSettings::SETTING_MYSQL_ENABLED);
++      ((CSettingBool*)mysqlSetting)->SetValue(false);
++    }
++  }
++  else //DISABLED
++  {
++    m_databaseMusic.Reset();
++    m_databaseVideo.Reset();
++  }
++  // check if we need to intiialize databases, only do this if we are settings it while running.
++  // if we load it from start, application.cpp will initialize it anyway
++  if (init)
++  {
++    CGUIDialogBusy* dialog = (CGUIDialogBusy*)g_windowManager.GetWindow(WINDOW_DIALOG_BUSY);
++    if (dialog)
++      dialog->Open();
++    //spin off new job, keep it moving
++    AddJob(new CAdvancedSettingsJob(dialog));
++  }
++}
++
+diff --git a/xbmc/settings/AdvancedSettings.h b/xbmc/settings/AdvancedSettings.h
+index 1f3b5d7..459f424 100644
+--- a/xbmc/settings/AdvancedSettings.h
++++ b/xbmc/settings/AdvancedSettings.h
+@@ -28,6 +28,7 @@
+ #include "settings/lib/ISettingCallback.h"
+ #include "settings/lib/ISettingsHandler.h"
+ #include "utils/GlobalsHandling.h"
++#include "utils/JobManager.h"
+ 
+ class CVariant;
+ 
+@@ -116,7 +117,7 @@ struct StagefrightConfig
+ 
+ typedef std::vector<TVShowRegexp> SETTINGS_TVSHOWLIST;
+ 
+-class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
++class CAdvancedSettings : public ISettingCallback, public ISettingsHandler, CJobQueue
+ {
+   public:
+     CAdvancedSettings();
+@@ -268,7 +269,6 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
+     std::string m_fanartImages;
+ 
+     int m_iMusicLibraryRecentlyAddedItems;
+-    int m_iMusicLibraryDateAdded;
+     bool m_bMusicLibraryAllItemsOnBottom;
+     bool m_bMusicLibraryCleanOnUpdate;
+     std::string m_strMusicLibraryAlbumFormat;
+@@ -403,6 +403,8 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
+ 
+     std::string m_userAgent;
+ 
++    static bool IsSettingVisible(const std::string &condition, const std::string &value, const CSetting *setting, void *data);
++    void setInetrnalMYSQL(const bool enable, const bool init);
+   private:
+     std::string m_musicExtensions;
+     void setExtraLogLevel(const std::vector<CVariant> &components);
+diff --git a/xbmc/settings/SettingConditions.cpp b/xbmc/settings/SettingConditions.cpp
+index ed62e42..56dd05c 100644
+--- a/xbmc/settings/SettingConditions.cpp
++++ b/xbmc/settings/SettingConditions.cpp
+@@ -21,6 +21,7 @@
+ #include "system.h"
+ #include "SettingConditions.h"
+ #include "Application.h"
++#include "AdvancedSettings.h"
+ #include "GUIPassword.h"
+ #include "Util.h"
+ #include "addons/AddonManager.h"
+@@ -289,6 +290,7 @@ void CSettingConditions::Initialize()
+   m_complexConditions.insert(std::pair<std::string, SettingConditionCheck>("profilelockmode",               ProfileLockMode));
+   m_complexConditions.insert(std::pair<std::string, SettingConditionCheck>("aesettingvisible",              CAEFactory::IsSettingVisible));
+   m_complexConditions.insert(std::pair<std::string, SettingConditionCheck>("codecoptionvisible",            CDVDVideoCodec::IsSettingVisible));
++  m_complexConditions.insert(std::pair<std::string, SettingConditionCheck>("enablemysqlgui",  CAdvancedSettings::IsSettingVisible));
+ }
+ 
+ bool CSettingConditions::Check(const std::string &condition, const std::string &value /* = "" */, const CSetting *setting /* = NULL */)
+diff --git a/xbmc/settings/Settings.cpp b/xbmc/settings/Settings.cpp
+index 68ed9ef..5c28e81 100644
+--- a/xbmc/settings/Settings.cpp
++++ b/xbmc/settings/Settings.cpp
+@@ -416,6 +416,14 @@ const std::string CSettings::SETTING_GENERAL_ADDONFOREIGNFILTER = "general.addon
+ const std::string CSettings::SETTING_GENERAL_ADDONBROKENFILTER = "general.addonbrokenfilter";
+ const std::string CSettings::SETTING_THUMBNAILS_CLEANUP = "thumbnails.cleanup";
+ 
++const std::string CSettings::SETTING_MYSQL_ENABLED = "mysql.enabled";
++const std::string CSettings::SETTING_MYSQL_HOST = "mysql.host";
++const std::string CSettings::SETTING_MYSQL_PORT = "mysql.port";
++const std::string CSettings::SETTING_MYSQL_USER = "mysql.user";
++const std::string CSettings::SETTING_MYSQL_PASS = "mysql.pass";
++const std::string CSettings::SETTING_MYSQL_VIDEO = "mysql.video";
++const std::string CSettings::SETTING_MYSQL_MUSIC = "mysql.music";
++
+ CSettings::CSettings()
+   : m_initialized(false)
+ {
+@@ -1058,6 +1066,13 @@ void CSettings::InitializeISettingCallbacks()
+   settingSet.insert(CSettings::SETTING_DEBUG_SHOWLOGINFO);
+   settingSet.insert(CSettings::SETTING_DEBUG_EXTRALOGGING);
+   settingSet.insert(CSettings::SETTING_DEBUG_SETEXTRALOGLEVEL);
++  settingSet.insert(CSettings::SETTING_MYSQL_ENABLED);
++  settingSet.insert(CSettings::SETTING_MYSQL_HOST);
++  settingSet.insert(CSettings::SETTING_MYSQL_PORT);
++  settingSet.insert(CSettings::SETTING_MYSQL_USER);
++  settingSet.insert(CSettings::SETTING_MYSQL_PASS);
++  settingSet.insert(CSettings::SETTING_MYSQL_VIDEO);
++  settingSet.insert(CSettings::SETTING_MYSQL_MUSIC);
+   m_settingsManager->RegisterCallback(&g_advancedSettings, settingSet);
+ 
+   settingSet.clear();
+diff --git a/xbmc/settings/Settings.h b/xbmc/settings/Settings.h
+index 0797d83..90fa1f6 100644
+--- a/xbmc/settings/Settings.h
++++ b/xbmc/settings/Settings.h
+@@ -368,6 +368,14 @@ public:
+   static const std::string SETTING_GENERAL_ADDONBROKENFILTER;
+   static const std::string SETTING_THUMBNAILS_CLEANUP;
+ 
++  static const std::string SETTING_MYSQL_ENABLED;
++  static const std::string SETTING_MYSQL_HOST;
++  static const std::string SETTING_MYSQL_PORT;
++  static const std::string SETTING_MYSQL_USER;
++  static const std::string SETTING_MYSQL_PASS;
++  static const std::string SETTING_MYSQL_VIDEO;
++  static const std::string SETTING_MYSQL_MUSIC;
++
+   /*!
+    \brief Creates a new settings wrapper around a new settings manager.
+
