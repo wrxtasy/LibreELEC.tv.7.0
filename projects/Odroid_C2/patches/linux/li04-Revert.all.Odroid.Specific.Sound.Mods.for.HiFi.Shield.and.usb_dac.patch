@@ -1,17 +1,134 @@
-commit 45b9ee82899f24ef053c8699c4685dcda1f6414c
+"commit 45b9ee82899f24ef053c8699c4685dcda1f6414c
 Author: Jamie Coldhill <wrxtasy@amnet.net.au>
 Date:   Thu Apr 28 12:45:49 2016 +0800
 
     Reverted all Odroid Specific Sound Mods for HiFi Shield and usb_dac
 
 diff --git a/arch/arm64/boot/dts/meson64_odroidc2.dts b/arch/arm64/boot/dts/meson64_odroidc2.dts
-index b47490b..ad3b948 100644
+index 3534b4f..ce12949 100644
 --- a/arch/arm64/boot/dts/meson64_odroidc2.dts
 +++ b/arch/arm64/boot/dts/meson64_odroidc2.dts
-@@ -590,42 +590,42 @@
- 		status = "okay";
+@@ -529,21 +529,24 @@
+                         "usb0_to_ddr";
  	};
  
++	/* AUDIO MESON8 DEVICES */
+ 	i2s_dai: I2S {
+-                compatible = "amlogic, aml-i2s-dai";
+-                #sound-dai-cells = <0>;
+-                resets = <&clock GCLK_IDX_AIU_AI_TOP_GLUE
+-                        &clock GCLK_IDX_AUD_BUF_ABD
+-                        &clock GCLK_IDX_AIU_I2S_OUT
+-                        &clock GCLK_IDX_AIU_AMCLK_MEASURE
+-                        &clock GCLK_IDX_AIU_AIFIFO2
+-                        &clock GCLK_IDX_AIU_AUD_MIXER
+-                        &clock GCLK_IDX_AIU_MIXER_REG
+-                        &clock GCLK_IDX_AIU_ADC
+-                        &clock GCLK_IDX_AIU_TOP_LEVEL
+-                        &clock GCLK_IDX_AIU_AOCLK
+-                        &clock GCLK_IDX_AUD_IN>;
+-                reset-names = "top_glue",
++		#sound-dai-cells = <0>;
++		resets = <
++			&clock GCLK_IDX_AIU_AI_TOP_GLUE
++			&clock GCLK_IDX_AUD_BUF_ABD
++			&clock GCLK_IDX_AIU_I2S_OUT
++			&clock GCLK_IDX_AIU_AMCLK_MEASURE
++			&clock GCLK_IDX_AIU_AIFIFO2
++			&clock GCLK_IDX_AIU_AUD_MIXER
++			&clock GCLK_IDX_AIU_MIXER_REG
++			&clock GCLK_IDX_AIU_ADC
++			&clock GCLK_IDX_AIU_TOP_LEVEL
++			&clock GCLK_IDX_AIU_AOCLK
++			&clock GCLK_IDX_AUD_IN
++		>;
++		reset-names =
++			"top_glue",
+ 			"aud_buf",
+ 			"i2s_out",
+ 			"amclk_measure",
+@@ -556,51 +559,46 @@
+ 			"aud_in";
+ 		clocks = <&clock CLK_MPLL0>,
+ 			<&clock CLK_AMCLK>;
+-                clock-names = "mpll0",
+-                        "mclk";
++		clock-names = "mpll0", "mclk";
++		compatible = "amlogic, aml-i2s-dai";
+ 	};
+-
+-	i2s_plat: i2s_platform {
+-		compatible = "amlogic, aml-i2s";
+-	};
+-
+ 	spdif_dai: SPDIF {
+-		compatible = "amlogic, aml-spdif-dai";
+ 		#sound-dai-cells = <0>;
+-                resets = <&clock GCLK_IDX_AIU_IEC958
+-                        &clock GCLK_IDX_AIU_ICE958_AMCLK>;
+-                reset-names = "iec958",
+-                        "iec958_amclk";
+-                clocks = <&clock CLK_MPLL1>,
+-                       <&clock CLK_I958>,
+-                       <&clock CLK_AMCLK>,
+-                       <&clock CLK_SPDIF>;
+-                clock-names = "mpll1",
+-                        "i958",
+-                        "mclk",
+-                        "spdif";
+-	};
+-
+-	spdif_codec: spdif_codec{
+-		#sound-dai-cells = <0>;
+-		compatible = "amlogic, aml-spdif-codec";
+-		pinctrl-names = "aml_audio_spdif";
+-		pinctrl-0 = <&audio_spdif_pins>;
++		compatible = "amlogic, aml-spdif-dai";
++		resets = <
++			&clock GCLK_IDX_AIU_IEC958
++			&clock GCLK_IDX_AIU_ICE958_AMCLK
++		>;
++		reset-names =
++			"iec958",
++			"iec958_amclk";
++		clocks = <&clock CLK_MPLL1>,
++			<&clock CLK_I958>,
++			<&clock CLK_AMCLK>,
++			<&clock CLK_SPDIF>;
++		clock-names = "mpll1", "i958", "mclk", "spdif";
+ 	};
+-
+ 	pcm_dai: PCM {
+ 		#sound-dai-cells = <0>;
+ 		compatible = "amlogic, aml-pcm-dai";
++	};
++	i2s_plat: i2s_platform {
++		compatible = "amlogic, aml-i2s";
+ 	};
+-
+ 	pcm_plat: pcm_platform {
+ 		compatible = "amlogic, aml-pcm";
+ 	};
+-
++	spdif_codec: spdif_codec{
++		#sound-dai-cells = <0>;
++		compatible = "amlogic, aml-spdif-codec";
++		pinctrl-names = "aml_audio_spdif";
++		pinctrl-0 = <&audio_spdif_pins>;
++	};
+ 	pcm_codec: pcm_codec{
+ 		#sound-dai-cells = <0>;
+ 		compatible = "amlogic, pcm2BT-codec";
+ 	};
++	/* endof AUDIO MESON8 DEVICES */
+ 
+ 	/* AUDIO board specific */
+ 	dummy_codec:dummy{
+@@ -608,43 +608,40 @@
+ 		compatible = "amlogic, aml_dummy_codec";
+ 		status = "okay";
+ 	};
+-
 -	pcm5102_codec:pcm5102{
 -		#sound-dai-cells = <0>;
 -		compatible = "hardkernel, pcm5102";
@@ -20,8 +137,8 @@ index b47490b..ad3b948 100644
 -
 -	odroid_hdmi {
 -		compatible = "sound_card, odroid_hdmi";
-+        aml_m8_snd {
-+ 		compatible = "aml, aml_snd_m8";
++	aml_m8_snd {
++		compatible = "aml, aml_snd_m8";
  		status = "okay";
  		aml-sound-card,format = "i2s";
 -		aml_sound_card,name = "ODROID-HDMI";
@@ -29,29 +146,11 @@ index b47490b..ad3b948 100644
 -		codec_list = <&dit0>;
 -		plat_list = <&i2s_plat>;
 -		i2sdai0: i2sdai0 {
-+		aml_sound_card,name = "AML-M8AUDIO";
-+                 aml,audio-routing = "Ext Spk",
-+                         "LOUTL",
-+                         "Ext Spk",
-+                         "LOUTR";
-+ 
-+ 		mute_gpio-gpios = <&gpio GPIOH_3 0>;
-+ 		hp_disable;
-+ 		hp_paraments = <800 300 0 5 1>;
-+ 		pinctrl-names = "aml_snd_m8";
-+ 		pinctrl-0 = <&audio_pins>;
-+ 		cpu_list = <&cpudai0 &cpudai1 &cpudai2>;
-+ 		codec_list = <&codec0 &codec1 &codec2>;
-+ 		plat_list = <&i2s_plat &i2s_plat &pcm_plat>;
-+ 		cpudai0: cpudai0 {
-+		aml-sound-card,format = "i2s";
- 			sound-dai = <&i2s_dai>;
- 		};
+-			sound-dai = <&i2s_dai>;
+-		};
 -		dit0: dit0 {
 -			sound-dai = <&spdif_codec>;
-+		cpudai1: cpudai1 {
-+			sound-dai = <&spdif_dai>;
- 		};
+-		};
 -	};
 -	odroid_dac {
 -		compatible = "sound_card, odroid_dac";
@@ -59,24 +158,40 @@ index b47490b..ad3b948 100644
 -		aml-sound-card,format = "i2s";
 -		aml_sound_card,name = "ODROID-DAC";
 -		pinctrl-names = "aml_snd_i2s";
--		pinctrl-0 = <&audio_pins>;
++		aml_sound_card,name = "AML-M8AUDIO";
++		aml,audio-routing =
++				"Ext Spk","LOUTL",
++				"Ext Spk","LOUTR";
++
++		mute_gpio-gpios = <&gpio GPIOH_3 0>;
++		hp_disable;
++		hp_paraments = <800 300 0 5 1>;
++		pinctrl-names = "aml_snd_m8";
+ 		pinctrl-0 = <&audio_pins>;
 -		cpu_list = <&cpudai0>;
 -		codec_list = <&codec0>;
 -		plat_list = <&i2s_plat>;
--		cpudai0: cpudai0 {
--			sound-dai = <&i2s_dai>;
++		cpu_list = <&cpudai0 &cpudai1 &cpudai2>;
++		codec_list = <&codec0 &codec1 &codec2>;
++		plat_list = <&i2s_plat &i2s_plat &pcm_plat>;
+ 		cpudai0: cpudai0 {
+ 			sound-dai = <&i2s_dai>;
+ 		};
++		cpudai1: cpudai1 {
++			sound-dai = <&spdif_dai>;
++		};
 +		cpudai2: cpudai2 {
 +			sound-dai = <&pcm_dai>;
- 		};
++		};
  		codec0: codec0 {
 -			sound-dai = <&pcm5102_codec>;
-+                	sound-dai = <&dummy_codec>;
-+ 		};
-+ 		codec1: codec1 {
-+ 			sound-dai = <&spdif_codec>;
-+ 		};
-+ 		codec2: codec2 {
-+ 			sound-dai = <&pcm_codec>;
++			sound-dai = <&dummy_codec>;
++		};
++		codec1: codec1 {
++			sound-dai = <&spdif_codec>;
++		};
++		codec2: codec2 {
++			sound-dai = <&pcm_codec>;
  		};
  	};
  	/* END OF AUDIO board specific */
@@ -250,223 +365,6 @@ index d394150..90aee90 100644
  void audio_set_spdif_clk_div(void);
  void audio_enable_ouput(int flag);
  unsigned int read_i2s_rd_ptr(void);
-diff --git a/sound/soc/aml/m8/aml_i2s.c b/sound/soc/aml/m8/aml_i2s.c
-index 95ca2e5..34b6205 100644
---- a/sound/soc/aml/m8/aml_i2s.c
-+++ b/sound/soc/aml/m8/aml_i2s.c
-@@ -93,17 +93,17 @@ static const struct snd_pcm_hardware aml_i2s_hardware = {
- 	    SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE |
- 	    SNDRV_PCM_FMTBIT_S32_LE,
- 
--	.period_bytes_min = 32,
-+	.period_bytes_min = 64,
- 	.period_bytes_max = 32 * 1024 * 2,
- 	.periods_min = 2,
--	.periods_max = 256,
--	.buffer_bytes_max = 32 * 1024 * 2,
-+	.periods_max = 1024,
-+	.buffer_bytes_max = 128 * 1024 *2 * 2,
- 
- 	.rate_min = 8000,
--	.rate_max = 384000,
--	.channels_min = 1,
-+	.rate_max = 48000,
-+	.channels_min = 2,
- 	.channels_max = 8,
--	.fifo_size = 32,
-+	.fifo_size = 0,
- };
- 
- static const struct snd_pcm_hardware aml_i2s_capture = {
-@@ -116,7 +116,7 @@ static const struct snd_pcm_hardware aml_i2s_capture = {
- 	.period_bytes_min = 64,
- 	.period_bytes_max = 32 * 1024,
- 	.periods_min = 2,
--	.periods_max = 256,
-+	.periods_max = 1024,
- 	.buffer_bytes_max = 64 * 1024,
- 
- 	.rate_min = 8000,
-@@ -582,23 +582,6 @@ static int aml_i2s_close(struct snd_pcm_substream *substream)
- /* extern void audio_hw_958_enable(unsigned flag); */
- /* extern int kernel_android_50; */
- 
--static char *get_hw_buf_ptr(struct snd_pcm_runtime *runtime,
--				snd_pcm_uframes_t cur_pos, int align)
--{
--	unsigned int tot_bytes_per_channel =
--		frames_to_bytes(runtime, cur_pos) / runtime->channels;
--	unsigned int bytes_aligned_per_channel =
--		frames_to_bytes(runtime, align / runtime->channels);
--	unsigned int hw_base_off =
--		tot_bytes_per_channel / bytes_aligned_per_channel;
--	unsigned int block_off =
--		tot_bytes_per_channel % bytes_aligned_per_channel;
--
--	return runtime->dma_area +
--		(frames_to_bytes(runtime, align) * hw_base_off) +
--		block_off;
--}
--
- static int aml_i2s_copy_playback(struct snd_pcm_runtime *runtime, int channel,
- 				 snd_pcm_uframes_t pos,
- 				 void __user *buf, snd_pcm_uframes_t count,
-@@ -629,32 +612,48 @@ static int aml_i2s_copy_playback(struct snd_pcm_runtime *runtime, int channel,
- 		return -EFAULT;
- 	if (access_ok(VERIFY_READ, buf, frames_to_bytes(runtime, count))) {
- 		if (runtime->format == SNDRV_PCM_FORMAT_S16_LE) {
-+
- 			int16_t *tfrom, *to, *left, *right;
- 			tfrom = (int16_t *) ubuf;
-+         		to = (int16_t *) hwbuf;
- 
--			for (j = 0; j < count; j++) {
--				to = (int16_t *) get_hw_buf_ptr(runtime,
--								pos + j,
--								align);
--				left = to;
--				right = to + align;
--				*left = (*tfrom++);
--				*right = (*tfrom++);
-+			left = to;
-+			right = to + 16;
-+			if (pos % align) {
-+				pr_info("audio data unligned: pos=%d, n=%d, align=%d\n",
-+				     (int)pos, n, align);
- 			}
--		} else if (runtime->format == SNDRV_PCM_FORMAT_S24_LE) {
-+
-+			for (j = 0; j < n; j += 64) {
-+				for (i = 0; i < 16; i++) {
-+					*left++ = (*tfrom++);
-+					*right++ = (*tfrom++);
-+				}
-+				left += 16;
-+				right += 16;
-+			}
-+         		} else if (runtime->format == SNDRV_PCM_FORMAT_S24_LE
-+			   && I2S_MODE == AIU_I2S_MODE_PCM24) {
- 			int32_t *tfrom, *to, *left, *right;
- 			tfrom = (int32_t *) ubuf;
-+                        to = (int32_t *) hwbuf;
- 
--			for (j = 0; j < count; j++) {
--				to = (int32_t *) get_hw_buf_ptr(runtime,
--								pos + j,
--								align);
--				left = to;
--				right = to + align;
-+			left = to;
-+			right = to + 8;
- 
--				*left = (*tfrom++);
--				*right = (*tfrom++);
-+			if (pos % align) {
-+				pr_info("audio data unaligned: pos=%d, n=%d, align=%d\n",
-+				     (int)pos, n, align);
- 			}
-+			for (j = 0; j < n; j += 64) {
-+				for (i = 0; i < 8; i++) {
-+					*left++ = (*tfrom++);
-+					*right++ = (*tfrom++);
-+				}
-+				left += 8;
-+				right += 8;
-+			}
-+
- 		} else if (runtime->format == SNDRV_PCM_FORMAT_S32_LE) {
- 			int32_t *tfrom, *to, *left, *right;
- 			tfrom = (int32_t *) ubuf;
-diff --git a/sound/soc/aml/m8/aml_i2s_dai.c b/sound/soc/aml/m8/aml_i2s_dai.c
-index 7f86c32..8ea0c98 100644
---- a/sound/soc/aml/m8/aml_i2s_dai.c
-+++ b/sound/soc/aml/m8/aml_i2s_dai.c
-@@ -43,7 +43,6 @@
- #include "aml_i2s.h"
- #include "aml_audio_hw.h"
- #include <linux/amlogic/sound/aout_notify.h>
--#include <linux/amlogic/hdmi_tx/hdmi_tx_module.h>
- #include "aml_spdif_dai.h"
- 
- struct aml_dai_info dai_info[3] = { {0} };
-@@ -64,7 +63,6 @@ static int i2s_pos_sync;
- /* extern int set_i2s_iec958_samesource(int enable); */
- #define DEFAULT_SAMPLERATE 48000
- #define DEFAULT_MCLK_RATIO_SR 256
--#define MCLK_RATIO_128FS_SR 128
- static int i2sbuf[32 + 16];
- static void aml_i2s_play(void)
- {
-@@ -164,7 +162,7 @@ static int aml_i2s_set_amclk(struct aml_i2s *i2s, unsigned long rate)
- 		return ret;
- 	}
- 
--	audio_set_i2s_clk_div(i2s->old_samplerate);
-+	audio_set_i2s_clk_div();
- 
- 	return 0;
- }
-@@ -219,19 +217,8 @@ static int aml_dai_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
- 			       struct snd_soc_dai *dai)
- {
- 	struct snd_pcm_runtime *rtd = substream->runtime;
--	struct snd_soc_pcm_runtime *prtd = substream->private_data;
--	struct snd_soc_dai *codec_dai = prtd->codec_dai;
- 	int *ppp = NULL;
--	bool hdmi_out = false;
--
- 	ALSA_TRACE();
--
--	if (!strncmp(codec_dai->name, "dit-hifi", strlen("dit-hifi"))) {
--		hdmi_out = true;
--	} else {
--		hdmi_out = false;
--	}
--
- 	switch (cmd) {
- 	case SNDRV_PCM_TRIGGER_START:
- 	case SNDRV_PCM_TRIGGER_RESUME:
-@@ -240,16 +227,9 @@ static int aml_dai_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
- 		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
- 			pr_info("aiu i2s playback enable\n");
- 			audio_out_i2s_enable(1);
--			if (hdmi_out) {
--				aml_audio_i2s_mute();
--				hdmitx_audio_mute_op(1);
--				if (IEC958_mode_codec == 0) {
--					pr_info("audio_hw_958_enable 1\n");
--					audio_hw_958_enable(1);
--				}
--			} else {
--				aml_audio_i2s_unmute();
--				hdmitx_audio_mute_op(0);
-+			if (IEC958_mode_codec == 0) {
-+				pr_info("audio_hw_958_enable 1\n");
-+				audio_hw_958_enable(1);
- 			}
- 		} else {
- 			audio_in_i2s_enable(1);
-@@ -289,10 +269,7 @@ static int aml_dai_i2s_hw_params(struct snd_pcm_substream *substream,
- 	srate = params_rate(params);
- 	if (i2s->old_samplerate != srate) {
- 		i2s->old_samplerate = srate;
--		if (srate > 192000)
--			mclk_rate = srate * MCLK_RATIO_128FS_SR;
--		else
--			mclk_rate = srate * DEFAULT_MCLK_RATIO_SR;
-+		mclk_rate = srate * DEFAULT_MCLK_RATIO_SR;
- 		aml_i2s_set_amclk(i2s, mclk_rate);
- 	}
- 
-@@ -343,7 +320,7 @@ static int aml_dai_i2s_resume(struct snd_soc_dai *dai)
- #define aml_dai_i2s_resume	NULL
- #endif				/* CONFIG_PM */
- 
--#define AML_DAI_I2S_RATES		(SNDRV_PCM_RATE_8000_384000)
-+#define AML_DAI_I2S_RATES		(SNDRV_PCM_RATE_8000_192000)
- #define AML_DAI_I2S_FORMATS		(SNDRV_PCM_FMTBIT_S16_LE |\
- 		SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE)
- 
 diff --git a/sound/soc/aml/m8/aml_spdif_codec.c b/sound/soc/aml/m8/aml_spdif_codec.c
 index 73223b1..5ef287b 100644
 --- a/sound/soc/aml/m8/aml_spdif_codec.c

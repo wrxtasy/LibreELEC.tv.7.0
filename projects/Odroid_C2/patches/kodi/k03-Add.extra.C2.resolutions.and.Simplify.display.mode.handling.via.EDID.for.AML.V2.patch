@@ -308,7 +308,7 @@ index 1b54435..ff623df 100644
 +    res->fRefreshRate = 60;
 +    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
 +  }
-+  else if (StringUtils::EqualsNoCase(fromMode, "1280x1024"))
++  else if (StringUtils::EqualsNoCase(fromMode, "1280x1024p60hz"))
 +  {
 +    res->iWidth = 1280;
 +    res->iHeight= 1024;
@@ -426,7 +426,7 @@ index 1b54435..ff623df 100644
      res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
    }
 -  else if (StringUtils::EqualsNoCase(fromMode, "2160p50hz420"))
-+  else if (StringUtils::EqualsNoCase(fromMode, "2160p50hz") || StringUtils::EqualsNoCase(fromMode, "2160p50hz420"))
++  else if (StringUtils::EqualsNoCase(fromMode, "4k2k50hz") || StringUtils::EqualsNoCase(fromMode, "2160p50hz") || StringUtils::EqualsNoCase(fromMode, "2160p50hz420"))
    {
      res->iWidth = 1920;
      res->iHeight= 1080;
@@ -444,7 +444,7 @@ index 1b54435..ff623df 100644
 +    res->fRefreshRate = 59.940;
 +    res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
 +  }
-+  else if (StringUtils::EqualsNoCase(fromMode, "2160p60hz") || StringUtils::EqualsNoCase(fromMode, "2160p60hz420"))
++  else if (StringUtils::EqualsNoCase(fromMode, "4k2k60hz") || StringUtils::EqualsNoCase(fromMode, "2160p60hz") || StringUtils::EqualsNoCase(fromMode, "2160p60hz420"))
    {
      res->iWidth = 1920;
      res->iHeight= 1080;
@@ -561,7 +561,7 @@ index 1b54435..ff623df 100644
    res->bFullScreen   = true;
    res->iSubtitles    = (int)(0.965 * res->iHeight);
    res->fPixelRatio   = 1.0f;
-+  res->strId         = fromMode;
++  //res->strId         = fromMode;
    res->strMode       = StringUtils::Format("%dx%d @ %.2f%s - Full Screen", res->iScreenWidth, res->iScreenHeight, res->fRefreshRate,
      res->dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "");
  
@@ -721,7 +721,7 @@ index 21256ef..4225453 100644
 -      break;
 -  }
 +  bool result = false;
-+/*  int refreshRate = (int)(res.fRefreshRate);
++  int refreshRate = (int)(res.fRefreshRate);
 +
 +  switch (res.iScreenHeight) {
 +      case 720:
@@ -801,21 +801,21 @@ index 21256ef..4225453 100644
 +            result = SetDisplayResolution("2160p59hz");
 +            break;
 +          case 60:
-+            result = SetDisplayResolution("2160p50hz420");
++            result = SetDisplayResolution("2160p60hz420");
 +            break;
 +        }
 +        break;
-+  }*/
++  }
 +
 +
 +  // Don't set the same mode as current
-+  std::string mode;
-+  SysfsUtils::GetString("/sys/class/display/mode", mode);
-+  if (res.strId == mode)
-+  return false;
++  //std::string mode;
++  //SysfsUtils::GetString("/sys/class/display/mode", mode);
++  //if (res.strId == mode)
++  //return false;
  
 -  return true;
-+  result = SetDisplayResolution(res.strId.c_str());
++  //result = SetDisplayResolution(res.strId.c_str());
 +  DealWithScale(res);
 +
 +  return result;

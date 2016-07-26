@@ -13,7 +13,7 @@ index 0705132..96448cd 100644
  
        // Bind the buffer to the OpenGL context's GL_ARRAY_BUFFER binding point
 -      glBindBuffer(GL_ARRAY_BUFFER, (unsigned long) m_vertexTrans[i].vertexBuffer->bufferHandle);
-+      glBindBuffer(GL_ARRAY_BUFFER, (GLuint) ((long)(m_vertexTrans[i].vertexBuffer->bufferHandle) & 0xffff));
++      glBindBuffer(GL_ARRAY_BUFFER, (GLuint) m_vertexTrans[i].vertexBuffer->bufferHandle);
  
        // Do the actual drawing operation, split into groups of characters no
        // larger than the pre-determined size of the element array
