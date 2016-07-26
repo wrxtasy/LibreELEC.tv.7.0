@@ -26,9 +26,9 @@ case $PROJECT in
     PKG_VERSION="45a1086"
     PKG_URL="https://github.com/codesnake/libamcodec/archive/$PKG_VERSION.tar.gz"
     ;;
-  Odroid_C2)
-    PKG_VERSION="210755d"
-    PKG_URL="http://amlinux.ru/source/$PKG_NAME-$PKG_VERSION.tar.gz"
+  Odroid_C2|WeTek_Hub)
+     PKG_VERSION="107f3ba"
+     PKG_URL="https://dl.dropboxusercontent.com/u/18902170/$PKG_NAME-$PKG_VERSION.tar.xz"
     ;;
 esac
 PKG_DEPENDS_TARGET="toolchain"
