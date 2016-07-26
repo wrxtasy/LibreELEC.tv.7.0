@@ -393,6 +393,11 @@ fi
         cp $INSTALL_SRC_DIR/update-binary $META_INF_DIR
         cp $INSTALL_SRC_DIR/updater-script $META_INF_DIR
 
+        # copy device tree image if any
+        if [ -f "$INSTALL/usr/share/bootloader/$KERNEL_UBOOT_EXTRA_TARGET" ]; then
+          cp -PR "$INSTALL/usr/share/bootloader/$KERNEL_UBOOT_EXTRA_TARGET" $AML_PKG_DIR/dtb.img
+        fi
+
         # copy other files if any
         if [ -d "$INSTALL_SRC_DIR/files" ]; then
           cp -PR $INSTALL_SRC_DIR/files/* $AML_PKG_DIR
