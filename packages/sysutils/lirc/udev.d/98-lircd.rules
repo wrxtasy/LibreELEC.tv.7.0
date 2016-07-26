@@ -37,6 +37,11 @@ SUBSYSTEMS=="platform", DRIVERS=="meson-ir", \
   ENV{lircd_driver}="default", \
   ENV{lircd_conf}="lircd.conf.amremote"
 
+### WeTek Hub IR Receiver
+SUBSYSTEMS=="platform", DRIVERS=="meson-ir", \
+  ENV{lircd_driver}="default", \
+  ENV{lircd_conf}="lircd.conf.hubremote"
+
 #-------------------------------------------------------------------------------
 # Ask lircd_helper to handle USB devices that do not show up as lirc devices
 # and are supported by lircd. Remote controls that are USB HID devices that show

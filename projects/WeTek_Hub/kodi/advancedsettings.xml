@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<advancedsettings>
+    <showexitbutton>false</showexitbutton>
+    <cputempcommand>cputemp</cputempcommand>
+    <gputempcommand>gputemp</gputempcommand>
+
+  <samba>
+    <clienttimeout>20</clienttimeout>
+  </samba>
+
+  <network>
+    <buffermode>1</buffermode>
+    <cachemembuffersize>157286400</cachemembuffersize>
+    <readbufferfactor>20</readbufferfactor>
+  </network>
+
+  <pvr>
+    <minvideocachelevel>10</minvideocachelevel>
+    <minaudiocachelevel>15</minaudiocachelevel>
+  </pvr>
+</advancedsettings>
+

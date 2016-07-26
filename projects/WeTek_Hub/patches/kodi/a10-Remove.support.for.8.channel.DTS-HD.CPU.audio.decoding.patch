@@ -1,0 +1,56 @@
+commit 3e0ddbcdd8b569ae35fae7fad69153721c4f033e
+Author: Jamie Coldhill <kodi@Ubuntu.12.04.5>
+Date:   Tue Feb 16 15:03:16 2016 +0800
+
+    Remove - Support 8 channel DTS-HD audio decoding from Settings
+
+diff --git a/addons/resource.language.en_gb/resources/strings.po b/addons/resource.language.en_gb/resources/strings.po
+index a697a61..19e3ea6 100644
+--- a/addons/resource.language.en_gb/resources/strings.po
++++ b/addons/resource.language.en_gb/resources/strings.po
+@@ -18086,18 +18086,6 @@ msgctxt "#38018"
+ msgid "My rating"
+ msgstr ""
+ 
+-#. Setting #38019 "Settings -> System -> Audio output -> Support 8 channel DTS-HD audio decoding"
+-#: system/settings/settings.xml
+-msgctxt "#38019"
+-msgid "Support 8 channel DTS-HD audio decoding"
+-msgstr ""
+-
+-#. Description of setting #38019 Settings -> System -> Audio output -> Support 8 channel DTS-HD audio decoding
+-#: system/settings/settings.xml
+-msgctxt "#38020"
+-msgid "Enables decoding of high quality DTS-HD audio streams. Note: This increases CPU load and is only available when DTS and DTS-HD audio passthrough are disabled."
+-msgstr ""
+-
+ #empty string with id 38021
+ 
+ #. Used for the viewstate selection
+diff --git a/system/settings/settings.xml b/system/settings/settings.xml
+index 76c9a33..62d64ee 100644
+--- a/system/settings/settings.xml
++++ b/system/settings/settings.xml
+@@ -2556,22 +2556,6 @@
+           </constraints>
+           <control type="list" format="string" />
+         </setting>
+-        <setting id="audiooutput.supportdtshdcpudecoding" type="boolean" label="38019" help="38020">
+-          <level>2</level>
+-          <default>false</default>
+-          <control type="toggle" />
+-          <dependencies>
+-            <dependency type="enable">
+-            <or>
+-              <condition setting="audiooutput.passthrough" operator="is">false</condition>
+-              <and>
+-                <condition setting="audiooutput.dtshdpassthrough" operator="is">false</condition>
+-                <condition setting="audiooutput.dtspassthrough" operator="is">false</condition>
+-              </and>
+-            </or>
+-            </dependency>
+-          </dependencies>
+-        </setting>
+       </group>
+       <group id="2">
+         <setting id="audiooutput.dspaddonsenabled" type="boolean" label="36441" help="36438">

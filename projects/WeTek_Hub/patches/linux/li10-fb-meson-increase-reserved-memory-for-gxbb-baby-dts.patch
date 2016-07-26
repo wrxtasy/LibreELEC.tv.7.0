@@ -1,0 +1,22 @@
+diff --git a/arch/arm64/boot/dts/amlogic/gxbb_p200.dts b/arch/arm64/boot/dts/amlogic/gxbb_p200.dts
+index 803045e..a246ae4 100644
+--- a/arch/arm64/boot/dts/amlogic/gxbb_p200.dts
++++ b/arch/arm64/boot/dts/amlogic/gxbb_p200.dts
+@@ -55,7 +55,7 @@
+ 		};
+ 		fb_reserved:linux,meson-fb {
+ 			compatible = "amlogic, fb-memory";
+-			size = <0x0 0x2000000>;
++			size = <0x0 0x4480000>;
+ 			no-map;
+ 		};
+ 
+@@ -138,7 +138,7 @@
+ 		interrupts = <0 3 1
+ 			0 89 1>;
+ 		interrupt-names = "viu-vsync", "rdma";
+-		mem_size = <0x01800000 0x00800000>; /* fb0/fb1 memory size */
++		mem_size = <0x04380000 0x00100000>; /* fb0/fb1 memory size */
+ 		vmode = <3>; /** 0:VMODE_720P 1:VMODE_LCD 2:VMODE_LVDS_1080P 3:VMODE_1080P */
+ 		scale_mode = <1>; /** 0:VPU free scale 1:OSD free scale 2:OSD super scale */
+ 		display_size_default = <1920 1080 1920 3240 32>; //1920*1080*4*3 = 0x17BB000

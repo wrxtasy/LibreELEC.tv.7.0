@@ -1,0 +1,19 @@
+commit 77b4284e39ba1ec3d84eb13283d6045000425740
+Author: Jamie Coldhill <kodi@Ubuntu.12.04.5>
+Date:   Sat Jan 16 21:34:08 2016 +0800
+
+    Hide.Serial.and.Revision.SysInfo.patch
+
+diff --git a/xbmc/windows/GUIWindowSystemInfo.cpp b/xbmc/windows/GUIWindowSystemInfo.cpp
+index 8941b87..f2f51fd 100644
+--- a/xbmc/windows/GUIWindowSystemInfo.cpp
++++ b/xbmc/windows/GUIWindowSystemInfo.cpp
+@@ -151,8 +151,6 @@ void CGUIWindowSystemInfo::FrameMove()
+ #if defined(__arm__) && defined(TARGET_LINUX)
+     SET_CONTROL_LABEL(i++, g_sysinfo.GetCPUBogoMips());
+     SET_CONTROL_LABEL(i++, g_sysinfo.GetCPUHardware());
+-    SET_CONTROL_LABEL(i++, g_sysinfo.GetCPURevision());
+-    SET_CONTROL_LABEL(i++, g_sysinfo.GetCPUSerial());
+ #endif
+     SetControlLabel(i++, "%s %s", 22011, SYSTEM_CPU_TEMPERATURE);
+ #if !defined(__arm__) || defined(TARGET_RASPBERRY_PI)

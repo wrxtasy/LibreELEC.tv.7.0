@@ -1,0 +1,25 @@
+--- a/configure.ac	2015-12-01 19:35:07.288469611 +0300
++++ b/configure.ac	2015-12-01 19:35:15.952446349 +0300
+@@ -1144,7 +1144,7 @@
+ AC_MSG_CHECKING("for libcrossguid")
+ AC_LANG_PUSH([C++])
+ SAVED_LIBS="$LIBS"
+-LIBS="$LIBS -lcrossguid $UUID_LIBS"
++LIBS="$LIBS -lcrossguid -luuid $UUID_LIBS"
+ AC_LINK_IFELSE(
+   [AC_LANG_PROGRAM(
+     [#include <guid.h>],
+--- a/Makefile.in	2015-12-02 13:09:20.225497897 +0300
++++ b/Makefile.in	2015-12-02 13:09:35.641458040 +0300
+@@ -432,9 +432,9 @@
+ @APP_NAME_LC@.bin: $(OBJSXBMC) $(DYNOBJSXBMC) $(NWAOBJSXBMC) $(MAINOBJS)
+ 
+ ifeq ($(findstring osx,@ARCH@), osx)
+-	$(SILENT_LD) $(CXX) $(LDFLAGS) -o @APP_NAME_LC@.bin $(MAINOBJS) -Wl,-all_load,-ObjC $(MAINOBJS) $(DYNOBJSXBMC) $(NWAOBJSXBMC) $(OBJSXBMC) $(LIBS) -rdynamic
++	$(SILENT_LD) $(CXX) $(LDFLAGS) -o @APP_NAME_LC@.bin $(MAINOBJS) -Wl,-all_load,-ObjC $(MAINOBJS) $(DYNOBJSXBMC) $(NWAOBJSXBMC) $(OBJSXBMC) $(LIBS) -rdynamic -luuid
+ else
+-	$(SILENT_LD) $(CXX) $(CXXFLAGS) $(LDFLAGS) -o @APP_NAME_LC@.bin $(MAINOBJS) -Wl,--start-group $(MAINOBJS) $(DYNOBJSXBMC) $(OBJSXBMC) -Wl,--end-group $(NWAOBJSXBMC) $(LIBS) -rdynamic
++	$(SILENT_LD) $(CXX) $(CXXFLAGS) $(LDFLAGS) -o @APP_NAME_LC@.bin $(MAINOBJS) -Wl,--start-group $(MAINOBJS) $(DYNOBJSXBMC) $(OBJSXBMC) -Wl,--end-group $(NWAOBJSXBMC) $(LIBS) -rdynamic -luuid
+ endif
+ 
+ @APP_NAME_LC@-xrandr: xbmc-xrandr.c
