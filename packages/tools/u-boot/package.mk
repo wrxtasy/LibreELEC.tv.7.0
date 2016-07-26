@@ -28,7 +28,9 @@ elif [ "$UBOOT_VERSION" = "imx6-cuboxi" ]; then
   # https://github.com/SolidRun/u-boot-imx6.git
   PKG_URL="$DISTRO_SRC/$PKG_NAME-$PKG_VERSION.tar.xz"
 elif [ "$UBOOT_VERSION" = "hardkernel" ]; then
-  PKG_VERSION="502b13b"
+#  PKG_VERSION="3edccd1"
+#   PKG_VERSION="1ec799c"
+  PKG_VERSION="83bf8f0"
   PKG_SITE="https://github.com/hardkernel/u-boot"
   PKG_URL="https://github.com/hardkernel/u-boot/archive/$PKG_VERSION.tar.gz"
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET gcc-linaro-aarch64-none-elf:host"
@@ -76,9 +78,9 @@ make_target() {
       make CROSS_COMPILE=aarch64-none-elf- ARCH=arm $UBOOT_TARGET
       make CROSS_COMPILE=aarch64-none-elf- ARCH=arm HOSTCC="$HOST_CC" HOSTSTRIP="true"
     else
-      make CROSS_COMPILE="$TARGET_PREFIX" ARCH=arm mrproper
-      make CROSS_COMPILE="$TARGET_PREFIX" ARCH=arm $UBOOT_TARGET
-      make CROSS_COMPILE="$TARGET_PREFIX" ARCH=arm HOSTCC="$HOST_CC" HOSTSTRIP="true"
+      make CROSS_COMPILE="$TARGET_PREFIX" ARCH="$TARGET_ARCH" mrproper
+      make CROSS_COMPILE="$TARGET_PREFIX" ARCH="$TARGET_ARCH" $UBOOT_TARGET
+      make CROSS_COMPILE="$TARGET_PREFIX" ARCH="$TARGET_ARCH" HOSTCC="$HOST_CC" HOSTSTRIP="true"
     fi
 
     # rename files in case of multiple targets
