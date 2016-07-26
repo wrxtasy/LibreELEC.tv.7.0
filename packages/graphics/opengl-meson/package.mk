@@ -21,17 +21,22 @@ PKG_REV="1"
 PKG_ARCH="arm aarch64"
 PKG_LICENSE="nonfree"
 PKG_SITE="http://openlinux.amlogic.com:8000/download/ARM/filesystem/"
-case $PROJECT in
-  WeTek_Core)
+PKG_URL="$DISTRO_SRC/$PKG_NAME-$PKG_VERSION.tar.xz"
+case $MESON_FAMILY in
+  8)
     PKG_VERSION="8-r5p1-01rel0-armhf"
     ;;
-  WeTek_Play)
+  6)
     PKG_VERSION="6-r5p1-01rel0-armhf"
     ;;
-  Odroid_C2)
+  gxbb)
+    PKG_VERSION="gxbb-r6p1-01rel0"
+    ;;
+  hub)
     PKG_VERSION="gxbb-r5p1-01rel0"
     ;;
 esac
+
 PKG_URL="$DISTRO_SRC/$PKG_NAME-$PKG_VERSION.tar.xz"
 PKG_DEPENDS_TARGET="toolchain"
 PKG_PRIORITY="optional"
