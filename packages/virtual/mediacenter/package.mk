@@ -72,7 +72,6 @@ if [ "$MEDIACENTER" = "kodi" ]; then
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET visualization.spectrum"
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET visualization.waveform"
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET visualization.shadertoy"
-  PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET visualization.wavforhue"
 
 # screensaver addons
   PKG_DEPENDS_TARGET="$PKG_DEPENDS_TARGET screensaver.shadertoy"
