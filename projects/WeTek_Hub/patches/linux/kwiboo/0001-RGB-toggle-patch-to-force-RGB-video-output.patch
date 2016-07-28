@@ -1,0 +1,41 @@
+From 0cb5ddc525718513322748576b7cc478979e0b83 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Wed, 27 Jul 2016 21:18:39 +0800
+Subject: [PATCH] RGB: toggle patch to force RGB video output
+
+---
+ drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c      | 3 +++
+ drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c | 3 +++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c b/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c
+index 7d3e683..e9fa10c 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c
+@@ -2134,6 +2134,9 @@ static  int __init hdmitx_boot_para_setup(char *s)
+ 			hdmitx_device.cec_func_config = list;
+ 		hdmi_print(INF, CEC "HDMI hdmi_cec_func_config:0x%x\n",
+ 			hdmitx_device.cec_func_config);
++		} else if {
++			hdmitx_output_rgb();
++			hdmi_print(IMP, "Forced RGB colorspace output\n");
+ 		}
+ 	}
+ 		offset = token_offset;
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+index 29b7a3f..107e2d8 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+@@ -3043,6 +3043,9 @@ static  int __init hdmitx_boot_para_setup(char *s)
+ 		if ((token_len == 3)
+ 			&& (strncmp(token, "off", token_len) == 0)) {
+ 			init_flag |= INIT_FLAG_NOT_LOAD;
++		} else {
++			hdmitx_output_rgb();
++			hdmi_print(IMP, "Forced RGB colorspace output\n");
+ 		}
+ 	}
+ 		offset = token_offset;
+-- 
+1.9.1
+

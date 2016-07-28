@@ -1,0 +1,35 @@
+From d39ca8a2f849300f6f47d556c7aced0b38227681 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Wed, 27 Jul 2016 21:36:49 +0800
+Subject: [PATCH] meson-ir: add to wetek dtb
+
+---
+ arch/arm64/boot/dts/amlogic/wetek_hub.dts | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/amlogic/wetek_hub.dts b/arch/arm64/boot/dts/amlogic/wetek_hub.dts
+index c9f9fd0..966ba19 100644
+--- a/arch/arm64/boot/dts/amlogic/wetek_hub.dts
++++ b/arch/arm64/boot/dts/amlogic/wetek_hub.dts
+@@ -1123,6 +1123,18 @@
+ 		fe0_dev = <0>;
+ 	};
+ */
++
++        meson-ir {
++                compatible = "amlogic, meson6-ir";
++                reg = <0x0 0xc8100580 0x0 0x20>;
++                interrupts = <0 196 1>;
++                pinctrl-names = "default";
++                pinctrl-0 = <&remote_pins>;
++                pulse-inverted;
++                status = "ok";
++        };
++
++
+ };
+ &i2c_a {
+   status = "okay";
+-- 
+1.9.1
+

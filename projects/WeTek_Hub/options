@@ -66,13 +66,15 @@
     KERNEL_TARGET="Image.lzo"
 
   # Kernel extra targets to build
-    KERNEL_UBOOT_EXTRA_TARGET="gxbb_p200.dtb"
+#    KERNEL_UBOOT_EXTRA_TARGET="gxbb_p200.dtb"
+    KERNEL_UBOOT_EXTRA_TARGET="wetek_hub.dtb"
 
   # Build Android kernel image using mkbootimg
     BUILD_ANDROID_BOOTIMG="yes"
 
   # Additional options to be passed to Android mkbootimg
-    ANDROID_BOOTIMG_OPTIONS="--second arch/arm64/boot/dts/amlogic/gxbb_p200.dtb --base 0x0 --kernel_offset 0x1080000"
+#    ANDROID_BOOTIMG_OPTIONS="--second arch/arm64/boot/dts/amlogic/gxbb_p200.dtb --base 0x0 --kernel_offset 0x1080000"
+    ANDROID_BOOTIMG_OPTIONS="--second arch/arm64/boot/dts/amlogic/wetek_hub.dtb --base 0x0 --kernel_offset 0x1080000"
 
   # Additional kernel make parameters (for example to specify the u-boot loadaddress)
     KERNEL_MAKE_EXTRACMD=""
@@ -80,7 +82,7 @@
   # Kernel to use. values can be:
   # default:  default mainline kernel
     LINUX="amlogic-3.14"
-
+#    LINUX="kwiboo"
 
 ################################################################################
 # setup build defaults
@@ -114,7 +116,7 @@
   # OpenGL-ES implementation to use (no / bcm2835-driver / gpu-viv-bin-mx6q / opengl-meson6)
     OPENGLES="opengl-meson"
 
-  # Amlogic Meson SOC family (8 / 6 / gxbb)
+  # Amlogic Meson SOC family (8 / 6 / gxbb / hub)
     MESON_FAMILY="hub"
 
   # include uvesafb support (yes / no)
@@ -156,6 +158,9 @@
 
   # Amlogic IR remote support (yes / no)
     AMREMOTE_SUPPORT="yes"
+
+  # WeTek IR remote support (yes / no)
+#    WETEKREMOTE_SUPPORT="yes"
 
   # build with swap support (yes / no)
     SWAP_SUPPORT="no"

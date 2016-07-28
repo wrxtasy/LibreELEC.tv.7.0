@@ -42,6 +42,10 @@ case "$LINUX" in
     PKG_VERSION="5f6b942"
     PKG_URL="https://github.com/codesnake/linux/archive/$PKG_VERSION.tar.gz"
     ;;
+  kwiboo)
+    PKG_VERSION="df4b9a2"
+    PKG_URL="https://github.com/Kwiboo/linux/archive/$PKG_VERSION.tar.gz"
+    ;;
   imx6)
     PKG_VERSION="cuboxi-3.14-ea83bda"
     PKG_URL="$DISTRO_SRC/$PKG_NAME-$PKG_VERSION.tar.xz"
