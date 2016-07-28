@@ -230,7 +230,7 @@ elif [ "$BOOTLOADER" = "u-boot" ]; then
       mcopy $RELEASE_DIR/3rdparty/bootloader/u-boot.img ::
     fi
 
-    for dtb in $RELEASE_DIR/3rdparty/bootloader/*.dtb ; do
+    for dtb in $RELEASE_DIR/3rdparty/bootloader/*.dtb $RELEASE_DIR/3rdparty/bootloader/dtb.img ; do
       if [ -f $dtb ] ; then
         mcopy "$dtb" ::/$(basename "$dtb")
       fi
