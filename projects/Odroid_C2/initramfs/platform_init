@@ -59,3 +59,6 @@ echo 1 > /sys/class/graphics/fb1/blank
 echo 8 >  /sys/module/amvdec_h265/parameters/buffer_mode
 echo 16 > /sys/module/amvdec_h265/parameters/dynamic_buf_num_margin
 echo 1 >  /sys/module/amvdec_h265/parameters/use_cma
+
+#  Turn off the annoying Blue Flashing LED on the C2
+echo none > /sys/class/leds/blue:heartbeat/trigger
