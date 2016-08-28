@@ -111,7 +111,7 @@ fi
   echo -e "VERSION=\"$LIBREELEC_VERSION\"" >> $INSTALL/etc/os-release
   echo -e "ID=\"libreelec\"" >> $INSTALL/etc/os-release
   echo -e "VERSION_ID=\"$OS_VERSION\"" >> $INSTALL/etc/os-release
-  echo -e "PRETTY_NAME=\"$DISTRONAME ($LIBREELEC_BUILD) - Version: $LIBREELEC_VERSION\"" >> $INSTALL/etc/os-release
+  echo -e "PRETTY_NAME=\"$DISTRONAME ($LIBREELEC_BUILD) - Version: 7.0.2\"" >> $INSTALL/etc/os-release
   echo -e "HOME_URL=\"http://www.libreelec.tv\"" >> $INSTALL/etc/os-release
   echo -e "BUG_REPORT_URL=\"$ORIGIN_URL\"" >> $INSTALL/etc/os-release
   echo -e "BUILD_ID=\"$GIT_HASH\"" >> $INSTALL/etc/os-release
@@ -125,7 +125,7 @@ fi
   echo "$GREETING2" >> $INSTALL/etc/issue
   echo "$GREETING3" >> $INSTALL/etc/issue
   echo "$GREETING4" >> $INSTALL/etc/issue
-  echo "$DISTRONAME ($LIBREELEC_BUILD) Version: $LIBREELEC_VERSION" >> $INSTALL/etc/issue
+  echo "$DISTRONAME ($LIBREELEC_BUILD) Version: 7.0.2" >> $INSTALL/etc/issue
   if [ "$DEVEL_VERSION" = "devel" ] ; then
     echo "$DISTRONAME git: $GIT_HASH" >> $INSTALL/etc/issue
   fi
@@ -393,11 +393,6 @@ fi
         cp $INSTALL_SRC_DIR/update-binary $META_INF_DIR
         cp $INSTALL_SRC_DIR/updater-script $META_INF_DIR
 
-        # copy device tree image if any
-        if [ -f "$INSTALL/usr/share/bootloader/$KERNEL_UBOOT_EXTRA_TARGET" ]; then
-          cp -PR "$INSTALL/usr/share/bootloader/$KERNEL_UBOOT_EXTRA_TARGET" $AML_PKG_DIR/dtb.img
-        fi
-
         # copy other files if any
         if [ -d "$INSTALL_SRC_DIR/files" ]; then
           cp -PR $INSTALL_SRC_DIR/files/* $AML_PKG_DIR
@@ -418,8 +413,6 @@ fi
           echo "Creating Amlogic ZIP auto-install package"
           pushd sign > /dev/null
           echo --update_package=/sdcard/$IMAGE_NAME-update.zip > factory_update_param.aml
-          echo --wipe_data >> factory_update_param.aml
-          echo --wipe_cache >> factory_update_param.aml
           cp $INSTALL_SRC_DIR/files/recovery.img .
           if [ -f $INSTALL_SRC_DIR/files/aml_autoscript ]; then
             cp $INSTALL_SRC_DIR/files/aml_autoscript .
