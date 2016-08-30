@@ -394,8 +394,8 @@ fi
         cp $INSTALL_SRC_DIR/updater-script $META_INF_DIR
 
         # copy device tree image if any
-        if [ -f "$INSTALL/usr/share/bootloader/$KERNEL_UBOOT_EXTRA_TARGET" ]; then
-          cp -PR "$INSTALL/usr/share/bootloader/$KERNEL_UBOOT_EXTRA_TARGET" $AML_PKG_DIR/dtb.img
+        if [ -f "$INSTALL/usr/share/bootloader/dtb.img" ]; then
+          cp "$INSTALL/usr/share/bootloader/dtb.img" $AML_PKG_DIR/dtb.img
         fi
 
         # copy other files if any
@@ -424,6 +424,12 @@ fi
           if [ -f $INSTALL_SRC_DIR/files/aml_autoscript ]; then
             cp $INSTALL_SRC_DIR/files/aml_autoscript .
           fi
+
+          # copy device tree image if any
+          if [ -f "$ROOT/$INSTALL/usr/share/bootloader/dtb.img" ]; then
+            cp "$ROOT/$INSTALL/usr/share/bootloader/dtb.img" .
+          fi
+
           zip -q $TARGET_IMG/$IMAGE_NAME.zip *
           popd > /dev/null
         fi
