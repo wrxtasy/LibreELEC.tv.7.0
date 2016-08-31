@@ -5,34 +5,6 @@
   # The TARGET_CPU variable controls which processor should be targeted for
   # generated code.
     case $TARGET_ARCH in
-      arm)
-        # TARGET_CPU:
-        # arm2 arm250 arm3 arm6 arm60 arm600 arm610 arm620 arm7 arm7m arm7d
-        # arm7dm arm7di arm7dmi arm70 arm700 arm700i arm710 arm710c
-        # arm7100 arm720 arm7500 arm7500fe arm7tdmi arm7tdmi-s arm710t
-        # arm720t arm740t strongarm strongarm110 strongarm1100
-        # strongarm1110 arm8 arm810 arm9 arm9e arm920 arm920t arm922t
-        # arm946e-s arm966e-s arm968e-s arm926ej-s arm940t arm9tdmi
-        # arm10tdmi arm1020t arm1026ej-s arm10e arm1020e arm1022e
-        # arm1136j-s arm1136jf-s mpcore mpcorenovfp arm1156t2-s
-        # arm1176jz-s arm1176jzf-s cortex-a8 cortex-a9 cortex-r4
-        # cortex-r4f cortex-m3 cortex-m1 xscale iwmmxt iwmmxt2 ep9312.
-        #
-        TARGET_CPU="cortex-a9"
-
-        # TARGET_FLOAT:
-        # Specifies which floating-point ABI to use. Permissible values are:
-        # soft softfp hard
-        TARGET_FLOAT="hard"
-
-        # TARGET_FPU:
-        # This specifies what floating point hardware (or hardware emulation) is
-        # available on the target. Permissible names are:
-        # fpa fpe2 fpe3 maverick vfp vfpv3 vfpv3-fp16 vfpv3-d16 vfpv3-d16-fp16
-        # vfpv3xd vfpv3xd-fp16 neon neon-fp16 vfpv4 vfpv4-d16 fpv4-sp-d16
-        # neon-vfpv4.
-        TARGET_FPU="neon"
-        ;;
       aarch64)
         # TARGET_CPU:
         # arm2 arm250 arm3 arm6 arm60 arm600 arm610 arm620 arm7 arm7m arm7d
@@ -66,15 +38,13 @@
     KERNEL_TARGET="Image.lzo"
 
   # Kernel extra targets to build
-#    KERNEL_UBOOT_EXTRA_TARGET="gxbb_p200.dtb"
-    KERNEL_UBOOT_EXTRA_TARGET="wetek_hub.dtb"
+    KERNEL_UBOOT_EXTRA_TARGET="gxbb_p200_1G_wetek_hub.dtb"
 
   # Build Android kernel image using mkbootimg
     BUILD_ANDROID_BOOTIMG="yes"
 
   # Additional options to be passed to Android mkbootimg
-#    ANDROID_BOOTIMG_OPTIONS="--second arch/arm64/boot/dts/amlogic/gxbb_p200.dtb --base 0x0 --kernel_offset 0x1080000"
-    ANDROID_BOOTIMG_OPTIONS="--second arch/arm64/boot/dts/amlogic/wetek_hub.dtb --base 0x0 --kernel_offset 0x1080000"
+    ANDROID_BOOTIMG_OPTIONS="--second arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dtb --base 0x0 --kernel_offset 0x1080000"
 
   # Additional kernel make parameters (for example to specify the u-boot loadaddress)
     KERNEL_MAKE_EXTRACMD=""
@@ -82,7 +52,7 @@
   # Kernel to use. values can be:
   # default:  default mainline kernel
     LINUX="amlogic-3.14"
-#    LINUX="kwiboo"
+
 
 ################################################################################
 # setup build defaults
@@ -116,8 +86,8 @@
   # OpenGL-ES implementation to use (no / bcm2835-driver / gpu-viv-bin-mx6q / opengl-meson6)
     OPENGLES="opengl-meson"
 
-  # Amlogic Meson SOC family (8 / 6 / gxbb / hub)
-    MESON_FAMILY="hub"
+  # Amlogic Meson SOC family (8 / 6 / gxbb)
+    MESON_FAMILY="gxbb"
 
   # include uvesafb support (yes / no)
     UVESAFB_SUPPORT="no"
@@ -143,7 +113,7 @@
   # for a list of additinoal drivers see packages/linux-drivers
   # Space separated list is supported,
   # e.g. ADDITIONAL_DRIVERS="DRIVER1 DRIVER2"
-    ADDITIONAL_DRIVERS=""
+    ADDITIONAL_DRIVERS="gpu-aml brcmap6xxx-aml"
 
   # additional Firmware to use (dvb-firmware, misc-firmware, wlan-firmware)
   # Space separated list is supported,
@@ -157,10 +127,7 @@
     IRSERVER_SUPPORT="no"
 
   # Amlogic IR remote support (yes / no)
-    AMREMOTE_SUPPORT="yes"
-
-  # WeTek IR remote support (yes / no)
-#    WETEKREMOTE_SUPPORT="yes"
+    AMREMOTE_SUPPORT="no"
 
   # build with swap support (yes / no)
     SWAP_SUPPORT="no"
@@ -193,10 +160,6 @@
   # kernel image name
     KERNEL_NAME="kernel.img"
 
-  # Addon Server Url
-  # ADDON_SERVER_URL="https://raw.github.com"
-
   # set the addon dirs
     ADDON_PATH="addons/$ADDON_VERSION/Odroid_C2/$TARGET_ARCH"
     ADDON_URL="$ADDON_SERVER_URL/$ADDON_PATH"
-

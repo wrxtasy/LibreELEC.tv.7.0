@@ -1,0 +1,12 @@
+diff --git a/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts b/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
+index 5b66020..d381aa0 100644
+--- a/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
++++ b/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
+@@ -1209,6 +1209,6 @@
+ &defendkey {
+ 	status = "okay";
+ };
+-&aml_remote {
++&meson_ir {
+ 	status = "okay";
+ };
