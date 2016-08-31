@@ -17,8 +17,8 @@ begin remote
   suppress_repeat 1
 
       begin codes
-          KEY_POWER                0x8F70
-          KEY_HOME                 0x4FB0
+          KEY_PVR                  0x8F70
+          KEY_INFO                 0x4FB0
           KEY_MUTE                 0xCF30
           KEY_ENTER                0x1FE0
           KEY_LEFT                 0x6F90
@@ -26,7 +26,7 @@ begin remote
           KEY_UP                   0x2FD0
           KEY_DOWN                 0xAF50
           KEY_EXIT                 0x9F60
-          KEY_MENU                 0x5FA0
+          KEY_EPG                  0x5FA0
           KEY_VOLUMEUP             0xDF20
           KEY_VOLUMEDOWN           0x3FC0
       end codes
