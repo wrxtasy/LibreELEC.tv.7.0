@@ -1,0 +1,7 @@
+bcn_timeout=20
+kso_enable=0
+ccode=ALL
+regrev=38
+PM=0
+nv_by_chip=1 \
+17200 4 nvram_ap6330.txt

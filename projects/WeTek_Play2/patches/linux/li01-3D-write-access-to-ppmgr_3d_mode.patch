@@ -1,0 +1,22 @@
+From c0abbaf1066e25f2173ad212d7b588a804e17be1 Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Thu, 30 Jun 2016 22:23:44 +0200
+Subject: [PATCH] drivers/amlogic/ppmgr: write access to ppmgr_3d_mode
+
+---
+ drivers/amlogic/ppmgr/ppmgr_drv.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/amlogic/ppmgr/ppmgr_drv.c b/drivers/amlogic/ppmgr/ppmgr_drv.c
+index 610feae..4488ccc 100644
+--- a/drivers/amlogic/ppmgr/ppmgr_drv.c
++++ b/drivers/amlogic/ppmgr/ppmgr_drv.c
+@@ -1115,7 +1115,7 @@ __ATTR(orientation,
+ 		receiver_write),
+ #ifdef CONFIG_POST_PROCESS_MANAGER_3D_PROCESS
+ 	__ATTR(ppmgr_3d_mode,
+-		S_IRUGO | S_IWUSR,
++		S_IRUGO | S_IWUSR | S_IWGRP,
+ 		_3dmode_read,
+ 		_3dmode_write),
+ 	__ATTR(viewmode,

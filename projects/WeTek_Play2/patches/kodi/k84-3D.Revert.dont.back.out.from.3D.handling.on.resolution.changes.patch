@@ -1,0 +1,37 @@
+From 40b5e17d39702c55a9870e5fd563aa48fbaea2ac Mon Sep 17 00:00:00 2001
+From: popcornmix <popcornmix@gmail.com>
+Date: Sun, 21 Jun 2015 17:11:09 +0100
+Subject: [PATCH] Revert "[3D] don't back out from 3D handling on resolution
+ changes if we're switching to a different 3D mode"
+
+This reverts commit 3c4c236a799dab8369b4bb74ff9993bc58a61a72.
+---
+ xbmc/guilib/GraphicContext.cpp | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/xbmc/guilib/GraphicContext.cpp b/xbmc/guilib/GraphicContext.cpp
+index a1b8812..87e71de 100644
+--- a/xbmc/guilib/GraphicContext.cpp
++++ b/xbmc/guilib/GraphicContext.cpp
+@@ -433,17 +433,14 @@ void CGraphicContext::SetVideoResolutionInternal(RESOLUTION res, bool forceUpdat
+ 
+   RENDER_STEREO_MODE stereo_mode = m_stereoMode;
+ 
+-  // if the new resolution is an actual stereo mode, switch to that
+-  // if the old resolution was an actual stereo mode and renderer is still in old 3D mode, switch to no 3d mode
++  // if the new mode is an actual stereo mode, switch to that
++  // if the old mode was an actual stereo mode, switch to no 3d mode
+   if (info_org.dwFlags & D3DPRESENTFLAG_MODE3DTB)
+     stereo_mode = RENDER_STEREO_MODE_SPLIT_HORIZONTAL;
+   else if (info_org.dwFlags & D3DPRESENTFLAG_MODE3DSBS)
+     stereo_mode = RENDER_STEREO_MODE_SPLIT_VERTICAL;
+-  else if ((info_last.dwFlags & D3DPRESENTFLAG_MODE3DTB)
+-        && m_stereoMode == RENDER_STEREO_MODE_SPLIT_HORIZONTAL)
+-    stereo_mode = RENDER_STEREO_MODE_OFF;
+-  else if ((info_last.dwFlags & D3DPRESENTFLAG_MODE3DSBS)
+-        && m_stereoMode == RENDER_STEREO_MODE_SPLIT_VERTICAL)
++  else if ((info_last.dwFlags & D3DPRESENTFLAG_MODE3DSBS) != 0
++        || (info_last.dwFlags & D3DPRESENTFLAG_MODE3DTB)  != 0)
+     stereo_mode = RENDER_STEREO_MODE_OFF;
+ 
+   if(stereo_mode != m_stereoMode)
