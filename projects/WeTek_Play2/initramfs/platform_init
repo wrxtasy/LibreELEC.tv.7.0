@@ -66,8 +66,3 @@ esac
 # Include deinterlacer into default VFM map
 echo rm default > /sys/class/vfm/map
 echo add default decoder ppmgr deinterlace amvideo > /sys/class/vfm/map
-
-# Tweak HEVC playback
-echo 8 >  /sys/module/amvdec_h265/parameters/buffer_mode
-echo 16 > /sys/module/amvdec_h265/parameters/dynamic_buf_num_margin
-echo 1 >  /sys/module/amvdec_h265/parameters/use_cma

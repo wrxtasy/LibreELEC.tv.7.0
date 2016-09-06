@@ -1,7 +1,8 @@
+bcn_timeout=20
 kso_enable=0
-ccode=CN
+ccode=ALL
 regrev=38
 mimo_bw_cap=1
 PM=0
 nv_by_chip=1 \
-17209 1 nvram_ap6335.txt
+17200 4 nvram_ap6330.txt

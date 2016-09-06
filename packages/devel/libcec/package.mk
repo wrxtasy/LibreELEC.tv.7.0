@@ -43,7 +43,7 @@ else
 fi
 
 if [ "$KODIPLAYER_DRIVER" = "libamcodec" ]; then
-  if [ "$MESON_FAMILY" = "gxbb" -o "$MESON_FAMILY" = "hub" ]; then
+  if [ "$MESON_FAMILY" = "gxbb" ]; then
     EXTRA_CMAKE_OPTS="$EXTRA_CMAKE_OPTS -DHAVE_AOCEC_API=1"
   else
     EXTRA_CMAKE_OPTS="$EXTRA_CMAKE_OPTS -DHAVE_AMLOGIC_API=1"
