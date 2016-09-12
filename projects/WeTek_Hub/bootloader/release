@@ -18,4 +18,5 @@
 . config/options $1
 
 mkdir -p $RELEASE_DIR/3rdparty/bootloader
-  cp -PR $BUILD/linux-*/arch/$TARGET_KERNEL_ARCH/boot/dts/amlogic/$KERNEL_UBOOT_EXTRA_TARGET $RELEASE_DIR/3rdparty/bootloader/dtb.img 2>/dev/null || :
+#  cp -PR $BUILD/linux-*/arch/$TARGET_KERNEL_ARCH/boot/dts/amlogic/$KERNEL_UBOOT_EXTRA_TARGET $RELEASE_DIR/3rdparty/bootloader/dtb.img 2>/dev/null || :
+cp $INSTALL/usr/share/bootloader/dtb.img $RELEASE_DIR/3rdparty/bootloader

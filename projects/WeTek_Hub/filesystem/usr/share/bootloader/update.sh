@@ -26,7 +26,7 @@
   for dtb in dtb.img; do 
    if [ -f $SYSTEM_ROOT/usr/share/bootloader/$dtb ]; then
       echo "*** updating Device Tree Blob: $dtb ..."
-      cp -p $SYSTEM_ROOT/usr/share/bootloader/gxbb_p200_1G_wetek_hub.dtb $BOOT_ROOT/dtb.img
+      cp -p $SYSTEM_ROOT/usr/share/bootloader/dtb.img $BOOT_ROOT
     fi
   done
 
