@@ -375,10 +375,6 @@ fi
       # cleanup release dir
       rm -rf $RELEASE_DIR
 
-      # lets get rid of things we don't care about in $TARGET_IMG
-      mv $TARGET_IMG/$IMAGE_NAME.system $INSTALL/../SYSTEM
-      mv $TARGET_IMG/$IMAGE_NAME.kernel $INSTALL/../KERNEL
-
     # create WeTek Play (Amlogic) ZIP update and auto-install packages if requested
       if [ "$1" = "amlpkg" ]; then
         echo "Creating Amlogic ZIP update package"
@@ -556,4 +552,10 @@ fi
         # cleanup noobs dir
           rm -rf $RELEASE_DIR
       fi
+
+      # lets get rid of things we don't care about in $TARGET_IMG
+      echo "Cleanup .system and .kernel files"
+      mv $TARGET_IMG/$IMAGE_NAME.system $INSTALL/../SYSTEM
+      mv $TARGET_IMG/$IMAGE_NAME.kernel $INSTALL/../KERNEL
+
   fi
