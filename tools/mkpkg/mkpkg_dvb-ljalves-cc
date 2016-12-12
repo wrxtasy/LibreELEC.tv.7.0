@@ -1,0 +1,102 @@
+#!/bin/sh
+################################################################################
+#      This file is part of LibreELEC - https://LibreELEC.tv
+#      Copyright (C) 2016 Team LibreELEC
+#
+#  LibreELEC is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 2 of the License, or
+#  (at your option) any later version.
+#
+#  LibreELEC is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with LibreELEC.  If not, see <http://www.gnu.org/licenses/>.
+################################################################################
+
+# name of the package
+DVB_MKPKG_NAME="ljalves-cc"
+
+# remove old ljalves files
+echo "removing old sources ..."
+rm -rf ${DVB_MKPKG_NAME}
+rm -rf ${DVB_MKPKG_NAME}-*
+
+################################################################################
+
+# media_build dl
+echo "getting media_build sources ..."
+  if [ ! -d media_build.git ]; then
+    git clone --depth=1 https://bitbucket.org/CrazyCat/media_build.git ${DVB_MKPKG_NAME}/media_build
+  fi
+
+echo "cleaning media_build sources ..."
+  rm -rf ${DVB_MKPKG_NAME}/media_build/.git
+
+################################################################################
+
+# ljalves tbs drivers dl
+echo "getting ljalves sources ... !!! huge !!!"
+  if [ ! -d linux_media.git ]; then
+    git clone --depth=1 https://github.com/crazycat69/linux_media.git -b latest ${DVB_MKPKG_NAME}/media
+  fi
+
+  cd ${DVB_MKPKG_NAME}/media
+    git pull
+    GIT_REV=`git log -n1 --pretty=format:"%ad" --date=short`
+
+# remove unnessecary files
+  rm -rf arch
+  rm -rf block
+  rm -rf certs
+  rm -rf crypto
+  rm -rf Documentation
+
+  # clean drivers/
+  mkdir -p .tmp/staging
+  mv drivers/media/ .tmp/
+  mv drivers/staging/media/ .tmp/staging/
+  mv drivers/misc/ .tmp/
+  rm -rf drivers/*
+  mv .tmp/* drivers/
+
+  rm -rf fs
+  rm -rf init
+  rm -rf ipc
+  rm -rf kernel
+  rm -rf lib
+  rm -rf net
+  rm -rf samples
+  rm -rf scripts
+  rm -rf security
+ 
+  # clean sound/
+  mkdir .tmp/
+  mv sound/pci/ .tmp/
+  rm -rf sound/*
+  mv .tmp/* sound/
+
+  rm -rf tools
+  rm -rf usr
+  rm -rf virt
+  rm -rf .tmp
+  cd ../..
+
+echo "copying ljalves sources ..."
+  rm -rf ${DVB_MKPKG_NAME}-$GIT_REV
+  cp -R ${DVB_MKPKG_NAME} ${DVB_MKPKG_NAME}-$GIT_REV
+
+echo "cleaning ljalves sources ..."
+  rm -rf ${DVB_MKPKG_NAME}-$GIT_REV/media/.git
+
+################################################################################
+
+echo "packing sources ..."
+tar cvJf ${DVB_MKPKG_NAME}-$GIT_REV.tar.xz ${DVB_MKPKG_NAME}-$GIT_REV
+
+echo "remove temporary sourcedir ..."
+  rm -rf ${DVB_MKPKG_NAME}-$GIT_REV
+  rm -rf ${DVB_MKPKG_NAME}
