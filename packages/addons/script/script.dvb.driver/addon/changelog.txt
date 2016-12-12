@@ -1,0 +1,23 @@
+1.6
+- changed drivers a bit
+- dropped ljalves for tbs official
+
+1.5
+- removed unused drivers
+
+1.4
+- Add Digital Devices (manufacturer) support
+
+1.3
+- fix incorrect Digital Devices name in dvb-driver.txt
+
+1.2
+- add DVBSky Drivers for DVB-C
+- add official TBS OpenSource Drivers
+
+1.1
+- add Digital Devices support
+- fix downloads/dvb-driver.txt creation at fresh install
+
+1.0
+- initial LibreELEC version
