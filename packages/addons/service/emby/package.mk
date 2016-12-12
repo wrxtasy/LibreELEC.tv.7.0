@@ -18,24 +18,21 @@
 
 PKG_NAME="emby"
 PKG_VERSION="3.0.8100"
-PKG_REV="103"
+PKG_REV="106"
 PKG_ARCH="any"
 PKG_LICENSE="OSS"
 PKG_SITE="http://emby.media"
 PKG_URL="https://github.com/MediaBrowser/Emby/releases/download/$PKG_VERSION/Emby.Mono.zip"
-PKG_DEPENDS_TARGET="toolchain imagemagick"
-PKG_PRIORITY="optional"
+PKG_DEPENDS_TARGET="toolchain ffmpegx imagemagick"
 PKG_SECTION="service"
 PKG_SHORTDESC="Emby: a personal media server"
 PKG_LONGDESC="Emby ($PKG_VERSION) brings your home videos, music, and photos together, automatically converting and streaming your media on-the-fly to any device"
-PKG_MAINTAINER="Anton Voyl (awiouy)"
-PKG_AUTORECONF="no"
 
 PKG_IS_ADDON="yes"
 PKG_ADDON_NAME="Emby (beta)"
 PKG_ADDON_TYPE="xbmc.service"
-PKG_ADDON_REPOVERSION="7.0"
 PKG_ADDON_REQUIRES="tools.mono:0.0.0"
+PKG_MAINTAINER="Anton Voyl (awiouy)"
 
 unpack() {
   mkdir -p $PKG_BUILD
@@ -57,6 +54,13 @@ addon() {
   sed -i 's/libsqlite3.so/libsqlite3.so.0/g' \
       $ADDON_BUILD/$PKG_ADDON_ID/Emby.Mono/System.Data.SQLite.dll.config
 
+  mkdir -p $ADDON_BUILD/$PKG_ADDON_ID/bin
+  cp -L $(get_build_dir ffmpegx)/.install_pkg/usr/local/bin/ffmpegx  \
+        $(get_build_dir ffmpegx)/.install_pkg/usr/local/bin/ffprobex \
+        $ADDON_BUILD/$PKG_ADDON_ID/bin/
+
   mkdir -p $ADDON_BUILD/$PKG_ADDON_ID/lib
-  cp -PR $(get_build_dir imagemagick)/.install_pkg/usr/lib/* $ADDON_BUILD/$PKG_ADDON_ID/lib/
+  cp -L $(get_build_dir imagemagick)/.install_pkg/usr/lib/libMagickCore-6.Q8.so.2 \
+        $(get_build_dir imagemagick)/.install_pkg/usr/lib/libMagickWand-6.Q8.so   \
+        $ADDON_BUILD/$PKG_ADDON_ID/lib/
 }

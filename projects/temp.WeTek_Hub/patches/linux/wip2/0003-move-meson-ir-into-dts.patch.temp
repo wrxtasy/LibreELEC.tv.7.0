@@ -1,0 +1,77 @@
+From 410e88649077409a337b0ea163d120d28d666fef Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Mon, 3 Oct 2016 14:13:33 +0800
+Subject: [PATCH] move-meson-ir-into-dts
+
+---
+ .../boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts    | 26 ++++++++++++++++++++--
+ arch/arm64/boot/dts/amlogic/mesongxbb.dtsi         |  4 ++--
+ 2 files changed, 26 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts b/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
+index 1057348..0d0424f 100644
+--- a/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
++++ b/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
+@@ -1163,6 +1163,28 @@
+ 		fe0_dev = <0>;
+ 	};
+ */
++
++/*	meson-ir {
++		compatible = "amlogic, meson-gxbb-ir";
++ 		//dev_name = "meson-ir";
++		//status = "okay";
++		reg = <0x0 0xc8100580 0x0 0x40>;
++		interrupts = <0 196 1>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&remote_pins>; status = "okay";
++	};
++
++*/
++	meson-ir {
++                compatible = "amlogic, meson6-ir";
++                reg = <0x0 0xc8100580 0x0 0x20>;
++                interrupts = <0 196 1>;
++                pinctrl-names = "default";
++                pinctrl-0 = <&remote_pins>;
++                pulse-inverted;
++                status = "ok";
++        }; 
++
+ };
+ &i2c_a {
+   status = "disabled";
+@@ -1208,6 +1230,6 @@
+ &defendkey {
+ 	status = "okay";
+ };
+-&aml_remote {
++/* &aml_remote {
+ 	status = "okay";
+-};
++};*/
+diff --git a/arch/arm64/boot/dts/amlogic/mesongxbb.dtsi b/arch/arm64/boot/dts/amlogic/mesongxbb.dtsi
+index 1ea64ff..f80b284 100644
+--- a/arch/arm64/boot/dts/amlogic/mesongxbb.dtsi
++++ b/arch/arm64/boot/dts/amlogic/mesongxbb.dtsi
+@@ -594,7 +594,7 @@
+ 		};
+ 
+ 	};
+-	aml_remote:meson-remote {
++/*	aml_remote:meson-remote {
+ 		compatible = "amlogic, aml_remote";
+ 		dev_name = "meson-remote";
+ 		status = "disabled";
+@@ -610,7 +610,7 @@
+ 		interrupts = <0 196 1>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&remote_pins>;
+-	};
++	}; */
+ 
+ 	rng {
+ 		compatible = "amlogic,meson-rng";
+-- 
+1.9.1
+

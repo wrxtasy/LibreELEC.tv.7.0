@@ -1,0 +1,15 @@
+last 14 commit into 1 patch:
+git format-patch -14 HEAD --stdout > video.diff
+
+individual patches:
+git format-patch -14 HEAD
+
+
+ERRROR Message:
+! [remote rejected] master -> master (shallow update not allowed)
+	
+If you are pushing to a repo that is a bit behind whatever repo you cloned from, not creating an all-new repo, it is enough that your local reference is deep enough to contain
+ the remote reference. So if your origin/master was 20 commits ahead of your oldrepo/master when you clone --depth 1'ed it, and you have made 17 local commits since, it is
+ enough for you to do git fetch --depth 37 origin refs/heads/BranchName:refs/remotes/origin/BranchName (apologies for any off-by-one error), and then you can do git push oldrepo master
+ without incident (may require git 1.9.0 or newer)
+

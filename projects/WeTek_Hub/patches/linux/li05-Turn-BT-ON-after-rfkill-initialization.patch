@@ -1,0 +1,24 @@
+From eaca5e9dabcc06f1e58afee64f020810333e8b76 Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Wed, 10 Jun 2015 20:33:08 +0200
+Subject: [PATCH] Turn Bluetooth ON after rfkill initialization
+
+Conflicts:
+	drivers/amlogic/bluetooth/bt_device.c
+---
+ drivers/amlogic/bluetooth/bt_device.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/amlogic/bluetooth/bt_device.c b/drivers/amlogic/bluetooth/bt_device.c
+index ecea57b..e52f6b7 100644
+--- a/drivers/amlogic/bluetooth/bt_device.c
++++ b/drivers/amlogic/bluetooth/bt_device.c
+@@ -235,6 +235,8 @@ static int bt_probe(struct platform_device *pdev)
+ 	register_early_suspend(&bt_early_suspend);
+ #endif
+ 
++        bt_device_on(pdata);
++
+ 	return 0;
+ 
+ err_rfkill:

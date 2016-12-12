@@ -1,0 +1,24 @@
+From cabebaacc9ea58b430c031c368f2f376ad8a76ef Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Mon, 10 Oct 2016 16:57:03 +0800
+Subject: [PATCH] do not compile G9TV
+
+---
+ sound/soc/aml/m8/Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/sound/soc/aml/m8/Makefile b/sound/soc/aml/m8/Makefile
+index da85a5c..634618a 100644
+--- a/sound/soc/aml/m8/Makefile
++++ b/sound/soc/aml/m8/Makefile
+@@ -25,5 +25,5 @@ snd-soc-aml-m8-objs := aml_m8.o
+ obj-$(CONFIG_SND_AML_M8) += snd-soc-aml-m8.o
+ 
+ #AML G9TV Machine support
+-snd-soc-aml-g9tv-objs := aml_g9tv.o
+-obj-$(CONFIG_SND_AML_M8) += snd-soc-aml-g9tv.o
++#snd-soc-aml-g9tv-objs := aml_g9tv.o
++#obj-$(CONFIG_SND_AML_M8) += snd-soc-aml-g9tv.o
+-- 
+1.9.1
+

@@ -1,0 +1,13 @@
+diff --git a/v4l/compat.h b/v4l/compat.h
+index aee654a..03e1882 100644
+--- a/v4l/compat.h
++++ b/v4l/compat.h
+@@ -1570,7 +1570,7 @@ static inline __s32 sign_extend32(__u32 value, int index)
+ #endif
+ 
+ #ifdef NEED_WRITEL_RELAXED
+-#define writel_relaxed writel
++// #define writel_relaxed writel
+ #endif
+ 
+ #ifdef NEED_GET_USER_PAGES_UNLOCKED

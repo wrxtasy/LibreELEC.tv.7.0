@@ -1,0 +1,33 @@
+From a76aaae563b561bcf451021cf7bc8a14a55b1d9b Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Mon, 10 Oct 2016 16:49:56 +0800
+Subject: [PATCH] Kconfig
+
+---
+ sound/soc/aml/m8/Kconfig | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/sound/soc/aml/m8/Kconfig b/sound/soc/aml/m8/Kconfig
+index 045f91e..799cd6c 100644
+--- a/sound/soc/aml/m8/Kconfig
++++ b/sound/soc/aml/m8/Kconfig
+@@ -5,11 +5,11 @@ menuconfig SND_AML_M8
+ 	select SND_SOC_PCM2BT
+ 	select SND_SOC_DUMMY_CODEC
+ 	select SND_SOC_AMLPMU4 if AML_PMU4
+-	select SND_SOC_TAS5707
+-	select SND_SOC_TAS5717
+-	select SND_SOC_TAS5731
+-	select SND_SOC_AMLT9015
+-	select SND_SOC_AMLT9015S
++#	select SND_SOC_TAS5707
++#	select SND_SOC_TAS5717
++#	select SND_SOC_TAS5731
++	 select SND_SOC_AMLT9015
++	 select SND_SOC_AMLT9015S
+ 
+ if SND_AML_M8
+ 
+-- 
+1.9.1
+

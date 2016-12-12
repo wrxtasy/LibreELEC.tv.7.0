@@ -1,0 +1,141 @@
+commit 289492c5262e33b078dc4bfe707201feecdcaeb6
+Author: Jonas Karlman <jonas@kwiboo.se>
+Date:   Tue Aug 23 23:00:41 2016 +0200
+
+    fixup: Fix CEC wakeup
+
+diff --git a/arch/arm/cpu/armv8/gxb/firmware/scp_task/cec_tx_reg.h b/arch/arm/cpu/armv8/gxb/firmware/scp_task/cec_tx_reg.h
+index e88be16..2592675 100644
+--- a/arch/arm/cpu/armv8/gxb/firmware/scp_task/cec_tx_reg.h
++++ b/arch/arm/cpu/armv8/gxb/firmware/scp_task/cec_tx_reg.h
+@@ -198,6 +198,7 @@ typedef unsigned int uint32_t;
+ #define ONE_TOUCH_STANDBY_MASK               2
+ #define AUTO_POWER_ON_MASK                   3
+ #define STREAMPATH_POWER_ON_MASK             4
++#define ROUTINGCHANGE_POWER_ON_MASK          5
+ 
+ //#define P_HHI_GCLK_MPEG2 CBUS_REG_ADDR(HHI_GCLK_MPEG2)
+ //#define P_HHI_HDMI_CLK_CNTL CBUS_REG_ADDR(HHI_HDMI_CLK_CNTL)
+diff --git a/arch/arm/cpu/armv8/gxb/firmware/scp_task/hdmi_cec_arc.c b/arch/arm/cpu/armv8/gxb/firmware/scp_task/hdmi_cec_arc.c
+index 03c6656..2967e89 100644
+--- a/arch/arm/cpu/armv8/gxb/firmware/scp_task/hdmi_cec_arc.c
++++ b/arch/arm/cpu/armv8/gxb/firmware/scp_task/hdmi_cec_arc.c
+@@ -165,6 +165,7 @@ static int cec_triggle_tx(unsigned char *msg, unsigned char len)
+ 		cec_dbg_prints("\n");
+ 	}
+ 
++	_udelay(150);
+ 	return 0;
+ }
+ 
+@@ -242,19 +243,6 @@ static void cec_feature_abort(unsigned char reason, unsigned char initiator)
+ 	cec_triggle_tx(msg, 4);
+ }
+ 
+-static void cec_active_source(void)
+-{
+-	unsigned char msg[4];
+-	cec_dbg_prints("cec_active_source\n");
+-
+-	msg[0] = ((cec_msg.log_addr & 0xf) << 4) | CEC_BROADCAST_ADDR;
+-	msg[1] = CEC_OC_ACTIVE_SOURCE;
+-	msg[2] = (cec_msg.phy_addr >> 8) & 0xff;
+-	msg[3] = cec_msg.phy_addr & 0xff;
+-
+-	cec_triggle_tx(msg, 4);
+-}
+-
+ static void cec_menu_status(unsigned char menu_status, unsigned char initiator)
+ {
+ 	unsigned char msg[3];
+@@ -269,17 +257,30 @@ static void cec_menu_status(unsigned char menu_status, unsigned char initiator)
+ 	cec_triggle_tx(msg, 3);
+ }
+ 
+-static void cec_set_stream_path(void)
++static void cec_set_stream_path(unsigned char initiator)
+ {
+ 	unsigned int phy_addr = (cec_msg.msg[2] << 8) | cec_msg.msg[3];
+-	cec_dbg_printx("cec_set_stream_path phy_addr:0x", phy_addr, 16);
++	cec_dbg_printx("cec_set_stream_path initiator:0x", initiator, 4);
++	cec_dbg_printx(", phy_addr:0x", phy_addr, 16);
+ 	cec_dbg_prints("\n");
+ 
+ 	if ((hdmi_cec_func_config >> STREAMPATH_POWER_ON_MASK) & 0x1) {
+-		if (cec_msg.phy_addr == phy_addr) {
++		if (cec_msg.phy_addr == phy_addr && initiator == CEC_TV_ADDR) {
++			cec_msg.cec_power = 0x1;
++		}
++	}
++}
++
++static void cec_routing_change(unsigned char initiator)
++{
++	unsigned int phy_addr = (cec_msg.msg[4] << 8) | cec_msg.msg[5];
++	cec_dbg_printx("cec_routing_change initiator:0x", initiator, 4);
++	cec_dbg_printx(", phy_addr:0x", phy_addr, 16);
++	cec_dbg_prints("\n");
++
++	if ((hdmi_cec_func_config >> ROUTINGCHANGE_POWER_ON_MASK) & 0x1) {
++		if (cec_msg.phy_addr == phy_addr && initiator == CEC_TV_ADDR) {
+ 			cec_msg.cec_power = 0x1;
+-			cec_active_source();
+-			cec_menu_status(DEVICE_MENU_ACTIVE, CEC_TV_ADDR);
+ 		}
+ 	}
+ }
+@@ -289,7 +290,7 @@ static void cec_user_control_pressed(void)
+ 	cec_dbg_print("cec_user_control_pressed operation:0x", cec_msg.msg[2]);
+ 	cec_dbg_prints("\n");
+ 
+-	if ((hdmi_cec_func_config >> AUTO_POWER_ON_MASK) & 0x1) {
++	if ((hdmi_cec_func_config >> ONE_TOUCH_STANDBY_MASK) & 0x1) {
+ 		if ((0x40 == cec_msg.msg[2]) || // Power
+ 			(0x6b == cec_msg.msg[2]) || // Power Toggle Function
+ 			(0x6d == cec_msg.msg[2]) || // Power On Function
+@@ -380,8 +381,7 @@ static unsigned int cec_handle_message(void)
+ 		cec_deck_status(initiator);
+ 		break;
+ 	case CEC_OC_GIVE_PHYSICAL_ADDRESS:
+-		if (cec_msg.phy_addr)
+-			cec_report_physical_address();
++		cec_report_physical_address();
+ 		break;
+ 	case CEC_OC_GIVE_DEVICE_VENDOR_ID:
+ 		cec_device_vendor_id();
+@@ -394,7 +394,10 @@ static unsigned int cec_handle_message(void)
+ 			cec_set_osd_name(initiator);
+ 		break;
+ 	case CEC_OC_SET_STREAM_PATH:
+-		cec_set_stream_path();
++		cec_set_stream_path(initiator);
++		break;
++	case CEC_OC_ROUTING_CHANGE:
++		cec_routing_change(initiator);
+ 		break;
+ 	case CEC_OC_GIVE_DEVICE_POWER_STATUS:
+ 		if (directly_addressed)
+@@ -529,8 +532,9 @@ void cec_node_init(void)
+ 		return;
+ 	}
+ 	if (!cec_msg.phy_addr) {
+-		cec_dbg_prints("WARNING: phy_addr is not set, disabling stream path wakeup\n");
+-		hdmi_cec_func_config = hdmi_cec_func_config & ~(0x1 << STREAMPATH_POWER_ON_MASK);
++		cec_dbg_prints("WARNING: phy_addr is not set, disabling cec wakeup\n");
++		hdmi_cec_func_config = hdmi_cec_func_config & ~(0x1 << CEC_FUNC_MASK);
++		return;
+ 	}
+ 
+ 	cec_wr_reg(CEC_LOGICAL_ADDR0, 0);
+@@ -540,10 +544,7 @@ void cec_node_init(void)
+ 	cec_wr_reg(CEC_LOGICAL_ADDR0, (0x1 << 4) | log_addr);
+ 	_udelay(100);
+ 
+-	if (cec_msg.phy_addr) {
+-		cec_report_physical_address();
+-		_udelay(150);
+-	}
++	cec_report_physical_address();
+ 	cec_device_vendor_id();
+ 	cec_set_osd_name(CEC_TV_ADDR);
+ }

@@ -1,0 +1,25 @@
+From 2526bcc87e5bc7f2db70dbaff06a385e7642e6a7 Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Mon, 22 Aug 2016 06:59:00 +0200
+Subject: [PATCH] drivers/amlogic/usb: Remove USB H/W debugging option
+
+---
+ drivers/amlogic/usb/dwc_otg/310/dwc_otg_pcd_intr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+ mode change 100644 => 100755 drivers/amlogic/usb/dwc_otg/310/dwc_otg_pcd_intr.c
+
+diff --git a/drivers/amlogic/usb/dwc_otg/310/dwc_otg_pcd_intr.c b/drivers/amlogic/usb/dwc_otg/310/dwc_otg_pcd_intr.c
+old mode 100644
+new mode 100755
+index 65b6c9f..e84730d
+--- a/drivers/amlogic/usb/dwc_otg/310/dwc_otg_pcd_intr.c
++++ b/drivers/amlogic/usb/dwc_otg/310/dwc_otg_pcd_intr.c
+@@ -43,7 +43,7 @@
+ extern void complete_xiso_ep(dwc_otg_pcd_ep_t *ep);
+ #endif
+ 
+-#define DEBUG_EP0
++//#define DEBUG_EP0
+ 
+ /**
+  * This function updates OTG.

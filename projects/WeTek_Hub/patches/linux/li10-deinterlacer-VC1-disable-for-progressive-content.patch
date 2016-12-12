@@ -1,0 +1,24 @@
+From 5248a75b2d083fcb5c607621b092e6850ddc11ef Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Tue, 3 Mar 2015 12:57:44 +0100
+Subject: [PATCH] drivers/amlogic/deinterlace: Disable deinterlacer for
+ progressive sources by default
+
+Fixes VC1 in mkv playback.
+---
+ drivers/amlogic/deinterlace/deinterlace.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/amlogic/deinterlace/deinterlace.c b/drivers/amlogic/deinterlace/deinterlace.c
+index 1c67361..88eb2d4 100644
+--- a/drivers/amlogic/deinterlace/deinterlace.c
++++ b/drivers/amlogic/deinterlace/deinterlace.c
+@@ -173,7 +173,7 @@ static int receiver_is_amvideo = 1;
+ 
+ static unsigned char new_keep_last_frame_enable;
+ static int bypass_state = 1;
+-static int bypass_prog;
++static int bypass_prog = 1;
+ static int bypass_hd_prog;
+ static int bypass_interlace_output;
+ #ifdef CONFIG_AM_DEINTERLACE_SD_ONLY

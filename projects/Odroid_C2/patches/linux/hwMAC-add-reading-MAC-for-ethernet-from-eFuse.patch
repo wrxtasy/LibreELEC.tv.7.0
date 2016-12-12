@@ -1,0 +1,69 @@
+From bc33065cd6ce9ffce93683c3a87faf7f8bff6057 Mon Sep 17 00:00:00 2001
+From: Dongjin Kim <tobetter@gmail.com>
+Date: Mon, 23 Nov 2015 18:09:36 +0900
+Subject: [PATCH] ODROID-C2: hwmac: Add read MAC for ethernet from eFuse.
+
+Cherry-picked from aeeb0bd71d7a13f9d24e5e50666d00c8f442fdcf and https://github.com/hardkernel/linux/commit/bc33065cd6ce9ffce93683c3a87faf7f8bff6057
+---
+ drivers/amlogic/efuse/efuse64.c                       | 19 +++++++++++++++++++
+ drivers/net/ethernet/stmicro/stmmac/stmmac_platform.c | 10 ++++++++++
+ 2 files changed, 29 insertions(+)
+
+diff --git a/drivers/amlogic/efuse/efuse64.c b/drivers/amlogic/efuse/efuse64.c
+index 94442cd..4e823c5 100644
+--- a/drivers/amlogic/efuse/efuse64.c
++++ b/drivers/amlogic/efuse/efuse64.c
+@@ -373,6 +373,25 @@ ssize_t efuse_user_attr_show(char *name, char *buf)
+ 	return ret;
+ }
+ 
++char *efuse_get_mac(char *addr)
++{
++	char buf[6];
++	loff_t offset = 0x34;
++	int ret;
++
++	/* Copy H/W MAC address from eFuse programmed on production.
++	 * If missing or an error, C0:FF:EE:00:01:9F will be used.
++	 */
++	ret = efuse_read_usr(buf, sizeof(buf), &offset);
++	if (ret < 0) {
++		pr_err("hwmac: error to read MAC address, use default address\n");
++		memcpy(buf, "\xc0\xff\xee\x00\x01\x9f", 6);
++	}
++
++	return memcpy(addr, buf, 6);
++}
++EXPORT_SYMBOL(efuse_get_mac);
++
+ static ssize_t userdata_show(struct class *cla,
+ 	struct class_attribute *attr, char *buf)
+ {
+diff --git a/drivers/net/ethernet/stmicro/stmmac/stmmac_platform.c b/drivers/net/ethernet/stmicro/stmmac/stmmac_platform.c
+index 8e22a5a..88c57b3 100644
+--- a/drivers/net/ethernet/stmicro/stmmac/stmmac_platform.c
++++ b/drivers/net/ethernet/stmicro/stmmac/stmmac_platform.c
+@@ -161,6 +161,10 @@ static int dwmac1000_validate_ucast_entries(int ucast_entries)
+ 	return x;
+ }
+ 
++#if defined (CONFIG_EFUSE)
++extern char *efuse_get_mac(char *addr);
++#endif
++
+ static int platdata_copy_from_machine_data(const struct of_device_id *device,
+ 					   struct plat_stmmacenet_data *plat)
+ {
+@@ -188,6 +192,12 @@ static int setup_mac_addr(struct platform_device *pdev, const char **mac)
+ {
+ 	struct device_node *np = pdev->dev.of_node;
+ #ifdef CONFIG_DWMAC_MESON
++#if defined (CONFIG_EFUSE)
++	if (g_mac_addr_setup == 0) {
++		efuse_get_mac(DEFMAC);
++		g_mac_addr_setup++;
++	}
++#endif
+ 	if (g_mac_addr_setup)	/*so uboot mac= is first priority.*/
+ 		*mac = DEFMAC;
+ 	else

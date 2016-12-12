@@ -1,0 +1,148 @@
+From 0cdcc561d6fe676817ba7ef60de86079d5fd87ce Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Sun, 28 Aug 2016 11:04:40 +0800
+Subject: [PATCH] Backport: codesnake & kszaq Krypton AML changes
+
+---
+ xbmc/utils/AMLUtils.cpp                     |  1 +
+ xbmc/windowing/egl/EGLNativeTypeAmlogic.cpp | 77 +++++++++++++----------------
+ xbmc/windowing/egl/EGLNativeTypeAmlogic.h   |  2 +
+ 3 files changed, 37 insertions(+), 43 deletions(-)
+
+diff --git a/xbmc/utils/AMLUtils.cpp b/xbmc/utils/AMLUtils.cpp
+index 1b54435..5915e61 100644
+--- a/xbmc/utils/AMLUtils.cpp
++++ b/xbmc/utils/AMLUtils.cpp
+@@ -529,6 +529,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
+   res->bFullScreen   = true;
+   res->iSubtitles    = (int)(0.965 * res->iHeight);
+   res->fPixelRatio   = 1.0f;
++  res->strId         = fromMode;
+   res->strMode       = StringUtils::Format("%dx%d @ %.2f%s - Full Screen", res->iScreenWidth, res->iScreenHeight, res->fRefreshRate,
+     res->dwFlags & D3DPRESENTFLAG_INTERLACED ? "i" : "");
+ 
+diff --git a/xbmc/windowing/egl/EGLNativeTypeAmlogic.cpp b/xbmc/windowing/egl/EGLNativeTypeAmlogic.cpp
+index 21256ef..ce3d261 100644
+--- a/xbmc/windowing/egl/EGLNativeTypeAmlogic.cpp
++++ b/xbmc/windowing/egl/EGLNativeTypeAmlogic.cpp
+@@ -134,6 +133,8 @@ bool CEGLNativeTypeAmlogic::GetNativeResolution(RESOLUTION_INFO *res) const
+ 
+ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
+ {
++  bool result = false;
++
+ #if defined(_FBDEV_WINDOW_H_)
+   if (m_nativeWindow)
+   {
+@@ -142,48 +143,15 @@ bool CEGLNativeTypeAmlogic::SetNativeResolution(const RESOLUTION_INFO &res)
+   }
+ #endif
+ 
+-  switch((int)(0.5 + res.fRefreshRate))
+-  {
+-    default:
+-    case 60:
+-      switch(res.iScreenWidth)
+-      {
+-        default:
+-        case 1280:
+-          SetDisplayResolution("720p");
+-          break;
+-        case 1920:
+-          if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
+-            SetDisplayResolution("1080i");
+-          else
+-            SetDisplayResolution("1080p");
+-          break;
+-      }
+-      break;
+-    case 50:
+-      switch(res.iScreenWidth)
+-      {
+-        default:
+-        case 1280:
+-          SetDisplayResolution("720p50hz");
+-          break;
+-        case 1920:
+-          if (res.dwFlags & D3DPRESENTFLAG_INTERLACED)
+-            SetDisplayResolution("1080i50hz");
+-          else
+-            SetDisplayResolution("1080p50hz");
+-          break;
+-      }
+-      break;
+-    case 30:
+-      SetDisplayResolution("1080p30hz");
+-      break;
+-    case 24:
+-      SetDisplayResolution("1080p24hz");
+-      break;
+-  }
++  // Don't set the same mode as current
++  std::string mode;
++  SysfsUtils::GetString("/sys/class/display/mode", mode);
++  if (res.strId != mode)
++    result = SetDisplayResolution(res.strId.c_str());
+ 
+-  return true;
++  DealWithScale(res);
++
++  return result;
+ }
+ 
+ bool CEGLNativeTypeAmlogic::ProbeResolutions(std::vector<RESOLUTION_INFO> &resolutions)
+@@ -178,7 +178,7 @@ bool CEGLNativeTypeAmlogic::GetPreferredResolution(RESOLUTION_INFO *res) const
+   if (!GetNativeResolution(res))
+   {
+     // punt to 720p if we get nothing
+-    aml_mode_to_resolution("720p", res);
++    aml_mode_to_resolution("720p60hz", res);
+   }
+ 
+   return true;
+@@ -256,6 +224,29 @@ void CEGLNativeTypeAmlogic::SetupVideoScaling(const char *mode)
+   SysfsUtils::SetInt("/sys/class/graphics/fb0/blank", 0);
+ }
+ 
++void CEGLNativeTypeAmlogic::DealWithScale(const RESOLUTION_INFO &res)
++{
++  if (res.iScreenWidth > res.iWidth && res.iScreenHeight > res.iHeight)
++    EnableFreeScale(res);
++  else
++    DisableFreeScale();
++}
++
++void CEGLNativeTypeAmlogic::EnableFreeScale(const RESOLUTION_INFO &res)
++{
++  char fsaxis_str[256] = {0};
++  sprintf(fsaxis_str, "0 0 %d %d", res.iWidth-1, res.iHeight-1);
++  char waxis_str[256] = {0};
++  sprintf(waxis_str, "0 0 %d %d", res.iScreenWidth-1, res.iScreenHeight-1);
++
++  SysfsUtils::SetInt("/sys/class/graphics/fb0/free_scale", 0);
++  SysfsUtils::SetString("/sys/class/graphics/fb0/free_scale_axis", fsaxis_str);
++  SysfsUtils::SetString("/sys/class/graphics/fb0/window_axis", waxis_str);
++  SysfsUtils::SetInt("/sys/class/graphics/fb0/scale_width", res.iWidth);
++  SysfsUtils::SetInt("/sys/class/graphics/fb0/scale_height", res.iHeight);
++  SysfsUtils::SetInt("/sys/class/graphics/fb0/free_scale", 0x10001);
++}
++
+ void CEGLNativeTypeAmlogic::DisableFreeScale()
+ {
+   // turn off frame buffer freescale
+diff --git a/xbmc/windowing/egl/EGLNativeTypeAmlogic.h b/xbmc/windowing/egl/EGLNativeTypeAmlogic.h
+index 6867c38..d760f77 100644
+--- a/xbmc/windowing/egl/EGLNativeTypeAmlogic.h
++++ b/xbmc/windowing/egl/EGLNativeTypeAmlogic.h
+@@ -50,6 +50,8 @@ public:
+ protected:
+   bool SetDisplayResolution(const char *resolution);
+   void SetupVideoScaling(const char *mode);
++  void DealWithScale(const RESOLUTION_INFO &res);
++  void EnableFreeScale(const RESOLUTION_INFO &res);
+   void DisableFreeScale();
+ 
+ private:
+-- 
+1.9.1
+

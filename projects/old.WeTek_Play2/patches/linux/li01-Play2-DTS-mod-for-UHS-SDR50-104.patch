@@ -1,0 +1,29 @@
+From 529e97171756a33ecbd6698234caf31955709cbf Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Tue, 6 Sep 2016 12:19:05 +0800
+Subject: [PATCH] Play2 DTS:mod for UHS SDR50&104
+
+---
+ arch/arm64/boot/dts/amlogic/gxbb_p200_2G_wetek_play2.dts | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/gxbb_p200_2G_wetek_play2.dts b/arch/arm64/boot/dts/amlogic/gxbb_p200_2G_wetek_play2.dts
+index 7b11b7d..7d58dbe 100644
+--- a/arch/arm64/boot/dts/amlogic/gxbb_p200_2G_wetek_play2.dts
++++ b/arch/arm64/boot/dts/amlogic/gxbb_p200_2G_wetek_play2.dts
+@@ -1400,9 +1400,9 @@
+ 			port = <0x1>;
+ 			pinname = "sd";
+ 			ocr_avail = <0x200080>;
+-			caps = "MMC_CAP_4_BIT_DATA", "MMC_CAP_MMC_HIGHSPEED", "MMC_CAP_SD_HIGHSPEED";
+-			f_min = <0x61a80>;
+-			f_max = <0x5f5e100>;
++			caps = "MMC_CAP_4_BIT_DATA", "MMC_CAP_MMC_HIGHSPEED", "MMC_CAP_SD_HIGHSPEED", "MMC_CAP_UHS_SDR50", "MMC_CAP_UHS_SDR104";
++			f_min = <400000>;
++			f_max = <100000000>;
+ 			max_req_size = <0x20000>;
+ 			gpio_dat3 = <0x2f 0x2a 0x0>;
+ 			jtag_pin = <0x2f 0x26 0x0>;
+-- 
+1.9.1
+

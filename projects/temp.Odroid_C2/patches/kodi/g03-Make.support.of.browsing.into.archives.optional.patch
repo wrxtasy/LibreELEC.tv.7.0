@@ -1,0 +1,85 @@
+commit b597b29654f1eb94412886f33328ebeff794ee2f
+Author: Jamie Coldhill <kodi@Ubuntu.12.04.5>
+Date:   Thu Jan 14 23:25:12 2016 +0800
+
+    From: popcornmix <popcornmix@gmail.com>
+            Date: Sun, 10 Aug 2014 16:45:16 +0100
+            Subject: [PATCH 06/97] filesystem: Make support of browsing into archives optional
+    
+            The ability to browse, scan and play content in archives can cause problems on low powered/low memory devices.
+            It's quite common to see reports of a large rar file that causes xbmc to crash with an out-of-memory error when browsing or scanning.
+            It also can be slow as any archive in the directory is opened and extracted.
+    
+            This causes issues for people who scan library with archives disabled, then subsequently enable it.
+            The library has the .rar files in which don't play without removing and re-adding.
+    
+            We'll let people who don't use archives disable it manually
+
+diff --git a/addons/resource.language.en_gb/resources/strings.po b/addons/resource.language.en_gb/resources/strings.po
+index c688f8b..9ea33e7 100644
+--- a/addons/resource.language.en_gb/resources/strings.po
++++ b/addons/resource.language.en_gb/resources/strings.po
+@@ -1,3 +1,4 @@
++
+ # Kodi Media Center language file
+ msgid ""
+ msgstr ""
+@@ -18106,3 +18107,13 @@ msgstr ""
+ msgctxt "#38023"
+ msgid "Set my rating"
+ msgstr ""
++
++#: system/settings/settings.xml
++msgctxt "#38024"
++msgid "Support browsing into archives"
++msgstr ""
++
++#: system/settings/settings.xml
++msgctxt "#38025"
++msgid "Allow viewing and playing files in archives (e.g. zip, rar)"
++msgstr ""
+diff --git a/system/settings/settings.xml b/system/settings/settings.xml
+index da1b8e7..603ce1f 100644
+--- a/system/settings/settings.xml
++++ b/system/settings/settings.xml
+@@ -317,6 +317,11 @@
+           <default>false</default>
+           <control type="toggle" />
+         </setting>
++        <setting id="filelists.browsearchives" type="boolean" label="38024" help="38025">
++          <level>1</level>
++          <default>false</default>
++          <control type="toggle" />
++        </setting>
+       </group>
+     </category>
+     <category id="screensaver" label="360" help="36128">
+diff --git a/xbmc/filesystem/FileDirectoryFactory.cpp b/xbmc/filesystem/FileDirectoryFactory.cpp
+index a1d4ee4..bddddb7 100644
+--- a/xbmc/filesystem/FileDirectoryFactory.cpp
++++ b/xbmc/filesystem/FileDirectoryFactory.cpp
+@@ -40,6 +40,7 @@
+ #include "playlists/PlayListFactory.h"
+ #include "Directory.h"
+ #include "File.h"
++#include "settings/Settings.h"
+ #include "FileItem.h"
+ #include "utils/StringUtils.h"
+ #include "URL.h"
+@@ -112,6 +113,8 @@ IFileDirectory* CFileDirectoryFactory::Create(const CURL& url, CFileItem* pItem,
+     return NULL;
+   }
+ #endif
++  if (CSettings::GetInstance().GetBool("filelists.browsearchives"))
++  {
+   if (url.IsFileType("zip"))
+   {
+     CURL zipURL = URIUtils::CreateArchivePath("zip", url);
+@@ -192,6 +195,7 @@ IFileDirectory* CFileDirectoryFactory::Create(const CURL& url, CFileItem* pItem,
+ 
+     return new CXbtDirectory();
+   }
++  }
+   if (url.IsFileType("xsp"))
+   { // XBMC Smart playlist - just XML renamed to XSP
+     // read the name of the playlist in

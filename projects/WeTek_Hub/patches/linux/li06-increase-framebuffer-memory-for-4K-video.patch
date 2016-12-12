@@ -1,0 +1,102 @@
+From 3cc4a4276a71896647b590487cd9e8dc065791df Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Sun, 14 Aug 2016 10:11:14 +0200
+Subject: [PATCH] arch/arm64/boot/dts/amlogic: Increase framebuffer memory to
+ be enough for 4K
+
+Thanks @codesnake
+---
+ arch/arm64/boot/dts/amlogic/gxbb_p200.dts              | 4 ++--
+ arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts | 4 ++--
+ arch/arm64/boot/dts/amlogic/gxl_p212_1g.dts            | 4 ++--
+ arch/arm64/boot/dts/amlogic/gxl_p212_2g.dts            | 4 ++--
+ 5 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/gxbb_p200.dts b/arch/arm64/boot/dts/amlogic/gxbb_p200.dts
+index 6beb29b..1d39c33 100644
+--- a/arch/arm64/boot/dts/amlogic/gxbb_p200.dts
++++ b/arch/arm64/boot/dts/amlogic/gxbb_p200.dts
+@@ -57,7 +57,7 @@
+ 		};
+ 		fb_reserved:linux,meson-fb {
+ 			compatible = "amlogic, fb-memory";
+-			size = <0x0 0x1900000>;
++			size = <0x0 0x4480000>;
+ 			no-map;
+ 		};
+ 
+@@ -141,7 +141,7 @@
+ 		interrupts = <0 3 1
+ 			0 89 1>;
+ 		interrupt-names = "viu-vsync", "rdma";
+-		mem_size = <0x01800000 0x00100000>; /* fb0/fb1 memory size */
++		mem_size = <0x04380000 0x00100000>; /* fb0/fb1 memory size */
+ 		display_mode_default = "1080p60hz";
+ 		scale_mode = <1>; /** 0:VPU free scale 1:OSD free scale 2:OSD super scale */
+ 		display_size_default = <1920 1080 1920 3240 32>; //1920*1080*4*3 = 0x17BB000
+diff --git a/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts b/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
+index fc1011d..3b1b9f6 100644
+--- a/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
++++ b/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
+@@ -57,7 +57,7 @@
+ 		};
+ 		fb_reserved:linux,meson-fb {
+ 			compatible = "amlogic, fb-memory";
+-			size = <0x0 0x1900000>;
++			size = <0x0 0x4480000>;
+ 			no-map;
+ 		};
+ 
+@@ -141,7 +141,7 @@
+ 		interrupts = <0 3 1
+ 			0 89 1>;
+ 		interrupt-names = "viu-vsync", "rdma";
+-		mem_size = <0x01800000 0x00100000>; /* fb0/fb1 memory size */
++		mem_size = <0x04380000 0x00100000>; /* fb0/fb1 memory size */
+ 		display_mode_default = "1080p60hz";
+ 		scale_mode = <1>; /** 0:VPU free scale 1:OSD free scale 2:OSD super scale */
+ 		display_size_default = <1920 1080 1920 3240 32>; //1920*1080*4*3 = 0x17BB000
+diff --git a/arch/arm64/boot/dts/amlogic/gxl_p212_1g.dts b/arch/arm64/boot/dts/amlogic/gxl_p212_1g.dts
+index e49c81f..96847cc 100644
+--- a/arch/arm64/boot/dts/amlogic/gxl_p212_1g.dts
++++ b/arch/arm64/boot/dts/amlogic/gxl_p212_1g.dts
+@@ -66,7 +66,7 @@
+ 		};
+ 		fb_reserved:linux,meson-fb {
+ 			compatible = "amlogic, fb-memory";
+-			size = <0x0 0x2000000>;
++			size = <0x0 0x4480000>;
+ 			no-map;
+ 		};
+ 
+@@ -148,7 +148,7 @@
+ 		interrupts = <0 3 1
+ 			0 89 1>;
+ 		interrupt-names = "viu-vsync", "rdma";
+-		mem_size = <0x01800000 0x00100000>; /* fb0/fb1 memory size */
++		mem_size = <0x04380000 0x00100000>; /* fb0/fb1 memory size */
+ 		display_mode_default = "1080p60hz";
+ 		scale_mode = <1>; /** 0:VPU free scale 1:OSD free scale 2:OSD super scale */
+ 		display_size_default = <1920 1080 1920 3240 32>; //1920*1080*4*3 = 0x17BB000
+diff --git a/arch/arm64/boot/dts/amlogic/gxl_p212_2g.dts b/arch/arm64/boot/dts/amlogic/gxl_p212_2g.dts
+index 6768430..24ccda2 100644
+--- a/arch/arm64/boot/dts/amlogic/gxl_p212_2g.dts
++++ b/arch/arm64/boot/dts/amlogic/gxl_p212_2g.dts
+@@ -67,7 +67,7 @@
+ 		};
+ 		fb_reserved:linux,meson-fb {
+ 			compatible = "amlogic, fb-memory";
+-			size = <0x0 0x2000000>;
++			size = <0x0 0x4480000>;
+ 			no-map;
+ 		};
+ 
+@@ -149,7 +149,7 @@
+ 		interrupts = <0 3 1
+ 			0 89 1>;
+ 		interrupt-names = "viu-vsync", "rdma";
+-		mem_size = <0x01800000 0x00100000>; /* fb0/fb1 memory size */
++		mem_size = <0x04380000 0x00100000>; /* fb0/fb1 memory size */
+ 		display_mode_default = "1080p60hz";
+ 		scale_mode = <1>; /** 0:VPU free scale 1:OSD free scale 2:OSD super scale */
+ 		display_size_default = <1920 1080 1920 3240 32>; //1920*1080*4*3 = 0x17BB000

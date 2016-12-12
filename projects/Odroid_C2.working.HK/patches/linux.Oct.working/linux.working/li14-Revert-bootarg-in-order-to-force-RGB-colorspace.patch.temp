@@ -1,0 +1,41 @@
+From 755aeeeca5e0bbd92512727da8f38e78ea940eb5 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Sat, 1 Oct 2016 16:49:26 +0800
+Subject: [PATCH] Revert: bootarg in order to force RGB colorspace
+
+---
+ drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c      | 3 ---
+ drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c | 3 ---
+ 2 files changed, 6 deletions(-)
+
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c b/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c
+index a02ec07..685a1e4 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_14/hdmi_tx.c
+@@ -2135,9 +2135,6 @@ static  int __init hdmitx_boot_para_setup(char *s)
+ 			hdmitx_device.cec_func_config = list;
+ 		hdmi_print(INF, CEC "HDMI hdmi_cec_func_config:0x%x\n",
+ 			hdmitx_device.cec_func_config);
+-		} else if (strcmp(token, "forcergb") == 0) {
+-			hdmitx_output_rgb();
+-			hdmi_print(IMP, "Forced RGB colorspace output\n");
+ 		}
+ 	}
+ 		offset = token_offset;
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+index 25a19d3..c88a5a3 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+@@ -2471,9 +2471,6 @@ static  int __init hdmitx_boot_para_setup(char *s)
+ 				hdmitx_device.cec_func_config = list;
+ 			hdmi_print(IMP, CEC "HDMI hdmi_cec_func_config:0x%x\n",
+ 				   hdmitx_device.cec_func_config);
+-		} else if (strcmp(token, "forcergb") == 0) {
+-			hdmitx_output_rgb();
+-			hdmi_print(IMP, "Forced RGB colorspace output\n");
+ 		}
+ 	}
+ 		offset = token_offset;
+-- 
+1.9.1
+

@@ -17,7 +17,7 @@
 ################################################################################
 
 PKG_NAME="runc"
-PKG_VERSION="02f8fa7"
+PKG_VERSION="baf6536"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="APL"

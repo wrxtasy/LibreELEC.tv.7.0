@@ -1,0 +1,25 @@
+From d530ac532218a90bea07eb8a674328ba78bc0750 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Wed, 7 Sep 2016 02:48:56 +0800
+Subject: [PATCH] HEVC vh265.c
+
+---
+ drivers/amlogic/amports/vh265.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/amlogic/amports/vh265.c b/drivers/amlogic/amports/vh265.c
+index 0cc045d..b275e46 100644
+--- a/drivers/amlogic/amports/vh265.c
++++ b/drivers/amlogic/amports/vh265.c
+@@ -231,7 +231,7 @@ static u32 i_only_flag;
+ use_cma: 1, use both reserver memory and cma for buffers
+ 2, only use cma for buffers
+ */
+-static u32 use_cma = 2;
++static u32 use_cma = 1;
+ static unsigned char init_flag;
+ static unsigned char uninit_list;
+ static u32 start_decoding_time;
+-- 
+1.9.1
+

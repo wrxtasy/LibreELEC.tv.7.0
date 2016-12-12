@@ -1,0 +1,33 @@
+From a647a3ffa0f58a2e94db0cb2ff590726763a9b12 Mon Sep 17 00:00:00 2001
+From: Hui Zhang <hui.zhang@amlogic.com>
+Date: Thu, 23 Jun 2016 15:50:51 +0800
+Subject: [PATCH] PD#126164: vmpeg12: add an unregulated resolution in
+ dec_control
+
+Change-Id: I32cd9fa1f4f9250c268699e7df1ccfb718cef434
+---
+ drivers/amlogic/amports/vmpeg12.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/amlogic/amports/vmpeg12.c b/drivers/amlogic/amports/vmpeg12.c
+index c50ccb3..8296e01 100644
+--- a/drivers/amlogic/amports/vmpeg12.c
++++ b/drivers/amlogic/amports/vmpeg12.c
+@@ -313,7 +313,8 @@ static irqreturn_t vmpeg12_isr(int irq, void *dev_id)
+ 
+ 		if ((dec_control &
+ 			 DEC_CONTROL_FLAG_FORCE_2500_720_576_INTERLACE)
+-			&& (frame_width == 720) && (frame_height == 576)
++			&& (frame_width == 720 || frame_width == 480)
++			&& (frame_height == 576)
+ 			&& (frame_dur == 3840))
+ 			frame_prog = 0;
+ 		else if ((dec_control &
+@@ -338,7 +339,6 @@ static irqreturn_t vmpeg12_isr(int irq, void *dev_id)
+ 			frame_prog = 0;
+ 		else if (dec_control & DEC_CONTROL_FLAG_FORCE_SEQ_INTERLACE)
+ 			frame_prog = 0;
+-
+ 		if (frame_prog & PICINFO_PROG) {
+ 			u32 index = ((reg & 0xf) - 1) & 7;
+ 

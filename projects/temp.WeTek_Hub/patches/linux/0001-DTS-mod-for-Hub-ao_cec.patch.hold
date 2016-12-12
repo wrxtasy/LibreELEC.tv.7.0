@@ -1,0 +1,36 @@
+From fd2a1704be4a4aed35f6186491b6cb2fc10abcc1 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Sun, 11 Sep 2016 23:00:41 +0800
+Subject: [PATCH] DTS mod for Hub ao_cec
+
+---
+ arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts b/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
+index 5b66020..15fd433 100644
+--- a/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
++++ b/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
+@@ -758,14 +758,15 @@
+ 		vendor_id = <0x000000>; /* Refer to http://standards.ieee.org/develop/regauth/oui/oui.txt   */
+ 		product_desc = "WeTek Hub"; /* Max Chars: 16    */
+ 		cec_osd_string = "Hub"; /* Max Chars: 14    */
+-		port_num = <1>;
++		port_num = <3>;
+ 		arc_port_mask = <0x0>;
+-		interrupts = <0 199 1>;
++		interrupts = <0 199 1>;
+ 		interrupt-names = "hdmi_aocec";
+ 		pinctrl-names = "hdmitx_aocec";
+-		pinctrl-0=<&hdmitx_aocec>;
++		pinctrl-0 = <0x4e>;
+ 		reg = <0x0 0xc810023c 0x0 0x4
+-		       0x0 0xc8100000 0x0 0x200>;
++		       0x0 0xc8100000 0x0 0x200
++		       0x0 0xda83e000 0x0 0x10>;
+ 	};
+ 
+ 	tvout {
+-- 
+1.9.1
+

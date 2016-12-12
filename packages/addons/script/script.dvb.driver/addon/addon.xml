@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="script.dvb.driver"
+       name="DVB Driver Configuration"
+       version="7.0"
+       provider-name="LibreELEC">
+   <requires>
+   	<import addon="xbmc.python" version="2.1.0"/>
+  </requires>
+  <extension point="xbmc.python.script" library="default.py"></extension>
+    <extension point="xbmc.addon.metadata">
+    <summary lang="en">DVB Driver Configuration</summary>
+    <description lang="en">DVB Driver Configuration to set which DVB Driver should be used.</description>
+    <platform>all</platform>
+  </extension>
+</addon>

@@ -1,0 +1,38 @@
+From efdb23941348002e316062baa1ab5a40c5572b4e Mon Sep 17 00:00:00 2001
+From: popcornmix <popcornmix@gmail.com>
+Date: Sat, 6 Feb 2016 16:29:09 +0000
+Subject: [PATCH] fixup! [3d] Automatically enable 3D for ssif
+
+---
+ xbmc/guilib/StereoscopicsManager.cpp | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/xbmc/guilib/StereoscopicsManager.cpp b/xbmc/guilib/StereoscopicsManager.cpp
+index 1ad4add..10cb68e 100644
+--- a/xbmc/guilib/StereoscopicsManager.cpp
++++ b/xbmc/guilib/StereoscopicsManager.cpp
+@@ -173,12 +173,6 @@ std::string CStereoscopicsManager::DetectStereoModeByString(const std::string &n
+   std::string searchString(needle);
+   CRegExp re(true);
+ 
+-  if (URIUtils::HasExtension(needle, ".ssif"))
+-  {
+-    stereoMode = "left_right";
+-    return stereoMode;
+-  }
+-
+   if (!re.RegComp(g_advancedSettings.m_stereoscopicregex_3d.c_str()))
+   {
+     CLog::Log(LOGERROR, "%s: Invalid RegExp for matching 3d content:'%s'", __FUNCTION__, g_advancedSettings.m_stereoscopicregex_3d.c_str());
+@@ -218,6 +212,12 @@ std::string CStereoscopicsManager::DetectStereoModeByString(const std::string &n
+   if (re.RegFind(searchString) > -1)
+     stereoMode = "left_right";
+ 
++  if (URIUtils::HasExtension(needle, ".ssif"))
++  {
++    stereoMode = "top_bottom";
++    return stereoMode;
++  }
++
+   return stereoMode;
+ }

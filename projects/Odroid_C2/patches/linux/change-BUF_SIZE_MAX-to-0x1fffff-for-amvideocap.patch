@@ -1,0 +1,24 @@
+From 9cc3ad23adc4ba9ae850967e363d1573fe647c5d Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Mon, 9 May 2016 11:15:59 +0800
+Subject: [PATCH] drivers/amlogic/amports: Change BUF_SIZE_MAX to 0x1fffff for
+ amvideocap
+
+https://github.com/hardkernel/linux/blob/odroidc2-3.14.y/drivers/amlogic/amports/amvideocap.c#L67
+---
+ drivers/amlogic/amports/amvideocap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/amlogic/amports/amvideocap.c b/drivers/amlogic/amports/amvideocap.c
+index 564b347..5ac6c7c 100644
+--- a/drivers/amlogic/amports/amvideocap.c
++++ b/drivers/amlogic/amports/amvideocap.c
+@@ -67,7 +67,7 @@
+ #define CAP_WIDTH_MAX      1920
+ #define CAP_HEIGHT_MAX     1080
+ 
+-#define BUF_SIZE_MAX      (0x800000) /* 1920 * 1088 * 4 */
++#define BUF_SIZE_MAX      (0x1fffff) /* 1920 * 1088 * 4 */
+ 
+ MODULE_DESCRIPTION("Video Frame capture");
+ MODULE_AUTHOR("amlogic-bj");

@@ -1,0 +1,921 @@
+From b511a9ad10d90debf5b3fd7f8962d2f3f1a2d54e Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Sun, 2 Oct 2016 22:45:19 +0800
+Subject: [PATCH] Revert video.c again
+
+---
+ drivers/amlogic/amports/video.c | 507 ++++++----------------------------------
+ 1 file changed, 76 insertions(+), 431 deletions(-)
+
+diff --git a/drivers/amlogic/amports/video.c b/drivers/amlogic/amports/video.c
+index ea23608..ec4ec7d 100644
+--- a/drivers/amlogic/amports/video.c
++++ b/drivers/amlogic/amports/video.c
+@@ -123,19 +123,13 @@ static int output_fps;
+ static u32 omx_pts;
+ static int omx_pts_interval_upper = 11000;
+ static int omx_pts_interval_lower = -5500;
+-static bool bypass_pps;
+ 
+-/* for bit depth setting. */
+-int bit_depth_flag = 8;
+ 
+ bool omx_secret_mode = false;
+ #define DEBUG_FLAG_FFPLAY	(1<<0)
+ #define DEBUG_FLAG_CALC_PTS_INC	(1<<1)
+ 
+ #define RECEIVER_NAME "amvideo"
+-
+-static s32 amvideo_poll_major;
+-
+ static int video_receiver_event_fun(int type, void *data, void *);
+ 
+ static const struct vframe_receiver_op_s video_vf_receiver = {
+@@ -519,7 +513,7 @@ static DEFINE_MUTEX(video_module_mutex);
+ static DEFINE_SPINLOCK(lock);
+ static u32 frame_par_ready_to_set, frame_par_force_to_set;
+ static u32 vpts_remainder;
+-static int video_property_changed;
++static bool video_property_changed;
+ static u32 video_notify_flag;
+ static int enable_video_discontinue_report = 1;
+ 
+@@ -696,7 +690,7 @@ static u32 force_blackout;
+ 
+ /* disable video */
+ static u32 disable_video = VIDEO_DISABLE_NONE;
+-static u32 video_enabled __nosavedata;
++static u32 video_enabled;
+ /* show first frame*/
+ static bool show_first_frame_nosync;
+ /* static bool first_frame=false; */
+@@ -748,7 +742,6 @@ u32 trickmode_i = 0;
+ /* trickmode ff/fb */
+ u32 trickmode_fffb = 0;
+ atomic_t trickmode_framedone = ATOMIC_INIT(0);
+-atomic_t video_sizechange = ATOMIC_INIT(0);
+ atomic_t video_unreg_flag = ATOMIC_INIT(0);
+ atomic_t video_pause_flag = ATOMIC_INIT(0);
+ int trickmode_duration = 0;
+@@ -782,9 +775,6 @@ static const u8 skip_tab[6] = { 0x24, 0x04, 0x68, 0x48, 0x28, 0x08 };
+ /* wait queue for poll */
+ static wait_queue_head_t amvideo_trick_wait;
+ 
+-/* wait queue for poll */
+-static wait_queue_head_t amvideo_sizechange_wait;
+-
+ #if 1				/* MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON8 */
+ #define VPU_DELAYWORK_VPU_CLK            1
+ #define VPU_DELAYWORK_MEM_POWER_OFF_VD1  2
+@@ -1423,11 +1413,10 @@ static void vpp_settings_h(struct vpp_frame_par_s *framePtr)
+ 	r1 = framePtr->VPP_hsc_linear_startp - framePtr->VPP_hsc_startp;
+ 	r2 = framePtr->VPP_hsc_linear_endp - framePtr->VPP_hsc_startp;
+ 	r3 = framePtr->VPP_hsc_endp - framePtr->VPP_hsc_startp;
+-
+-	if ((framePtr->supscl_path == sup0_pp_sp1_scpath) &&
+-		(get_cpu_type() >= MESON_CPU_MAJOR_ID_GXTVBB))
++#ifdef SUPER_SCALER_OPEN
++	if (framePtr->supscl_path == sup0_pp_sp1_scpath)
+ 		r3 >>= framePtr->supsc1_hori_ratio;
+-
++#endif
+ #ifdef TV_3D_FUNCTION_OPEN
+ 	x_lines = zoom_end_x_lines / (framePtr->hscale_skip_count + 1);
+ 	if (process_3d_type & MODE_3D_OUT_TB) {
+@@ -1585,11 +1574,10 @@ static void vpp_settings_v(struct vpp_frame_par_s *framePtr)
+ 	VSYNC_WR_MPEG_REG(VPP_VSC_REGION34_STARTP + cur_dev->vpp_off,
+ 			  ((r & VPP_REGION_MASK) << VPP_REGION3_BIT) |
+ 			  ((r & VPP_REGION_MASK) << VPP_REGION4_BIT));
+-
+-	if ((framePtr->supscl_path == sup0_pp_sp1_scpath) &&
+-		(get_cpu_type() >= MESON_CPU_MAJOR_ID_GXTVBB))
++#ifdef SUPER_SCALER_OPEN
++	if (framePtr->supscl_path == sup0_pp_sp1_scpath)
+ 		r >>= framePtr->supsc1_vert_ratio;
+-
++#endif
+ 	VSYNC_WR_MPEG_REG(VPP_VSC_REGION4_ENDP + cur_dev->vpp_off, r);
+ 
+ 	VSYNC_WR_MPEG_REG(VPP_VSC_START_PHASE_STEP + cur_dev->vpp_off,
+@@ -1930,12 +1918,13 @@ static void zoom_display_vert(void)
+ 		int t_aligned;
+ 		int b_aligned;
+ 		if (zoom_start_y_lines > 0) {
+-			t_aligned = round_down(zoom_start_y_lines, 4);
+-			b_aligned = round_up(zoom_end_y_lines, 4);
++			t_aligned = round_down(zoom_start_y_lines, 32);
++			b_aligned = round_up(zoom_end_y_lines, 32);
+ 		} else {
+-			t_aligned = round_down(zoom_start_y_lines, 4);
+-			b_aligned = round_up(zoom_end_y_lines, 4);
++			t_aligned = round_down(zoom_start_y_lines, 32);
++			b_aligned = round_up(zoom_end_y_lines, 32);
+ 		}
++
+ 		VSYNC_WR_MPEG_REG(AFBC_VD_CFMT_H,
+ 		    b_aligned - t_aligned);
+ 
+@@ -2289,8 +2278,6 @@ static void vsync_toggle_frame(struct vframe_s *vf)
+ 	    || video_prot.angle_changed
+ #endif
+ 	    ) {
+-		atomic_inc(&video_sizechange);
+-		wake_up_interruptible(&amvideo_sizechange_wait);
+ 		amlog_mask(LOG_MASK_FRAMEINFO,
+ 			   "%s %dx%d  ar=0x%x\n",
+ 			   ((vf->type & VIDTYPE_TYPEMASK) ==
+@@ -2488,10 +2475,7 @@ static void viu_set_dcu(struct vpp_frame_par_s *frame_par, struct vframe_s *vf)
+ 				r |= 0x33;
+ 			if (frame_par->vscale_skip_count)
+ 				r |= 0xcc;
+-#ifdef TV_REVERSE
+-			if (reverse)
+-				r |= (1<<26)|(1<<27);
+-#endif
++
+ 			if (vf->bitdepth & BITDEPTH_SAVING_MODE)
+ 				r |= (1<<28); /* mem_saving_mode */
+ 			VSYNC_WR_MPEG_REG(AFBC_MODE, r);
+@@ -2512,13 +2496,10 @@ static void viu_set_dcu(struct vpp_frame_par_s *frame_par, struct vframe_s *vf)
+ 				/*(0xa << VFORMATTER_INIPHASE_BIT) |*/
+ 				(0x8 << VFORMATTER_PHASE_BIT) |
+ 				VFORMATTER_EN);
+-			VSYNC_WR_MPEG_REG_BITS(VIU_MISC_CTRL0 +
+-					cur_dev->viu_off, 1, 20, 1);
++
+ 			return;
+ 
+ 		} else {
+-			VSYNC_WR_MPEG_REG_BITS(VIU_MISC_CTRL0 +
+-					cur_dev->viu_off, 0, 20, 1);
+ 			VSYNC_WR_MPEG_REG(AFBC_ENABLE, 0);
+ 		}
+ 	}
+@@ -2582,16 +2563,6 @@ static void viu_set_dcu(struct vpp_frame_par_s *frame_par, struct vframe_s *vf)
+ 				}
+ 			}
+ 		}
+-#else
+-#ifdef TV_REVERSE
+-		if (reverse) {
+-			VSYNC_WR_MPEG_REG_BITS((VD1_IF0_GEN_REG2 +
+-				cur_dev->viu_off), 0xf, 2, 4);
+-		} else {
+-			VSYNC_WR_MPEG_REG_BITS((VD1_IF0_GEN_REG2 +
+-				cur_dev->viu_off), 0, 2, 4);
+-		}
+-#endif
+ #endif
+ 	}
+ 	/* #endif */
+@@ -2607,41 +2578,17 @@ static void viu_set_dcu(struct vpp_frame_par_s *frame_par, struct vframe_s *vf)
+ 		vphase =
+ 		    ((vf->type & VIDTYPE_VIU_422) ? 0x10 : 0x08) <<
+ 		    VFORMATTER_PHASE_BIT;
+-	if (is_meson_gxtvbb_cpu()) {
+-		if ((vf->width >= 3840) &&
+-			(vf->height >= 2160) &&
+-			(vf->type & VIDTYPE_VIU_422)) {
+-			VSYNC_WR_MPEG_REG(VIU_VD1_FMT_CTRL + cur_dev->viu_off,
+-			HFORMATTER_YC_RATIO_2_1 | HFORMATTER_EN |
+-			VFORMATTER_RPTLINE0_EN | vini_phase | vphase);
+-
+-			VSYNC_WR_MPEG_REG(VIU_VD2_FMT_CTRL + cur_dev->viu_off,
+-			HFORMATTER_RRT_PIXEL0 | HFORMATTER_YC_RATIO_2_1 |
+-			HFORMATTER_EN | VFORMATTER_RPTLINE0_EN |
+-			vini_phase | vphase);
+-			} else {
+-			VSYNC_WR_MPEG_REG(VIU_VD1_FMT_CTRL + cur_dev->viu_off,
+-			HFORMATTER_YC_RATIO_2_1 | HFORMATTER_EN |
+-			VFORMATTER_RPTLINE0_EN | vini_phase | vphase |
+-			VFORMATTER_EN);
+-
+-			VSYNC_WR_MPEG_REG(VIU_VD2_FMT_CTRL + cur_dev->viu_off,
+-			HFORMATTER_YC_RATIO_2_1 | HFORMATTER_EN |
+-			VFORMATTER_RPTLINE0_EN | vini_phase | vphase |
+-			VFORMATTER_EN);
+-			}
+-		} else {
+-			VSYNC_WR_MPEG_REG(VIU_VD1_FMT_CTRL + cur_dev->viu_off,
++
++		VSYNC_WR_MPEG_REG(VIU_VD1_FMT_CTRL + cur_dev->viu_off,
+ 				HFORMATTER_YC_RATIO_2_1 | HFORMATTER_EN |
+ 				VFORMATTER_RPTLINE0_EN |
+ 				vini_phase | vphase |
+ 				VFORMATTER_EN);
+ 
+-			VSYNC_WR_MPEG_REG(VIU_VD2_FMT_CTRL + cur_dev->viu_off,
++		VSYNC_WR_MPEG_REG(VIU_VD2_FMT_CTRL + cur_dev->viu_off,
+ 				HFORMATTER_YC_RATIO_2_1 | HFORMATTER_EN |
+ 				VFORMATTER_RPTLINE0_EN | vini_phase | vphase |
+ 				VFORMATTER_EN);
+-		}
+ 	} else if (vf->type & VIDTYPE_MVC) {
+ 		VSYNC_WR_MPEG_REG(VIU_VD1_FMT_CTRL + cur_dev->viu_off,
+ 				HFORMATTER_YC_RATIO_2_1 |
+@@ -2818,8 +2765,6 @@ static void viu_set_dcu(struct vpp_frame_par_s *frame_par, struct vframe_s *vf)
+ 		}
+ 	}
+ #endif
+-
+-
+ }
+ 
+ #if 1				/* MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON6 */
+@@ -3011,8 +2956,7 @@ static inline bool vpts_expire(struct vframe_s *cur_vf,
+ 			if (next_vf->pts != 0)
+ 				tsync_avevent_locked(VIDEO_TSTAMP_DISCONTINUITY,
+ 						     next_vf->pts);
+-			else if (next_vf->pts == 0 &&
+-				(tsync_get_mode() != TSYNC_MODE_PCRMASTER))
++			else
+ 				tsync_avevent_locked(VIDEO_TSTAMP_DISCONTINUITY,
+ 						     pts);
+ 
+@@ -3024,12 +2968,9 @@ static inline bool vpts_expire(struct vframe_s *cur_vf,
+ 			/* pts==0 is a keep frame maybe. */
+ 			if (systime > next_vf->pts || next_vf->pts == 0)
+ 				return true;
+-			if (omx_secret_mode == true)
+-				return true;
+ 
+ 			return false;
+-		} else if (omx_secret_mode == true)
+-			return true;
++		}
+ 	}
+ #if 1
+ 	if (vsync_pts_inc_upint && (!freerun_mode)) {
+@@ -3292,13 +3233,11 @@ static irqreturn_t vsync_isr(int irq, void *dev_id)
+ 	s32 i, vout_type;
+ 	struct vframe_s *vf;
+ 	unsigned long flags;
+-#ifdef CONFIG_TVIN_VDIN
+ 	struct vdin_v4l2_ops_s *vdin_ops = NULL;
+ 	struct vdin_arg_s arg;
+-#endif
+ 	bool show_nosync = false;
+ 	u32 vpp_misc_save, vpp_misc_set;
+-	int first_set = 0;
++
+ #ifdef CONFIG_AM_VIDEO_LOG
+ 	int toggle_cnt;
+ #endif
+@@ -3392,12 +3331,9 @@ static irqreturn_t vsync_isr(int irq, void *dev_id)
+ 	}
+ #endif
+ 
+-#if defined(CONFIG_AM_VECM)
+-	amvecm_on_vs(vf);
+-#endif
+-#ifdef CONFIG_TVIN_VDIN
++	/* #if MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON8 */
+ 	if ((get_cpu_type() >= MESON_CPU_MAJOR_ID_M8) && !is_meson_mtvd_cpu()) {
+-		vdin_ops = get_vdin_v4l2_ops();
++		vdin_ops = NULL;	/* /get_vdin_v4l2_ops(); */
+ 		if (vdin_ops) {
+ 			arg.cmd = VDIN_CMD_ISR;
+ 			vdin_ops->tvin_vdin_func(1, &arg);
+@@ -3406,7 +3342,7 @@ static irqreturn_t vsync_isr(int irq, void *dev_id)
+ #endif
+ 		}
+ 	}
+-#endif
++	/* #endif */
+ 	vout_type = detect_vout_type();
+ 	hold_line = calc_hold_line();
+ 	if (vsync_pts_inc_upint) {
+@@ -3570,16 +3506,6 @@ static irqreturn_t vsync_isr(int irq, void *dev_id)
+ 	/* toggle_3d_fa_frame  determine the out frame is L or R or blank */
+ 	judge_3d_fa_out_mode();
+ #endif
+-	if (vf) {
+-		/* force set bitdepth to 8bit mode when src is 8bit */
+-		if (is_meson_gxtvbb_cpu() && (bit_depth_flag == 8)
+-			&& (vf->bitdepth != 10)) {
+-			if (((READ_VCBUS_REG(VD1_IF0_GEN_REG3) >> 8)
+-				& 0x1) == 1)
+-				WRITE_VCBUS_REG_BITS(VD1_IF0_GEN_REG3,
+-					0x0, 8, 2);
+-		}
+-	}
+ 	while (vf) {
+ 		if (vpts_expire(cur_dispbuf, vf) || show_nosync) {
+ 			amlog_mask(LOG_MASK_TIMESTAMP,
+@@ -3738,7 +3664,6 @@ static irqreturn_t vsync_isr(int irq, void *dev_id)
+ 				viu_set_dcu(cur_frame_par, cur_dispbuf);
+ 		}
+ 
+-#if 0
+ 		if (get_cpu_type() >= MESON_CPU_MAJOR_ID_GXBB) {
+ 			if (cur_dispbuf->type & VIDTYPE_COMPRESS) {
+ 				/*SET_VCBUS_REG_MASK(VIU_MISC_CTRL0,
+@@ -3752,7 +3677,6 @@ static irqreturn_t vsync_isr(int irq, void *dev_id)
+ 					cur_dev->viu_off, 0, 20, 1);
+ 			}
+ 		}
+-#endif
+ 
+ #ifdef TV_3D_FUNCTION_OPEN
+ 		if ((cur_frame_par->hscale_skip_count)
+@@ -3957,23 +3881,6 @@ static irqreturn_t vsync_isr(int irq, void *dev_id)
+ 				  VPP_SC_TOP_EN | VPP_SC_VERT_EN |
+ 				  VPP_SC_HORZ_EN);
+ 
+-		/* pps pre hsc&vsc en */
+-		VSYNC_WR_MPEG_REG_BITS(VPP_SC_MISC + cur_dev->vpp_off,
+-			vpp_filter->vpp_pre_hsc_en,
+-			VPP_SC_PREHORZ_EN_BIT, 1);
+-		VSYNC_WR_MPEG_REG_BITS(VPP_SC_MISC + cur_dev->vpp_off,
+-			vpp_filter->vpp_pre_vsc_en,
+-			VPP_SC_PREVERT_EN_BIT, 1);
+-		VSYNC_WR_MPEG_REG_BITS(VPP_SC_MISC + cur_dev->vpp_off,
+-			vpp_filter->vpp_pre_vsc_en,
+-			VPP_LINE_BUFFER_EN_BIT, 1);
+-		/* for bypass pps debug */
+-		if ((vpp_filter->vpp_hsc_start_phase_step == 0x1000000) &&
+-			(vpp_filter->vpp_vsc_start_phase_step == 0x1000000) &&
+-			bypass_pps)
+-			VSYNC_WR_MPEG_REG_BITS(VPP_SC_MISC + cur_dev->vpp_off,
+-				0, VPP_SC_TOP_EN_BIT, VPP_SC_TOP_EN_WID);
+-
+ #ifdef TV_3D_FUNCTION_OPEN
+ 		if (last_mode_3d) {
+ 			/*turn off vertical scaler when 3d display */
+@@ -4028,35 +3935,7 @@ static irqreturn_t vsync_isr(int irq, void *dev_id)
+ 			VSYNC_WR_MPEG_REG(VPP_SCALE_COEF + cur_dev->vpp_off,
+ 					  vpp_filter->vpp_vert_coeff[i + 2]);
+ 		}
+-#if (!HAS_VPU_PROT)
+-		if (is_meson_gxbb_cpu()) {
+-			cur_frame_par->VPP_pic_in_height_ = (zoom_end_y_lines -
+-				zoom_start_y_lines + 1) /
+-			(cur_frame_par->vscale_skip_count + 1);
+-			if (cur_dispbuf->type & VIDTYPE_MVC)
+-				cur_frame_par->VPP_pic_in_height_ *= 2;
+-			cur_frame_par->VPP_line_in_length_ = (zoom_end_x_lines -
+-				zoom_start_x_lines + 1) /
+-			(cur_frame_par->hscale_skip_count + 1);
+-		}
+-		if (is_meson_gxtvbb_cpu()) {
+-			cur_frame_par->VPP_pic_in_height_ = ((zoom_end_y_lines -
+-				zoom_start_y_lines + 1) /
+-				(cur_frame_par->vscale_skip_count + 1)) <<
+-				cur_frame_par->supsc0_vert_ratio;
+-			if (cur_dispbuf->type & VIDTYPE_MVC)
+-				cur_frame_par->VPP_pic_in_height_ *= 2;
+-			cur_frame_par->VPP_line_in_length_ = ((zoom_end_x_lines
+-				- zoom_start_x_lines + 1) /
+-				(cur_frame_par->hscale_skip_count + 1)) <<
+-				cur_frame_par->supsc0_hori_ratio;
+-			VSYNC_WR_MPEG_REG(VPP_IN_H_V_SIZE,
+-				(((cur_frame_par->VPP_line_in_length_ >>
+-				cur_frame_par->supsc0_hori_ratio) & 0x1fff) <<
+-				16) | ((cur_frame_par->VPP_pic_in_height_ >>
+-				cur_frame_par->supsc0_vert_ratio) & 0x1fff));
+-		}
+-#endif
++
+ 		VSYNC_WR_MPEG_REG(VPP_PIC_IN_HEIGHT + cur_dev->vpp_off,
+ 				  cur_frame_par->VPP_pic_in_height_);
+ 
+@@ -4101,7 +3980,6 @@ static irqreturn_t vsync_isr(int irq, void *dev_id)
+ 		vpp_settings_v(cur_frame_par);
+ 		frame_par_ready_to_set = 0;
+ 		frame_par_force_to_set = 0;
+-		first_set = 1;
+ 	}
+ 	/* VPP one time settings */
+ 	wait_sync = 0;
+@@ -4130,23 +4008,7 @@ static irqreturn_t vsync_isr(int irq, void *dev_id)
+ 		SET_VCBUS_REG_MASK(VPP_MISC + cur_dev->vpp_off,
+ 				VPP_VD1_PREBLEND | VPP_VD1_POSTBLEND
+ 				   | VPP_POSTBLEND_EN);
+-		pr_info("VPP_VD1_POSTBLEND register rdma write fail!");
+-	}
+-	if ((video_enabled == 1) && cur_frame_par
+-	&& (cur_dispbuf != &vf_local) && (first_set == 0)
+-	&& (video_onoff_state == VIDEO_ENABLE_STATE_IDLE)) {
+-		struct vppfilter_mode_s *vpp_filter =
+-		    &cur_frame_par->vpp_filter;
+-		u32 h_phase_step , v_phase_step;
+-		h_phase_step = READ_VCBUS_REG(
+-		VPP_HSC_START_PHASE_STEP + cur_dev->vpp_off);
+-		v_phase_step = READ_VCBUS_REG(
+-		VPP_VSC_START_PHASE_STEP + cur_dev->vpp_off);
+-		if ((vpp_filter->vpp_hsc_start_phase_step != h_phase_step) ||
+-		(vpp_filter->vpp_vsc_start_phase_step != v_phase_step)) {
+-			video_property_changed = true;
+-			pr_info("frame info register rdma write fail!\n");
+-		}
++		pr_info("should never happen, rdma fail!");
+ 	}
+ 	if (likely(video_onoff_state != VIDEO_ENABLE_STATE_IDLE)) {
+ 		/* state change for video layer enable/disable */
+@@ -4665,12 +4527,6 @@ static int video_receiver_event_fun(int type, void *data, void *private_data)
+ 			set_clone_frame_rate(video_play_clone_rate, 100);
+ 		}
+ #endif
+-		/* if provider is not deinterlace, set bit depth to 8 */
+-		if (strncmp((char *)data, "deinterlace", 11) != 0)
+-			bit_depth_flag = 8;
+-		else
+-			bit_depth_flag = 10;
+-		pr_info("set bit_depth_flag to %d\n", bit_depth_flag);
+ #ifdef TV_3D_FUNCTION_OPEN
+ 
+ 		if ((process_3d_type & MODE_3D_FA) && !cur_dispbuf->trans_fmt)
+@@ -4710,13 +4566,6 @@ static int video4osd_receiver_event_fun(int type, void *data,
+ 			pr_info("[video4osd] clear osd_prov\n");
+ 	} else if (type == VFRAME_EVENT_PROVIDER_REG) {
+ 		osd_prov = vf_get_provider(RECEIVER4OSD_NAME);
+-		/* if provider is not deinterlace, set bit depth to 8 */
+-		if (strncmp((char *)data, "deinterlace", 11) != 0)
+-			bit_depth_flag = 8;
+-		else
+-			bit_depth_flag = 10;
+-		pr_info("set bit_depth_flag to %d\n", bit_depth_flag);
+-
+ 		if (debug_flag & DEBUG_FLAG_BLACKOUT)
+ 			pr_info("[video4osd] set osd_prov\n");
+ 	}
+@@ -5094,11 +4943,6 @@ static int amvideo_open(struct inode *inode, struct file *file)
+ 	return 0;
+ }
+ 
+-static int amvideo_poll_open(struct inode *inode, struct file *file)
+-{
+-	return 0;
+-}
+-
+ static int amvideo_release(struct inode *inode, struct file *file)
+ {
+ 	if (blackout | force_blackout) {
+@@ -5108,15 +4952,6 @@ static int amvideo_release(struct inode *inode, struct file *file)
+ 	return 0;
+ }
+ 
+-static int amvideo_poll_release(struct inode *inode, struct file *file)
+-{
+-	if (blackout | force_blackout) {
+-		/*	DisableVideoLayer();
+-		don't need it ,it have problem on  pure music playing */
+-	}
+-	return 0;
+-}
+-
+ static long amvideo_ioctl(struct file *file, unsigned int cmd, ulong arg)
+ {
+ 	long ret = 0;
+@@ -5480,18 +5315,6 @@ static unsigned int amvideo_poll(struct file *file, poll_table *wait_table)
+ 	return 0;
+ }
+ 
+-static unsigned int amvideo_poll_poll(struct file *file, poll_table *wait_table)
+-{
+-	poll_wait(file, &amvideo_sizechange_wait, wait_table);
+-
+-	if (atomic_read(&video_sizechange)) {
+-		atomic_set(&video_sizechange, 0);
+-		return POLLIN | POLLWRNORM;
+-	}
+-
+-	return 0;
+-}
+-
+ static const struct file_operations amvideo_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = amvideo_open,
+@@ -5503,19 +5326,11 @@ static const struct file_operations amvideo_fops = {
+ 	.poll = amvideo_poll,
+ };
+ 
+-static const struct file_operations amvideo_poll_fops = {
+-	.owner = THIS_MODULE,
+-	.open = amvideo_poll_open,
+-	.release = amvideo_poll_release,
+-	.poll = amvideo_poll_poll,
+-};
+-
+ /*********************************************************
+  * SYSFS property functions
+  *********************************************************/
+ #define MAX_NUMBER_PARA 10
+ #define AMVIDEO_CLASS_NAME "video"
+-#define AMVIDEO_POLL_CLASS_NAME "video_poll"
+ 
+ static int parse_para(const char *para, int para_num, int *result)
+ {
+@@ -5664,17 +5479,6 @@ static ssize_t video_state_show(struct class *cla,
+ 	len +=
+ 	    sprintf(buf + len, "vscale phase step 0x%x.\n",
+ 		    vpp_filter->vpp_vsc_start_phase_step);
+-	len +=
+-	    sprintf(buf + len, "pps pre hsc enable %d.\n",
+-		    vpp_filter->vpp_pre_hsc_en);
+-	len +=
+-	    sprintf(buf + len, "pps pre vsc enable %d.\n",
+-		    vpp_filter->vpp_pre_vsc_en);
+-	    sprintf(buf + len, "hscale filter coef %d.\n",
+-		    vpp_filter->vpp_horz_filter);
+-	len +=
+-	    sprintf(buf + len, "vscale filter coef %d.\n",
+-		    vpp_filter->vpp_vert_filter);
+ 	return len;
+ }
+ 
+@@ -6009,144 +5813,6 @@ static ssize_t video_test_screen_show(struct class *cla,
+ 	return sprintf(buf, "0x%x\n", test_screen);
+ }
+ 
+-#define SCALE 6
+-
+-static short R_Cr[] = { -11484, -11394, -11305, -11215, -11125,
+--11036, -10946, -10856, -10766, -10677, -10587, -10497, -10407,
+--10318, -10228, -10138, -10049, -9959, -9869, -9779, -9690, -9600,
+--9510, -9420, -9331, -9241, -9151, -9062, -8972, -8882, -8792, -8703,
+--8613, -8523, -8433, -8344, -8254, -8164, -8075, -7985, -7895, -7805,
+--7716, -7626, -7536, -7446, -7357, -7267, -7177, -7088, -6998, -6908,
+--6818, -6729, -6639, -6549, -6459, -6370, -6280, -6190, -6101, -6011,
+--5921, -5831, -5742, -5652, -5562, -5472, -5383, -5293, -5203, -5113,
+--5024, -4934, -4844, -4755, -4665, -4575, -4485, -4396, -4306, -4216,
+--4126, -4037, -3947, -3857, -3768, -3678, -3588, -3498, -3409, -3319,
+--3229, -3139, -3050, -2960, -2870, -2781, -2691, -2601, -2511, -2422,
+--2332, -2242, -2152, -2063, -1973, -1883, -1794, -1704, -1614, -1524,
+--1435, -1345, -1255, -1165, -1076, -986, -896, -807, -717, -627, -537,
+--448, -358, -268, -178, -89, 0, 90, 179, 269, 359, 449, 538, 628, 718,
+-808, 897, 987, 1077, 1166, 1256, 1346, 1436, 1525, 1615, 1705, 1795,
+-1884, 1974, 2064, 2153, 2243, 2333, 2423, 2512, 2602, 2692, 2782,
+-2871, 2961, 3051, 3140, 3230, 3320, 3410, 3499, 3589, 3679, 3769,
+-3858, 3948, 4038, 4127, 4217, 4307, 4397, 4486, 4576, 4666, 4756,
+-4845, 4935, 5025, 5114, 5204, 5294, 5384, 5473, 5563, 5653, 5743,
+-5832, 5922, 6012, 6102, 6191, 6281, 6371, 6460, 6550, 6640, 6730,
+-6819, 6909, 6999, 7089, 7178, 7268, 7358, 7447, 7537, 7627, 7717,
+-7806, 7896, 7986, 8076, 8165, 8255, 8345, 8434, 8524, 8614, 8704,
+-8793, 8883, 8973, 9063, 9152, 9242, 9332, 9421, 9511, 9601, 9691,
+-9780, 9870, 9960, 10050, 10139, 10229, 10319, 10408, 10498, 10588,
+-10678, 10767, 10857, 10947, 11037, 11126, 11216, 11306, 11395 };
+-
+-static short G_Cb[] = { 2819, 2797, 2775, 2753, 2731, 2709, 2687,
+-2665, 2643, 2621, 2599, 2577, 2555, 2533, 2511, 2489, 2467, 2445,
+-2423, 2401, 2379, 2357, 2335, 2313, 2291, 2269, 2247, 2225, 2202,
+-2180, 2158, 2136, 2114, 2092, 2070, 2048, 2026, 2004, 1982, 1960,
+-1938, 1916, 1894, 1872, 1850, 1828, 1806, 1784, 1762, 1740, 1718,
+-1696, 1674, 1652, 1630, 1608, 1586, 1564, 1542, 1520, 1498, 1476,
+-1454, 1432, 1410, 1388, 1366, 1344, 1321, 1299, 1277, 1255, 1233,
+-1211, 1189, 1167, 1145, 1123, 1101, 1079, 1057, 1035, 1013, 991, 969,
+-947, 925, 903, 881, 859, 837, 815, 793, 771, 749, 727, 705, 683, 661,
+-639, 617, 595, 573, 551, 529, 507, 485, 463, 440, 418, 396, 374, 352,
+-330, 308, 286, 264, 242, 220, 198, 176, 154, 132, 110, 88, 66, 44, 22,
+-0, -21, -43, -65, -87, -109, -131, -153, -175, -197, -219, -241, -263,
+--285, -307, -329, -351, -373, -395, -417, -439, -462, -484, -506,
+--528, -550, -572, -594, -616, -638, -660, -682, -704, -726, -748,
+--770, -792, -814, -836, -858, -880, -902, -924, -946, -968, -990,
+--1012, -1034, -1056, -1078, -1100, -1122, -1144, -1166, -1188, -1210,
+--1232, -1254, -1276, -1298, -1320, -1343, -1365, -1387, -1409, -1431,
+--1453, -1475, -1497, -1519, -1541, -1563, -1585, -1607, -1629, -1651,
+--1673, -1695, -1717, -1739, -1761, -1783, -1805, -1827, -1849, -1871,
+--1893, -1915, -1937, -1959, -1981, -2003, -2025, -2047, -2069, -2091,
+--2113, -2135, -2157, -2179, -2201, -2224, -2246, -2268, -2290, -2312,
+--2334, -2356, -2378, -2400, -2422, -2444, -2466, -2488, -2510, -2532,
+--2554, -2576, -2598, -2620, -2642, -2664, -2686, -2708, -2730, -2752,
+--2774, -2796 };
+-
+-static short G_Cr[] = { 5850, 5805, 5759, 5713, 5667, 5622, 5576,
+-5530, 5485, 5439, 5393, 5347, 5302, 5256, 5210, 5165, 5119, 5073,
+-5028, 4982, 4936, 4890, 4845, 4799, 4753, 4708, 4662, 4616, 4570,
+-4525, 4479, 4433, 4388, 4342, 4296, 4251, 4205, 4159, 4113, 4068,
+-4022, 3976, 3931, 3885, 3839, 3794, 3748, 3702, 3656, 3611, 3565,
+-3519, 3474, 3428, 3382, 3336, 3291, 3245, 3199, 3154, 3108, 3062,
+-3017, 2971, 2925, 2879, 2834, 2788, 2742, 2697, 2651, 2605, 2559,
+-2514, 2468, 2422, 2377, 2331, 2285, 2240, 2194, 2148, 2102, 2057,
+-2011, 1965, 1920, 1874, 1828, 1782, 1737, 1691, 1645, 1600, 1554,
+-1508, 1463, 1417, 1371, 1325, 1280, 1234, 1188, 1143, 1097, 1051,
+-1006, 960, 914, 868, 823, 777, 731, 686, 640, 594, 548, 503, 457, 411,
+-366, 320, 274, 229, 183, 137, 91, 46, 0, -45, -90, -136, -182, -228,
+--273, -319, -365, -410, -456, -502, -547, -593, -639, -685, -730,
+--776, -822, -867, -913, -959, -1005, -1050, -1096, -1142, -1187,
+--1233, -1279, -1324, -1370, -1416, -1462, -1507, -1553, -1599, -1644,
+--1690, -1736, -1781, -1827, -1873, -1919, -1964, -2010, -2056, -2101,
+--2147, -2193, -2239, -2284, -2330, -2376, -2421, -2467, -2513, -2558,
+--2604, -2650, -2696, -2741, -2787, -2833, -2878, -2924, -2970, -3016,
+--3061, -3107, -3153, -3198, -3244, -3290, -3335, -3381, -3427, -3473,
+--3518, -3564, -3610, -3655, -3701, -3747, -3793, -3838, -3884, -3930,
+--3975, -4021, -4067, -4112, -4158, -4204, -4250, -4295, -4341, -4387,
+--4432, -4478, -4524, -4569, -4615, -4661, -4707, -4752, -4798, -4844,
+--4889, -4935, -4981, -5027, -5072, -5118, -5164, -5209, -5255, -5301,
+--5346, -5392, -5438, -5484, -5529, -5575, -5621, -5666, -5712, -5758,
+--5804 };
+-
+-static short B_Cb[] = { -14515, -14402, -14288, -14175, -14062,
+--13948, -13835, -13721, -13608, -13495, -13381, -13268, -13154,
+--13041, -12928, -12814, -12701, -12587, -12474, -12360, -12247,
+--12134, -12020, -11907, -11793, -11680, -11567, -11453, -11340,
+--11226, -11113, -11000, -10886, -10773, -10659, -10546, -10433,
+--10319, -10206, -10092, -9979, -9865, -9752, -9639, -9525, -9412,
+--9298, -9185, -9072, -8958, -8845, -8731, -8618, -8505, -8391, -8278,
+--8164, -8051, -7938, -7824, -7711, -7597, -7484, -7371, -7257, -7144,
+--7030, -6917, -6803, -6690, -6577, -6463, -6350, -6236, -6123, -6010,
+--5896, -5783, -5669, -5556, -5443, -5329, -5216, -5102, -4989, -4876,
+--4762, -4649, -4535, -4422, -4309, -4195, -4082, -3968, -3855, -3741,
+--3628, -3515, -3401, -3288, -3174, -3061, -2948, -2834, -2721, -2607,
+--2494, -2381, -2267, -2154, -2040, -1927, -1814, -1700, -1587, -1473,
+--1360, -1246, -1133, -1020, -906, -793, -679, -566, -453, -339, -226,
+--112, 0, 113, 227, 340, 454, 567, 680, 794, 907, 1021, 1134, 1247,
+-1361, 1474, 1588, 1701, 1815, 1928, 2041, 2155, 2268, 2382, 2495,
+-2608, 2722, 2835, 2949, 3062, 3175, 3289, 3402, 3516, 3629, 3742,
+-3856, 3969, 4083, 4196, 4310, 4423, 4536, 4650, 4763, 4877, 4990,
+-5103, 5217, 5330, 5444, 5557, 5670, 5784, 5897, 6011, 6124, 6237,
+-6351, 6464, 6578, 6691, 6804, 6918, 7031, 7145, 7258, 7372, 7485,
+-7598, 7712, 7825, 7939, 8052, 8165, 8279, 8392, 8506, 8619, 8732,
+-8846, 8959, 9073, 9186, 9299, 9413, 9526, 9640, 9753, 9866, 9980,
+-10093, 10207, 10320, 10434, 10547, 10660, 10774, 10887, 11001, 11114,
+-11227, 11341, 11454, 11568, 11681, 11794, 11908, 12021, 12135, 12248,
+-12361, 12475, 12588, 12702, 12815, 12929, 13042, 13155, 13269, 13382,
+-13496, 13609, 13722, 13836, 13949, 14063, 14176, 14289, 14403
+-};
+-
+-static u32 yuv2rgb(u32 yuv)
+-{
+-	int y = (yuv >> 16) & 0xff;
+-	int cb = (yuv >> 8) & 0xff;
+-	int cr = yuv & 0xff;
+-	int r, g, b;
+-
+-	r = y + ((R_Cr[cr]) >> SCALE);
+-	g = y + ((G_Cb[cb] + G_Cr[cr]) >> SCALE);
+-	b = y + ((B_Cb[cb]) >> SCALE);
+-
+-	r = r - 16;
+-	if (r < 0)
+-		r = 0;
+-		r = r*1164/1000;
+-	g = g - 16;
+-	if (g < 0)
+-		g = 0;
+-		g = g*1164/1000;
+-	b = b - 16;
+-	if (b < 0)
+-		b = 0;
+-		b = b*1164/1000;
+-
+-	r = (r <= 0) ? 0 : (r >= 255) ? 255 : r;
+-	g = (g <= 0) ? 0 : (g >= 255) ? 255 : g;
+-	b = (b <= 0) ? 0 : (b >= 255) ? 255 : b;
+-
+-	return  (r << 16) | (g << 8) | b;
+-}
+-
+ static ssize_t video_test_screen_store(struct class *cla,
+ 				       struct class_attribute *attr,
+ 				       const char *buf, size_t count)
+@@ -6179,12 +5845,8 @@ static ssize_t video_test_screen_store(struct class *cla,
+ 	   else
+ 	   data &= (~VPP_VD2_POSTBLEND);
+ 	 */
+-	/* show test screen  YUV blend*/
+-	if (READ_VCBUS_REG(VIU_OSD1_BLK0_CFG_W0) & 0x80)
+-		WRITE_VCBUS_REG(VPP_DUMMY_DATA1, test_screen & 0x00ffffff);
+-	else /* RGB blend */
+-		WRITE_VCBUS_REG(VPP_DUMMY_DATA1,
+-				yuv2rgb(test_screen & 0x00ffffff));
++	/* show test screen */
++	WRITE_VCBUS_REG(VPP_DUMMY_DATA1, test_screen & 0x00ffffff);
+ 
+ 	WRITE_VCBUS_REG(VPP_MISC, data);
+ 
+@@ -6948,14 +6610,6 @@ static struct class_attribute amvideo_class_attrs[] = {
+ 	__ATTR_NULL
+ };
+ 
+-static struct class_attribute amvideo_poll_class_attrs[] = {
+-	__ATTR_RO(frame_width),
+-	__ATTR_RO(frame_height),
+-	__ATTR_RO(vframe_states),
+-	__ATTR_RO(video_state),
+-	__ATTR_NULL
+-};
+-
+ #ifdef CONFIG_PM
+ static int amvideo_class_suspend(struct device *dev, pm_message_t state)
+ {
+@@ -7081,16 +6735,11 @@ static struct class amvideo_class = {
+ #endif
+ };
+ 
+-static struct class amvideo_poll_class = {
+-	.name = AMVIDEO_POLL_CLASS_NAME,
+-	.class_attrs = amvideo_poll_class_attrs,
+-};
+-
+ #ifdef TV_REVERSE
+ static int __init vpp_axis_reverse(char *str)
+ {
+ 	unsigned char *ptr = str;
+-	pr_info("%s: bootargs is %s\n", __func__, str);
++	pr_info("%s: bootargs is %s.\n", __func__, str);
+ 	if (strstr(ptr, "1"))
+ 		reverse = true;
+ 	else
+@@ -7099,7 +6748,7 @@ static int __init vpp_axis_reverse(char *str)
+ 	return 0;
+ }
+ 
+-__setup("video_reverse=", vpp_axis_reverse);
++__setup("panel_reverse=", vpp_axis_reverse);
+ #endif
+ 
+ struct vframe_s *get_cur_dispbuf(void)
+@@ -7108,8 +6757,6 @@ struct vframe_s *get_cur_dispbuf(void)
+ }
+ 
+ static struct device *amvideo_dev;
+-static struct device *amvideo_poll_dev;
+-
+ 
+ #ifdef CONFIG_AM_VOUT
+ int vout_notify_callback(struct notifier_block *block, unsigned long cmd,
+@@ -7269,8 +6916,8 @@ static void do_vpu_delay_work(struct work_struct *work)
+ 
+ 				switch_vpu_mem_pd_vmod(VPU_VIU_VD1,
+ 						       VPU_MEM_POWER_DOWN);
+-				/*switch_vpu_mem_pd_vmod(VPU_AFBC_DEC,
+-						       VPU_MEM_POWER_DOWN);*/
++				switch_vpu_mem_pd_vmod(VPU_AFBC_DEC,
++						       VPU_MEM_POWER_DOWN);
+ 				switch_vpu_mem_pd_vmod(VPU_DI_POST,
+ 						       VPU_MEM_POWER_DOWN);
+ 			}
+@@ -7331,9 +6978,6 @@ static int __init video_early_init(void)
+ 	WRITE_VCBUS_REG(VPP_PREBLEND_VD1_H_START_END, 4096);
+ 	WRITE_VCBUS_REG(VPP_BLEND_VD2_H_START_END, 4096);
+ #endif
+-	 /*fix S905 av out flicker black dot*/
+-	if (is_meson_gxbb_cpu())
+-		SET_VCBUS_REG_MASK(VPP_MISC, VPP_OUT_SATURATE);
+ 
+ 	if (get_logo_vmode() >= VMODE_MAX) {
+ 		CLEAR_VCBUS_REG_MASK(VPP_VSC_PHASE_CTRL,
+@@ -7372,6 +7016,40 @@ static int __init video_early_init(void)
+ 	return 0;
+ }
+ 
++#ifdef SUPER_SCALER_OPEN
++static void super_scaler_init(void)
++{
++	/*load super scaler default cub setting */
++	WRITE_VCBUS_REG(0x3102, 0xf84848f8);
++	WRITE_VCBUS_REG(0x3103, 0xf84848f8);
++	WRITE_VCBUS_REG(0x3104, 0xf84848f8);
++	WRITE_VCBUS_REG(0x3105, 0xf84848f8);
++	WRITE_VCBUS_REG(0x3106, 0x02330344);
++	WRITE_VCBUS_REG(0x310a, 0x0080a0eb);
++	WRITE_VCBUS_REG(0x310c, 0x0080a0eb);
++	WRITE_VCBUS_REG(0x310d, 0x7a7a3a50);
++
++	WRITE_VCBUS_REG(0x3112, 0x00017f00);
++	WRITE_VCBUS_REG(0x3113, 0x00017f00);
++	WRITE_VCBUS_REG(0x3114, 0x00017f00);
++	WRITE_VCBUS_REG(0x3115, 0x00017f00);
++	WRITE_VCBUS_REG(0x311a, 0xf84848f8);
++	WRITE_VCBUS_REG(0x311b, 0xf84848f8);
++	WRITE_VCBUS_REG(0x311c, 0xf84848f8);
++	WRITE_VCBUS_REG(0x311d, 0xf84848f8);
++
++	WRITE_VCBUS_REG(0x311e, 0x02330344);
++	WRITE_VCBUS_REG(0x3122, 0x0080a0eb);
++	WRITE_VCBUS_REG(0x3124, 0x0080a0eb);
++	WRITE_VCBUS_REG(0x3125, 0x7a7a3a50);
++
++	WRITE_VCBUS_REG(0x312b, 0x00017f00);
++	WRITE_VCBUS_REG(0x312c, 0x00017f00);
++	WRITE_VCBUS_REG(0x312d, 0x00017f00);
++	WRITE_VCBUS_REG(0x312e, 0x00017f00);
++}
++#endif
++
+ static int __init video_init(void)
+ {
+ 	int r = 0;
+@@ -7405,6 +7083,10 @@ static int __init video_init(void)
+ 		(1 << 0));	/* DDR clk / 2 */
+ 	}
+ #endif
++#ifdef SUPER_SCALER_OPEN
++	super_scaler_init();
++#endif
++
+ 
+ 	DisableVideoLayer();
+ 	DisableVideoLayer2();
+@@ -7431,18 +7113,7 @@ static int __init video_init(void)
+ 	}
+ #endif
+ 
+-    /* sysfs node creation */
+-	r = class_register(&amvideo_poll_class);
+-	if (r) {
+-		amlog_level(LOG_LEVEL_ERROR, "create video_poll class fail.\n");
+-#ifdef FIQ_VSYNC
+-		free_irq(BRIDGE_IRQ, (void *)video_dev_id);
+-#else
+-		vdec_free_irq(VSYNC_IRQ, (void *)video_dev_id);
+-#endif
+-		goto err1;
+-	}
+-
++	/* sysfs node creation */
+ 	r = class_register(&amvideo_class);
+ 	if (r) {
+ 		amlog_level(LOG_LEVEL_ERROR, "create video class fail.\n");
+@@ -7462,34 +7133,15 @@ static int __init video_init(void)
+ 		goto err2;
+ 	}
+ 
+-	r = register_chrdev(0, "amvideo_poll", &amvideo_poll_fops);
+-	if (r < 0) {
+-		amlog_level(LOG_LEVEL_ERROR,
+-			"Can't register major for amvideo_poll device\n");
+-		goto err3;
+-	}
+-
+-	amvideo_poll_major = r;
+-
+ 	amvideo_dev = device_create(&amvideo_class, NULL,
+ 		MKDEV(AMVIDEO_MAJOR, 0), NULL, DEVICE_NAME);
+ 
+ 	if (IS_ERR(amvideo_dev)) {
+ 		amlog_level(LOG_LEVEL_ERROR, "Can't create amvideo device\n");
+-		goto err4;
+-	}
+-
+-	amvideo_poll_dev = device_create(&amvideo_poll_class, NULL,
+-		MKDEV(amvideo_poll_major, 0), NULL, "amvideo_poll");
+-
+-	if (IS_ERR(amvideo_poll_dev)) {
+-		amlog_level(LOG_LEVEL_ERROR,
+-			"Can't create amvideo_poll device\n");
+-		goto err5;
++		goto err3;
+ 	}
+ 
+ 	init_waitqueue_head(&amvideo_trick_wait);
+-	init_waitqueue_head(&amvideo_sizechange_wait);
+ #if 1				/* MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON8 */
+ 	INIT_WORK(&vpu_delay_work, do_vpu_delay_work);
+ #endif
+@@ -7551,10 +7203,7 @@ static int __init video_init(void)
+ #endif
+ 
+ 	return 0;
+- err5:
+-	device_destroy(&amvideo_class, MKDEV(AMVIDEO_MAJOR, 0));
+- err4:
+-	unregister_chrdev(amvideo_poll_major, "amvideo_poll");
++
+  err3:
+ 	unregister_chrdev(AMVIDEO_MAJOR, DEVICE_NAME);
+ 
+@@ -7562,9 +7211,10 @@ static int __init video_init(void)
+ #ifdef FIQ_VSYNC
+ 	unregister_fiq_bridge_handle(&vsync_fiq_bridge);
+ #endif
+-	class_unregister(&amvideo_class);
++
+  err1:
+-	class_unregister(&amvideo_poll_class);
++	class_unregister(&amvideo_class);
++
+ #ifdef FIQ_VSYNC
+  err0:
+ #endif
+@@ -7585,17 +7235,14 @@ static void __exit video_exit(void)
+ 	vsync2_fiq_down();
+ #endif
+ 	device_destroy(&amvideo_class, MKDEV(AMVIDEO_MAJOR, 0));
+-	device_destroy(&amvideo_poll_class, MKDEV(amvideo_poll_major, 0));
+ 
+ 	unregister_chrdev(AMVIDEO_MAJOR, DEVICE_NAME);
+-	unregister_chrdev(amvideo_poll_major, "amvideo_poll");
+ 
+ #ifdef FIQ_VSYNC
+ 	unregister_fiq_bridge_handle(&vsync_fiq_bridge);
+ #endif
+ 
+ 	class_unregister(&amvideo_class);
+-	class_unregister(&amvideo_poll_class);
+ 
+ #ifdef CONFIG_GE2D_KEEP_FRAME
+ 	ge2d_videotask_release();
+@@ -7673,8 +7320,6 @@ module_param(omx_pts_interval_upper, int, 0664);
+ MODULE_PARM_DESC(omx_pts_interval_lower, "\n omx_pts_interval\n");
+ module_param(omx_pts_interval_lower, int, 0664);
+ 
+-MODULE_PARM_DESC(bypass_pps, "\n pps_bypass\n");
+-module_param(bypass_pps, bool, 0664);
+ 
+ #ifdef TV_REVERSE
+ module_param(reverse, bool, 0644);
+-- 
+1.9.1
+

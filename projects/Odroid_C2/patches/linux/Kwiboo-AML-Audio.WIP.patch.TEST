@@ -1,0 +1,357 @@
+From 549f486ce1c5e3d26925c9df13ab0e72f489e3ec Mon Sep 17 00:00:00 2001
+From: Jonas Karlman <jonas@kwiboo.se>
+Date: Mon, 7 Nov 2016 19:38:06 +0100
+Subject: [PATCH] sound/soc/aml/m8: work-in-progress
+
+---
+ sound/soc/aml/m8/aml_audio_hw.c    | 48 ++++++++++-----------------
+ sound/soc/aml/m8/aml_i2s.c         | 66 ++++++++++++++++++++++----------------
+ sound/soc/aml/m8/aml_i2s_dai.c     |  3 +-
+ sound/soc/aml/m8/aml_spdif_codec.c |  2 +-
+ sound/soc/aml/m8/aml_spdif_dai.c   |  5 +++
+ 5 files changed, 63 insertions(+), 61 deletions(-)
+
+diff --git a/sound/soc/aml/m8/aml_audio_hw.c b/sound/soc/aml/m8/aml_audio_hw.c
+index 70e3f70..5c21fd5 100644
+--- a/sound/soc/aml/m8/aml_audio_hw.c
++++ b/sound/soc/aml/m8/aml_audio_hw.c
+@@ -148,8 +148,8 @@ int audio_clock_config_table[][13][2] = {
+ void audio_set_aiubuf(u32 addr, u32 size, unsigned int channel)
+ {
+ #ifdef CONFIG_SND_AML_SPLIT_MODE
+-	aml_write_cbus(AIU_MEM_I2S_START_PTR, addr & 0xffffff00);
+-	aml_write_cbus(AIU_MEM_I2S_RD_PTR, addr & 0xffffff00);
++	aml_write_cbus(AIU_MEM_I2S_START_PTR, addr);
++	aml_write_cbus(AIU_MEM_I2S_RD_PTR, addr);
+ #else
+ 	aml_write_cbus(AIU_MEM_I2S_START_PTR, addr & 0xffffffc0);
+ 	aml_write_cbus(AIU_MEM_I2S_RD_PTR, addr & 0xffffffc0);
+@@ -158,8 +158,7 @@ void audio_set_aiubuf(u32 addr, u32 size, unsigned int channel)
+ 	if (channel == 8) {
+ 		aml_cbus_update_bits(AIU_CLK_CTRL_MORE, 1 << 6, 1 << 6);
+ #ifdef CONFIG_SND_AML_SPLIT_MODE
+-		aml_write_cbus(AIU_MEM_I2S_END_PTR,
+-			(addr & 0xffffff00) + (size & 0xffffff00) - 256);
++		aml_write_cbus(AIU_MEM_I2S_END_PTR, addr + size - 256);
+ #else
+ 		aml_write_cbus(AIU_MEM_I2S_END_PTR,
+ 			       (addr & 0xffffffc0) + (size & 0xffffffc0) - 256);
+@@ -167,8 +166,7 @@ void audio_set_aiubuf(u32 addr, u32 size, unsigned int channel)
+ 	} else {
+ 		aml_cbus_update_bits(AIU_CLK_CTRL_MORE, 1 << 6, 0 << 6);
+ #ifdef CONFIG_SND_AML_SPLIT_MODE
+-		aml_write_cbus(AIU_MEM_I2S_END_PTR,
+-			(addr & 0xffffff00) + (size & 0xffffff00) - 256);
++		aml_write_cbus(AIU_MEM_I2S_END_PTR, addr + size - 256);
+ #else
+ 		aml_write_cbus(AIU_MEM_I2S_END_PTR,
+ 			       (addr & 0xffffffc0) + (size & 0xffffffc0) - 64);
+@@ -212,29 +210,23 @@ void audio_set_aiubuf(u32 addr, u32 size, unsigned int channel)
+ 	aml_cbus_update_bits(AIU_MEM_I2S_CONTROL, 1, 1);
+ 	aml_cbus_update_bits(AIU_MEM_I2S_CONTROL, 1, 0);
+ 
+-	aml_write_cbus(AIU_MEM_I2S_BUF_CNTL, 1 | (0 << 1));
+-	aml_write_cbus(AIU_MEM_I2S_BUF_CNTL, 0 | (0 << 1));
+-
+ 	audio_out_buf_ready = 1;
+ }
+ 
+ void audio_set_958outbuf(u32 addr, u32 size, int flag)
+ {
+ 	if (ENABLE_IEC958) {
+-		aml_write_cbus(AIU_MEM_IEC958_START_PTR, addr & 0xffffffc0);
++		aml_write_cbus(AIU_MEM_IEC958_START_PTR, addr);
+ 		if (aml_read_cbus(AIU_MEM_IEC958_START_PTR) ==
+ 		    aml_read_cbus(AIU_MEM_I2S_START_PTR)) {
+ 			aml_write_cbus(AIU_MEM_IEC958_RD_PTR,
+ 				       aml_read_cbus(AIU_MEM_I2S_RD_PTR));
+ 		} else
+-			aml_write_cbus(AIU_MEM_IEC958_RD_PTR,
+-				       addr & 0xffffffc0);
++			aml_write_cbus(AIU_MEM_IEC958_RD_PTR, addr);
+ 		if (flag == 0) {
+ 			/* this is for 16bit 2 channel */
+ #ifdef CONFIG_SND_AML_SPLIT_MODE
+-			aml_write_cbus(AIU_MEM_IEC958_END_PTR,
+-				(addr & 0xffffffc0) +
+-				(size & 0xffffffc0) - 8);
++			aml_write_cbus(AIU_MEM_IEC958_END_PTR, addr + size - 8);
+ #else
+ 			aml_write_cbus(AIU_MEM_IEC958_END_PTR,
+ 				       (addr & 0xffffffc0) +
+@@ -243,9 +235,7 @@ void audio_set_958outbuf(u32 addr, u32 size, int flag)
+ 		} else {
+ 			/* this is for RAW mode */
+ #ifdef CONFIG_SND_AML_SPLIT_MODE
+-			aml_write_cbus(AIU_MEM_IEC958_END_PTR,
+-						(addr & 0xffffffc0) +
+-						(size & 0xffffffc0) - 8);
++			aml_write_cbus(AIU_MEM_IEC958_END_PTR, addr + size - 8);
+ #else
+ 			aml_write_cbus(AIU_MEM_IEC958_END_PTR,
+ 				       (addr & 0xffffffc0) +
+@@ -259,9 +249,6 @@ void audio_set_958outbuf(u32 addr, u32 size, int flag)
+ #endif
+ 		aml_cbus_update_bits(AIU_MEM_IEC958_CONTROL, 1, 1);
+ 		aml_cbus_update_bits(AIU_MEM_IEC958_CONTROL, 1, 0);
+-
+-		aml_write_cbus(AIU_MEM_IEC958_BUF_CNTL, 1 | (0 << 1));
+-		aml_write_cbus(AIU_MEM_IEC958_BUF_CNTL, 0 | (0 << 1));
+ 	}
+ }
+ 
+@@ -539,16 +526,15 @@ void audio_set_i2s_mode(u32 mode, unsigned int channel)
+ 
+ 			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 1 << 9,
+ 						1 << 9);
++			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 1 << 5,
++						1 << 5);
+ 			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 7 << 6,
+ 						7 << 6);
+ 		} else if (mode == AIU_I2S_MODE_PCM24) {
+-			/* todo: to verify it */
+ 			aml_cbus_update_bits(AIU_MEM_I2S_CONTROL, 1 << 6, 0);
+ 
+ 			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 1 << 9,
+ 						1 << 9);
+-			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 7 << 6,
+-						7 << 6);
+ 			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 1 << 5,
+ 						1 << 5);
+ 
+@@ -558,8 +544,6 @@ void audio_set_i2s_mode(u32 mode, unsigned int channel)
+ 
+ 			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 2 << 3,
+ 						2 << 3);
+-
+-			aml_cbus_update_bits(AIU_CLK_CTRL_MORE, 0x1f, 0x5);
+ 		}
+ 	} else if (2 == channel) {
+ 		aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 1 << 0, 0);
+@@ -573,15 +557,17 @@ void audio_set_i2s_mode(u32 mode, unsigned int channel)
+ 		} else if (mode == AIU_I2S_MODE_PCM24) {
+ 			aml_cbus_update_bits(AIU_MEM_I2S_CONTROL, 1 << 6, 0);
+ 
++			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 1 << 9,
++						1 << 9);
+ 			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 1 << 5,
+ 						1 << 5);
+-			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 2 << 3,
+-						2 << 3);
+ 		} else if (mode == AIU_I2S_MODE_PCM32) {
+ 			aml_cbus_update_bits(AIU_MEM_I2S_CONTROL, 1 << 6, 0);
+ 
+ 			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 1 << 9,
+ 						1 << 9);
++			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 1 << 5,
++						1 << 5);
+ 			aml_cbus_update_bits(AIU_I2S_SOURCE_DESC, 7 << 6,
+ 						7 << 6);
+ 		}
+@@ -918,7 +904,7 @@ void audio_set_958_mode(unsigned mode, struct _aiu_958_raw_setting_t *set)
+ 		audio_hw_set_958_pcm24(set);
+ 		if (ENABLE_IEC958) {
+ #ifdef CONFIG_SND_AML_SPLIT_MODE
+-			aml_write_cbus(AIU_958_MISC, 0x3480);
++			aml_write_cbus(AIU_958_MISC, 0x3780);
+ 			/* pcm */
+ 			aml_cbus_update_bits(AIU_MEM_IEC958_CONTROL, 1 << 8,
+ 						1 << 8);
+@@ -938,7 +924,7 @@ void audio_set_958_mode(unsigned mode, struct _aiu_958_raw_setting_t *set)
+ 		audio_hw_set_958_pcm24(set);
+ 		if (ENABLE_IEC958) {
+ #ifdef CONFIG_SND_AML_SPLIT_MODE
+-			aml_write_cbus(AIU_958_MISC, 0x3480);
++			aml_write_cbus(AIU_958_MISC, 0x3080);
+ 			/* pcm */
+ 			aml_cbus_update_bits(AIU_MEM_IEC958_CONTROL, 1 << 8,
+ 						1 << 8);
+@@ -958,7 +944,7 @@ void audio_set_958_mode(unsigned mode, struct _aiu_958_raw_setting_t *set)
+ 	} else if (mode == AIU_958_MODE_PCM16) {
+ 		audio_hw_set_958_pcm24(set);
+ 		if (ENABLE_IEC958) {
+-			aml_write_cbus(AIU_958_MISC, 0x2042);
++			aml_write_cbus(AIU_958_MISC, 0x3042);
+ 			/* pcm */
+ #ifdef CONFIG_SND_AML_SPLIT_MODE
+ 			aml_cbus_update_bits(AIU_MEM_IEC958_CONTROL, 1 << 8,
+diff --git a/sound/soc/aml/m8/aml_i2s.c b/sound/soc/aml/m8/aml_i2s.c
+index a2bf64e..b7ff908 100644
+--- a/sound/soc/aml/m8/aml_i2s.c
++++ b/sound/soc/aml/m8/aml_i2s.c
+@@ -90,14 +90,14 @@ static const struct snd_pcm_hardware aml_i2s_hardware = {
+ 	    SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE |
+ 	    SNDRV_PCM_FMTBIT_S32_LE,
+ 
+-	.period_bytes_min = 64,
+-	.period_bytes_max = 32 * 1024 * 2,
+-	.periods_min = 2,
+-	.periods_max = 1024,
+-	.buffer_bytes_max = 128 * 1024 * 2 * 2,
++	.period_bytes_min = 256,
++	.period_bytes_max = 32 * 1024,
++	.periods_min = 4,
++	.periods_max = 64,
++	.buffer_bytes_max = 32 * 1024 * 64,
+ 
+ 	.rate_min = 8000,
+-	.rate_max = 48000,
++	.rate_max = 192000,
+ 	.channels_min = 2,
+ 	.channels_max = 8,
+ #ifdef CONFIG_SND_AML_SPLIT_MODE_MMAP
+@@ -127,17 +127,6 @@ static const struct snd_pcm_hardware aml_i2s_capture = {
+ 	.fifo_size = 0,
+ };
+ 
+-static unsigned int period_sizes[] = {
+-	64, 128, 256, 512, 1024, 2048, 4096, 8192,
+-	16384, 32768, 65536, 65536 * 2, 65536 * 4
+-};
+-
+-static struct snd_pcm_hw_constraint_list hw_constraints_period_sizes = {
+-	.count = ARRAY_SIZE(period_sizes),
+-	.list = period_sizes,
+-	.mask = 0
+-};
+-
+ /*--------------------------------------------------------------------------*/
+ /*--------------------------------------------------------------------------*\
+  * Helper functions
+@@ -273,6 +262,7 @@ static int aml_i2s_hw_params(struct snd_pcm_substream *substream,
+ 
+ 		s->last_ptr = 0;
+ 	}
++	s->size = 0;
+ 
+ 	return 0;
+ }
+@@ -298,6 +288,21 @@ static int aml_i2s_prepare(struct snd_pcm_substream *substream)
+ 	if (s && s->device_type == AML_AUDIO_I2SOUT)
+ 		aml_i2s_playback_channel = runtime->channels;
+ 	tmp_buf->cached_len = 0;
++
++	/*
++	* Both capture and playback need to reset the last ptr
++	* to the start address, playback and capture use
++	* different address calculate, so we reset the different
++	* start address to the last ptr
++	*/
++	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
++		/* s->last_ptr must initialized as dma buffer's start addr */
++		s->last_ptr = runtime->dma_addr;
++	} else {
++		s->last_ptr = 0;
++	}
++	s->size = 0;
++
+ 	return 0;
+ }
+ 
+@@ -519,24 +524,27 @@ static int aml_i2s_open(struct snd_pcm_substream *substream)
+ 		snd_soc_set_runtime_hwparams(substream, &aml_i2s_capture);
+ 	}
+ 
+-	/* ensure that peroid size is a multiple of 32bytes */
+-	ret =
+-	    snd_pcm_hw_constraint_list(runtime, 0,
+-				       SNDRV_PCM_HW_PARAM_PERIOD_BYTES,
+-				       &hw_constraints_period_sizes);
++	/* ensure that buffer size is a multiple of period size */
++	ret = snd_pcm_hw_constraint_integer(runtime, SNDRV_PCM_HW_PARAM_PERIODS);
++	if (ret < 0) {
++		dev_err(substream->pcm->card->dev, "set periods constraint error\n");
++		goto out;
++	}
++
++	/* ensure that peroid bytes is a multiple of 256 bytes */
++	ret = snd_pcm_hw_constraint_step(runtime, 0, SNDRV_PCM_HW_PARAM_PERIOD_BYTES, 256);
+ 	if (ret < 0) {
+-		dev_err(substream->pcm->card->dev,
+-			"set period bytes constraint error\n");
++		dev_err(substream->pcm->card->dev, "set period bytes constraint error\n");
+ 		goto out;
+ 	}
+ 
+-	/* ensure that buffer size is a multiple of period size */
+-	ret = snd_pcm_hw_constraint_integer(runtime,
+-					    SNDRV_PCM_HW_PARAM_PERIODS);
++	/* ensure that buffer bytes is a multiple of 512 bytes */
++	ret = snd_pcm_hw_constraint_step(runtime, 0, SNDRV_PCM_HW_PARAM_BUFFER_BYTES, 512);
+ 	if (ret < 0) {
+-		dev_err(substream->pcm->card->dev, "set period error\n");
++		dev_err(substream->pcm->card->dev, "set buffer bytes constraint error\n");
+ 		goto out;
+ 	}
++
+ 	if (!prtd) {
+ 		prtd = kzalloc(sizeof(struct aml_runtime_data), GFP_KERNEL);
+ 		if (prtd == NULL) {
+@@ -859,8 +867,10 @@ static struct snd_pcm_ops aml_i2s_ops = {
+ #ifdef CONFIG_SND_AML_SPLIT_MODE_MMAP
+ 	.mmap = aml_pcm_mmap,
+ #else
++#ifndef CONFIG_SND_AML_SPLIT_MODE
+ 	.copy = aml_i2s_copy,
+ #endif
++#endif
+ 	.silence = aml_i2s_silence,
+ };
+ 
+diff --git a/sound/soc/aml/m8/aml_i2s_dai.c b/sound/soc/aml/m8/aml_i2s_dai.c
+index 2e6a3a2..89a535a3 100644
+--- a/sound/soc/aml/m8/aml_i2s_dai.c
++++ b/sound/soc/aml/m8/aml_i2s_dai.c
+@@ -121,6 +121,7 @@ static void aml_hw_i2s_init(struct snd_pcm_runtime *runtime)
+ #else
+ 	audio_set_i2s_mode(i2s_mode);
+ #endif
++	memset(runtime->dma_area, 0, runtime->dma_bytes);
+ 	audio_set_aiubuf(runtime->dma_addr, runtime->dma_bytes,
+ 			 runtime->channels);
+ }
+@@ -539,7 +540,7 @@ static int aml_dai_i2s_resume(struct snd_soc_dai *dai)
+ 	return 0;
+ }
+ 
+-#define AML_DAI_I2S_RATES		(SNDRV_PCM_RATE_8000_192000)
++#define AML_DAI_I2S_RATES		(SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000)
+ #define AML_DAI_I2S_FORMATS		(SNDRV_PCM_FMTBIT_S16_LE |\
+ 		SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE)
+ 
+diff --git a/sound/soc/aml/m8/aml_spdif_codec.c b/sound/soc/aml/m8/aml_spdif_codec.c
+index ac76ef6..92b0e63 100644
+--- a/sound/soc/aml/m8/aml_spdif_codec.c
++++ b/sound/soc/aml/m8/aml_spdif_codec.c
+@@ -26,7 +26,7 @@
+ 
+ #define DRV_NAME "spdif-dit"
+ 
+-#define STUB_RATES	SNDRV_PCM_RATE_8000_192000
++#define STUB_RATES	(SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000)
+ #define STUB_FORMATS	(SNDRV_PCM_FMTBIT_S16_LE | \
+ 	SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE)
+ 
+diff --git a/sound/soc/aml/m8/aml_spdif_dai.c b/sound/soc/aml/m8/aml_spdif_dai.c
+index 405d223..63ca027 100644
+--- a/sound/soc/aml/m8/aml_spdif_dai.c
++++ b/sound/soc/aml/m8/aml_spdif_dai.c
+@@ -216,6 +216,7 @@ void aml_hw_iec958_init(struct snd_pcm_substream *substream, int samesrc)
+ #else
+ 		audio_set_i2s_mode(i2s_mode);
+ #endif
++		memset(runtime->dma_area, 0, runtime->dma_bytes);
+ 		audio_set_aiubuf(runtime->dma_addr, runtime->dma_bytes, (runtime->format == SNDRV_PCM_FORMAT_S16) ? 2 : runtime->channels);
+ 	}
+ 
+@@ -240,6 +241,10 @@ void aml_hw_iec958_init(struct snd_pcm_substream *substream, int samesrc)
+ 		IEC958_mode_codec = 4; /* EAC3 */
+ 		pr_info("set 4x audio clk for 958\n");
+ 		aml_cbus_update_bits(AIU_CLK_CTRL, 3 << 4, 0 << 4);
++	} else if (samesrc && runtime->channels == 8 && runtime->format == SNDRV_PCM_FORMAT_S16) {
++		IEC958_mode_codec = 0;
++		pr_info("share the same clock\n");
++		aml_cbus_update_bits(AIU_CLK_CTRL, 3 << 4, 2 << 4);
+ 	} else if (samesrc) {
+ 		IEC958_mode_codec = 0;
+ 		pr_info("share the same clock\n");

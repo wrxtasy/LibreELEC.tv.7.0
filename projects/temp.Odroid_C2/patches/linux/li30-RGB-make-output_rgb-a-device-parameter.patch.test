@@ -1,0 +1,76 @@
+From 67f076b4c76fe508457d5c4eccfe08ce6885ae41 Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Sun, 4 Sep 2016 00:50:27 +0200
+Subject: [PATCH] drivers/amlogic/hdmi: make output_rgb a device parameter
+
+---
+ drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c  | 28 +++++++++++++++++++++++++
+ drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c |  2 +-
+ 2 files changed, 29 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+index 4c681a1..e1f8440 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+@@ -1739,6 +1739,32 @@ void hdmi_print(int dbg_lvl, const char *fmt, ...)
+ 	}
+ }
+ 
++extern unsigned char hdmi_output_rgb;
++
++static ssize_t show_output_rgb(struct device *dev,
++	struct device_attribute *attr, char *buf)
++{
++	int pos = 0;
++	pos += snprintf(buf+pos, PAGE_SIZE, "%c\n", hdmi_output_rgb + '0');
++	return pos;
++}
++
++static ssize_t store_output_rgb(struct device *dev,
++	struct device_attribute *attr, const char *buf, size_t count)
++{
++	if (strncmp(buf, "0", 1) == 0)
++		hdmi_output_rgb = 0;
++	else if (strncmp(buf, "1", 1) == 0)
++		hdmi_output_rgb = 1;
++
++	hdmitx_set_display(&hdmitx_device, hdmitx_device.cur_VIC);
++
++	return count;
++}
++
++static DEVICE_ATTR(output_rgb, S_IWUSR | S_IRUGO | S_IWGRP,
++	show_output_rgb, store_output_rgb);
++
+ static DEVICE_ATTR(disp_mode, S_IWUSR | S_IRUGO | S_IWGRP,
+ 	show_disp_mode, store_disp_mode);
+ static DEVICE_ATTR(aud_mode, S_IWUSR | S_IRUGO, show_aud_mode,
+@@ -2600,6 +2626,7 @@ static int amhdmitx_probe(struct platform_device *pdev)
+ 	ret = device_create_file(dev, &dev_attr_ready);
+ 	ret = device_create_file(dev, &dev_attr_support_3d);
+ 	ret = device_create_file(dev, &dev_attr_dc_cap);
++	ret = device_create_file(dev, &dev_attr_output_rgb);
+ #ifdef CONFIG_AML_VOUT_FRAMERATE_AUTOMATION
+ 	register_hdmi_edid_supported_func(hdmitx_is_vmode_supported);
+ #endif
+@@ -2792,6 +2819,7 @@ static int amhdmitx_remove(struct platform_device *pdev)
+ 	device_remove_file(dev, &dev_attr_vic);
+ 	device_remove_file(dev, &dev_attr_hdcp_pwr);
+ 	device_remove_file(dev, &dev_attr_aud_output_chs);
++	device_remove_file(dev, &dev_attr_output_rgb);
+ 
+ 	cdev_del(&hdmitx_device.cdev);
+ 
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c
+index f5c9f7d..5804fe5 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_video.c
+@@ -33,7 +33,7 @@
+ #include <linux/amlogic/hdmi_tx/hdmi_tx_module.h>
+ #include <linux/amlogic/hdmi_tx/hdmi_tx_compliance.h>
+ 
+-static unsigned char hdmi_output_rgb;
++unsigned char hdmi_output_rgb;
+ static void hdmitx_set_spd_info(struct hdmitx_dev *hdmitx_device);
+ static void hdmi_set_vend_spec_infofram(struct hdmitx_dev *hdmitx_device,
+ 	enum hdmi_vic VideoCode);

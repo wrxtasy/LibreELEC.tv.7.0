@@ -1,0 +1,27 @@
+commit dc3c76d238fae72757be7f0d2ec21b8e095b4432
+Author: Jamie Coldhill <kodi@Ubuntu.12.04.5>
+Date:   Thu Jan 14 15:11:56 2016 +0800
+
+    Only.force.Software.decoding.of.problem.mpeg2.vob.combo.patch
+
+diff --git a/xbmc/cores/dvdplayer/DVDPlayer.cpp b/xbmc/cores/dvdplayer/DVDPlayer.cpp
+index 9c0b5cc..812932b 100644
+--- a/xbmc/cores/dvdplayer/DVDPlayer.cpp
++++ b/xbmc/cores/dvdplayer/DVDPlayer.cpp
+@@ -3522,6 +3522,16 @@ bool CDVDPlayer::OpenVideoStream(CDVDStreamInfo& hint, bool reset)
+     }
+   }
+ 
++if (m_pInputStream)
++  {
++    std::string filename = m_pInputStream->GetFileName();
++    if (StringUtils::EndsWithNoCase(filename, "vob"))
++    {
++      CLog::Log(LOGDEBUG, "CDVDPlayer::OpenVideoStream -- %s", filename.c_str());
++      hint.software = true;
++    }
++  }
++
+   CDVDInputStream::IMenus* pMenus = dynamic_cast<CDVDInputStream::IMenus*>(m_pInputStream);
+   if(pMenus && pMenus->IsInMenu())
+     hint.stills = true;

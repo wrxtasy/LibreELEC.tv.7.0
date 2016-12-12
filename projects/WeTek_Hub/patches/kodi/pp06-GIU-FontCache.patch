@@ -1,0 +1,39 @@
+diff --git a/xbmc/guilib/GUIFontCache.h b/xbmc/guilib/GUIFontCache.h
+index 7cbe91d..b022192 100644
+--- a/xbmc/guilib/GUIFontCache.h
++++ b/xbmc/guilib/GUIFontCache.h
+@@ -36,6 +36,7 @@
+ #include <memory>
+ #include <cassert>
+ 
++#include "system_gl.h"
+ #include "TransformMatrix.h"
+ 
+ #define FONT_CACHE_TIME_LIMIT (1000)
+@@ -231,10 +232,10 @@ struct CGUIFontCacheDynamicPosition
+ 
+ struct CVertexBuffer
+ {
+-  void *bufferHandle;
++  GLuint bufferHandle;
+   size_t size;
+-  CVertexBuffer() : bufferHandle(NULL), size(0), m_font(NULL) {}
+-  CVertexBuffer(void *bufferHandle, size_t size, const CGUIFontTTFBase *font) : bufferHandle(bufferHandle), size(size), m_font(font) {}
++  CVertexBuffer() : bufferHandle(0), size(0), m_font(NULL) {}
++  CVertexBuffer(GLuint bufferHandle, size_t size, const CGUIFontTTFBase *font) : bufferHandle(bufferHandle), size(size), m_font(font) {}
+   CVertexBuffer(const CVertexBuffer &other) : bufferHandle(other.bufferHandle), size(other.size), m_font(other.m_font)
+   {
+     /* In practice, the copy constructor is only called before a vertex buffer
+diff --git a/xbmc/guilib/GUIFontTTFGL.cpp b/xbmc/guilib/GUIFontTTFGL.cpp
+index d19a2e0..f06ccae 100644
+--- a/xbmc/guilib/GUIFontTTFGL.cpp
++++ b/xbmc/guilib/GUIFontTTFGL.cpp
+@@ -285,7 +285,7 @@ CVertexBuffer CGUIFontTTFGL::CreateVertexBuffer(const std::vector<SVertex> &vert
+   // Unbind GL_ARRAY_BUFFER
+   glBindBuffer(GL_ARRAY_BUFFER, 0);
+ 
+-  return CVertexBuffer((void *) bufferHandle, vertices.size() / 4, this);
++  return CVertexBuffer(bufferHandle, vertices.size() / 4, this);
+ }
+ 
+ void CGUIFontTTFGL::DestroyVertexBuffer(CVertexBuffer &buffer) const

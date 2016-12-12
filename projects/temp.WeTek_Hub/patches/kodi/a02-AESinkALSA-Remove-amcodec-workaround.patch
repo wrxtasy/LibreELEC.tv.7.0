@@ -1,0 +1,37 @@
+From ac6dc3129875a8050bcb42e851f465e4b316ff8e Mon Sep 17 00:00:00 2001
+From: Jonas Karlman <jonas@kwiboo.se>
+Date: Thu, 6 Oct 2016 00:22:34 +0200
+Subject: [PATCH] AESinkALSA: Remove amcodec workaround
+
+---
+ xbmc/cores/AudioEngine/Sinks/AESinkALSA.cpp | 10 ----------
+ 1 file changed, 10 deletions(-)
+
+diff --git a/xbmc/cores/AudioEngine/Sinks/AESinkALSA.cpp b/xbmc/cores/AudioEngine/Sinks/AESinkALSA.cpp
+index 6a9066b..0b8b679 100644
+--- a/xbmc/cores/AudioEngine/Sinks/AESinkALSA.cpp
++++ b/xbmc/cores/AudioEngine/Sinks/AESinkALSA.cpp
+@@ -36,9 +36,6 @@
+ #include "utils/SystemInfo.h"
+ #include "threads/SingleLock.h"
+ #include "settings/AdvancedSettings.h"
+-#if defined(HAS_LIBAMCODEC)
+-#include "utils/AMLUtils.h"
+-#endif
+ 
+ #ifdef TARGET_POSIX
+ #include "linux/XTimeUtils.h"
+@@ -534,13 +531,6 @@ bool CAESinkALSA::Initialize(AEAudioFormat &format, std::string &device)
+   {
+     m_passthrough   = false;
+   }
+-#if defined(HAS_LIBAMCODEC)
+-  if (aml_present())
+-  {
+-    aml_set_audio_passthrough(m_passthrough);
+-    device = "default";
+-  }
+-#endif
+ 
+   if (inconfig.channels == 0)
+   {

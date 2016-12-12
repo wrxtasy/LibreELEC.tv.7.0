@@ -1,0 +1,176 @@
+From c50642c36a265c2d20f58a7eae2d63f4a6e92a38 Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Tue, 6 Sep 2016 06:43:00 +0200
+Subject: [PATCH] drivers/amlogic/wifi: disable power saving in Realtek drivers
+
+---
+ drivers/amlogic/wifi/rtl8189FS/Makefile  | 2 +-
+ drivers/amlogic/wifi/rtl8192ES/Makefile  | 2 +-
+ drivers/amlogic/wifi/rtl8192EU/Makefile  | 2 +-
+ drivers/amlogic/wifi/rtl8723AU/Makefile  | 2 +-
+ drivers/amlogic/wifi/rtl8723BS/Makefile  | 2 +-
+ drivers/amlogic/wifi/rtl8723BU/Makefile  | 2 +-
+ drivers/amlogic/wifi/rtl8811AU/Makefile  | 2 +-
+ drivers/amlogic/wifi/rtl8812AU/Makefile  | 2 +-
+ drivers/amlogic/wifi/rtl8822BU/Makefile  | 2 +-
+ drivers/amlogic/wifi/rtl8xxx_CU/Makefile | 2 +-
+ drivers/amlogic/wifi/rtl8xxx_DU/Makefile | 2 +-
+ drivers/amlogic/wifi/rtl8xxx_EU/Makefile | 2 +-
+ 12 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/amlogic/wifi/rtl8189FS/Makefile b/drivers/amlogic/wifi/rtl8189FS/Makefile
+index 3347c8e..26beeee 100644
+--- a/drivers/amlogic/wifi/rtl8189FS/Makefile
++++ b/drivers/amlogic/wifi/rtl8189FS/Makefile
+@@ -41,7 +41,7 @@ CONFIG_SDIO_HCI = y
+ CONFIG_GSPI_HCI = n
+ ########################## Features ###########################
+ CONFIG_MP_INCLUDED = y
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8192ES/Makefile b/drivers/amlogic/wifi/rtl8192ES/Makefile
+index 5174290..9212070 100755
+--- a/drivers/amlogic/wifi/rtl8192ES/Makefile
++++ b/drivers/amlogic/wifi/rtl8192ES/Makefile
+@@ -40,7 +40,7 @@ CONFIG_SDIO_HCI = y
+ CONFIG_GSPI_HCI = n
+ ########################## Features ###########################
+ CONFIG_MP_INCLUDED = y
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8192EU/Makefile b/drivers/amlogic/wifi/rtl8192EU/Makefile
+index 3eb5433..3965949 100644
+--- a/drivers/amlogic/wifi/rtl8192EU/Makefile
++++ b/drivers/amlogic/wifi/rtl8192EU/Makefile
+@@ -42,7 +42,7 @@ CONFIG_SDIO_HCI = n
+ CONFIG_GSPI_HCI = n
+ ########################## Features ###########################
+ CONFIG_MP_INCLUDED = y
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8723AU/Makefile b/drivers/amlogic/wifi/rtl8723AU/Makefile
+index 47020a1..0e8f095 100755
+--- a/drivers/amlogic/wifi/rtl8723AU/Makefile
++++ b/drivers/amlogic/wifi/rtl8723AU/Makefile
+@@ -32,7 +32,7 @@ CONFIG_SDIO_HCI = n
+ CONFIG_GSPI_HCI = n
+ 
+ CONFIG_MP_INCLUDED = y
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8723BS/Makefile b/drivers/amlogic/wifi/rtl8723BS/Makefile
+index e751ea8..2c959ef 100755
+--- a/drivers/amlogic/wifi/rtl8723BS/Makefile
++++ b/drivers/amlogic/wifi/rtl8723BS/Makefile
+@@ -38,7 +38,7 @@ CONFIG_SDIO_HCI = y
+ CONFIG_GSPI_HCI = n
+ ########################## Features ###########################
+ CONFIG_MP_INCLUDED = y
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8723BU/Makefile b/drivers/amlogic/wifi/rtl8723BU/Makefile
+index bf28dbb..9332933 100755
+--- a/drivers/amlogic/wifi/rtl8723BU/Makefile
++++ b/drivers/amlogic/wifi/rtl8723BU/Makefile
+@@ -40,7 +40,7 @@ CONFIG_SDIO_HCI = n
+ CONFIG_GSPI_HCI = n
+ ########################## Features ###########################
+ CONFIG_MP_INCLUDED = y
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8811AU/Makefile b/drivers/amlogic/wifi/rtl8811AU/Makefile
+index 822b0c3..a03ab6a 100755
+--- a/drivers/amlogic/wifi/rtl8811AU/Makefile
++++ b/drivers/amlogic/wifi/rtl8811AU/Makefile
+@@ -40,7 +40,7 @@ CONFIG_SDIO_HCI = n
+ CONFIG_GSPI_HCI = n
+ ########################## Features ###########################
+ CONFIG_MP_INCLUDED = y
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8812AU/Makefile b/drivers/amlogic/wifi/rtl8812AU/Makefile
+index a0fbcfb..813fe9f 100755
+--- a/drivers/amlogic/wifi/rtl8812AU/Makefile
++++ b/drivers/amlogic/wifi/rtl8812AU/Makefile
+@@ -41,7 +41,7 @@ CONFIG_SDIO_HCI = n
+ CONFIG_GSPI_HCI = n
+ ########################## Features ###########################
+ CONFIG_MP_INCLUDED = y
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8822BU/Makefile b/drivers/amlogic/wifi/rtl8822BU/Makefile
+index 495a784..a1078f6 100755
+--- a/drivers/amlogic/wifi/rtl8822BU/Makefile
++++ b/drivers/amlogic/wifi/rtl8822BU/Makefile
+@@ -44,7 +44,7 @@ CONFIG_SDIO_HCI = n
+ CONFIG_GSPI_HCI = n
+ ########################## Features ###########################
+ CONFIG_MP_INCLUDED = y
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8xxx_CU/Makefile b/drivers/amlogic/wifi/rtl8xxx_CU/Makefile
+index c0cd62e..c65f810 100755
+--- a/drivers/amlogic/wifi/rtl8xxx_CU/Makefile
++++ b/drivers/amlogic/wifi/rtl8xxx_CU/Makefile
+@@ -32,7 +32,7 @@ CONFIG_PCI_HCI = n
+ CONFIG_SDIO_HCI = n
+ 
+ CONFIG_MP_INCLUDED = n
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8xxx_DU/Makefile b/drivers/amlogic/wifi/rtl8xxx_DU/Makefile
+index ece4e64..2d39172 100755
+--- a/drivers/amlogic/wifi/rtl8xxx_DU/Makefile
++++ b/drivers/amlogic/wifi/rtl8xxx_DU/Makefile
+@@ -32,7 +32,7 @@ CONFIG_PCI_HCI = n
+ CONFIG_SDIO_HCI = n
+ 
+ CONFIG_MP_INCLUDED = n
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n
+diff --git a/drivers/amlogic/wifi/rtl8xxx_EU/Makefile b/drivers/amlogic/wifi/rtl8xxx_EU/Makefile
+index 7c0f85b..635d872 100755
+--- a/drivers/amlogic/wifi/rtl8xxx_EU/Makefile
++++ b/drivers/amlogic/wifi/rtl8xxx_EU/Makefile
+@@ -40,7 +40,7 @@ CONFIG_SDIO_HCI = n
+ CONFIG_GSPI_HCI = n
+ ########################## Features ###########################
+ CONFIG_MP_INCLUDED = y
+-CONFIG_POWER_SAVING = y
++CONFIG_POWER_SAVING = n
+ CONFIG_USB_AUTOSUSPEND = n
+ CONFIG_HW_PWRP_DETECTION = n
+ CONFIG_WIFI_TEST = n

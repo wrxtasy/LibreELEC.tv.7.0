@@ -1,0 +1,42 @@
+From 9391ca5fba8118adecc7a6f9e74f131dd27afb8d Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Wed, 20 Jul 2016 16:03:55 +0800
+Subject: [PATCH] Revert "Kodi video: Modify S905 display drivers to fix black
+ screens when dynamic Refresh Switching"
+
+This reverts commit d629134c2e85f8eddb6cee44ac7713936aaeddf6.
+---
+ drivers/amlogic/display/vout/tv_vout.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/amlogic/display/vout/tv_vout.c b/drivers/amlogic/display/vout/tv_vout.c
+index 30e00bf..e74bf59 100644
+--- a/drivers/amlogic/display/vout/tv_vout.c
++++ b/drivers/amlogic/display/vout/tv_vout.c
+@@ -757,7 +757,7 @@ static int get_vsource_frame_rate(int duration)
+ 		break;
+ 	case 1601:
+ 	case 1602:
+-		frame_rate = 6000;
++		frame_rate = 5994;
+ 		break;
+ 	case 1920:
+ 		frame_rate = 5000;
+@@ -766,7 +766,7 @@ static int get_vsource_frame_rate(int duration)
+ 		frame_rate = 3000;
+ 		break;
+ 	case 3203:
+-		frame_rate = 3000;
++		frame_rate = 2997;
+ 		break;
+ 	case 3840:
+ 		frame_rate = 2500;
+@@ -775,7 +775,7 @@ static int get_vsource_frame_rate(int duration)
+ 		frame_rate = 2400;
+ 		break;
+ 	case 4004:
+-		frame_rate = 2400;
++		frame_rate = 2397;
+ 		break;
+ 	default:
+ 		break;

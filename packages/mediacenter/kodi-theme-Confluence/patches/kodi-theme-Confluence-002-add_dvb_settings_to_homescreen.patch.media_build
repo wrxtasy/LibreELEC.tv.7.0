@@ -1,0 +1,14 @@
+--- a/720p/IncludesHomeMenuItems.xml
++++ b/720p/IncludesHomeMenuItems.xml
+@@ -188,6 +188,11 @@
+ 			<label>@DISTRONAME@</label>
+ 			<onclick>RunAddon(service.libreelec.settings)</onclick>
+ 		</control>
++		<control type="button" id="90121">
++			<include>ButtonHomeSubCommonValues</include>
++			<label>DVB Drivers</label>
++			<onclick>Addon.OpenSettings(script.dvb.driver)</onclick>
++		</control>
+ 		<control type="button" id="90123">
+ 			<include>ButtonHomeSubCommonValues</include>
+ 			<label>7</label>

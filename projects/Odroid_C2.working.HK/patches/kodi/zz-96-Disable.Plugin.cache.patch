@@ -1,0 +1,37 @@
+From 99ee20511dc67d5ed0197a3094662d6d41018349 Mon Sep 17 00:00:00 2001
+From: tamland <thomas.amland@gmail.com>
+Date: Tue, 6 Sep 2016 19:58:56 +0200
+Subject: [PATCH] Merge pull request #10394 from tamland/disable_plugin_cache
+
+disable plugin caching
+---
+ xbmc/filesystem/PluginDirectory.cpp       | 2 +-
+ xbmc/interfaces/legacy/ModuleXbmcplugin.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/xbmc/filesystem/PluginDirectory.cpp b/xbmc/filesystem/PluginDirectory.cpp
+index 270aef9..55baedf 100644
+--- a/xbmc/filesystem/PluginDirectory.cpp
++++ b/xbmc/filesystem/PluginDirectory.cpp
+@@ -202,7 +202,7 @@ void CPluginDirectory::EndOfDirectory(int handle, bool success, bool replaceList
+     return;
+ 
+   // set cache to disc
+-  dir->m_listItems->SetCacheToDisc(cacheToDisc ? CFileItemList::CACHE_IF_SLOW : CFileItemList::CACHE_NEVER);
++  dir->m_listItems->SetCacheToDisc(CFileItemList::CACHE_NEVER);
+ 
+   dir->m_success = success;
+   dir->m_listItems->SetReplaceListing(replaceListing);
+diff --git a/xbmc/interfaces/legacy/ModuleXbmcplugin.h b/xbmc/interfaces/legacy/ModuleXbmcplugin.h
+index 0d2e638..bab4e62 100644
+--- a/xbmc/interfaces/legacy/ModuleXbmcplugin.h
++++ b/xbmc/interfaces/legacy/ModuleXbmcplugin.h
+@@ -70,7 +70,7 @@ namespace XBMCAddon
+      * handle           : integer - handle the plugin was started with.\n
+      * succeeded        : [opt] bool - True=script completed successfully(Default)/False=Script did not.\n
+      * updateListing    : [opt] bool - True=this folder should update the current listing/False=Folder is a subfolder(Default).\n
+-     * cacheToDisc      : [opt] bool - True=Folder will cache if extended time(default)/False=this folder will never cache to disc.
++     * cacheToDisc      : [opt] bool - Allow folder to be cached(default)/False=this folder will never cache to disc.
+      * 
+      * example:
+      *   - xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)

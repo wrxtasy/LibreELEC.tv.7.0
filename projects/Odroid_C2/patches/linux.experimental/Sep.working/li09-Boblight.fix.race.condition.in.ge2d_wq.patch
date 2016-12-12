@@ -1,0 +1,67 @@
+commit 9b7e4139087c5cf8bdc7383bc7e1baa99f202ea6
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Sun May 8 14:31:40 2016 +0800
+
+    fix race condition in ge2d_wq
+    https://github.com/hardkernel/linux/pull/193/files
+
+diff --git a/drivers/amlogic/display/ge2d/ge2d_wq.c b/drivers/amlogic/display/ge2d/ge2d_wq.c
+index 484723c..27f7c18 100644
+--- a/drivers/amlogic/display/ge2d/ge2d_wq.c
++++ b/drivers/amlogic/display/ge2d/ge2d_wq.c
+@@ -258,9 +258,13 @@ static int ge2d_process_work_queue(struct ge2d_context_s *wq)
+ 	} while (pos != head);
+ 	ge2d_manager.last_wq = wq;
+ exit:
++
++	spin_lock(&ge2d_manager.state_lock);
+ 	if (ge2d_manager.ge2d_state == GE2D_STATE_REMOVING_WQ)
+ 		complete(&ge2d_manager.event.process_complete);
+ 	ge2d_manager.ge2d_state = GE2D_STATE_IDLE;
++	spin_unlock(&ge2d_manager.state_lock);
++
+ 	return ret;
+ }
+ 
+@@ -1048,9 +1052,18 @@ int  destroy_ge2d_work_queue(struct ge2d_context_s *ge2d_work_queue)
+ 		spin_unlock(&ge2d_manager.event.sem_lock);
+ 		if ((ge2d_manager.current_wq == ge2d_work_queue) &&
+ 		    (ge2d_manager.ge2d_state == GE2D_STATE_RUNNING)) {
+-			ge2d_manager.ge2d_state = GE2D_STATE_REMOVING_WQ;
+-			wait_for_completion(
+-				&ge2d_manager.event.process_complete);
++
++		     // check again with lock
++		        int wasRunning = 0;
++		        spin_lock(&ge2d_manager.state_lock);
++		        if (ge2d_manager.ge2d_state== GE2D_STATE_RUNNING)
++		        {
++			  ge2d_manager.ge2d_state=GE2D_STATE_REMOVING_WQ;
++			  wasRunning = 1;
++			}
++			spin_unlock(&ge2d_manager.state_lock);
++			if (wasRunning)
++			    wait_for_completion(&ge2d_manager.event.process_complete);
+ 			/* condition so complex ,simplify it . */
+ 			ge2d_manager.last_wq = NULL;
+ 		} /* else we can delete it safely. */
+@@ -1103,6 +1116,7 @@ int ge2d_wq_init(struct platform_device *pdev,
+ 
+ 	/* prepare bottom half */
+ 	spin_lock_init(&ge2d_manager.event.sem_lock);
++	spin_lock_init(&ge2d_manager.state_lock);
+ 	sema_init(&ge2d_manager.event.cmd_in_sem, 1);
+ 	init_waitqueue_head(&ge2d_manager.event.cmd_complete);
+ 	init_completion(&ge2d_manager.event.process_complete);
+diff --git a/include/linux/amlogic/ge2d/ge2d.h b/include/linux/amlogic/ge2d/ge2d.h
+index cd13a61..6e3ace4 100644
+--- a/include/linux/amlogic/ge2d/ge2d.h
++++ b/include/linux/amlogic/ge2d/ge2d.h
+@@ -586,6 +586,7 @@ struct ge2d_manager_s {
+ 	struct ge2d_event_s event;
+ 	int irq_num;
+ 	int ge2d_state;
++	spinlock_t state_lock;  //for sync access to ge2d_state
+ 	int process_queue_state;
+ 	struct platform_device *pdev;
+ };

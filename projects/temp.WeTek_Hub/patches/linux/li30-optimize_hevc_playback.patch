@@ -1,0 +1,22 @@
+diff --git a/drivers/amlogic/amports/vh265.c b/drivers/amlogic/amports/vh265.c
+index e962733..70d9505 100644
+--- a/drivers/amlogic/amports/vh265.c
++++ b/drivers/amlogic/amports/vh265.c
+@@ -215,7 +215,7 @@ static u32 dynamic_buf_num_margin;
+ #else
+ static u32 buf_alloc_width;
+ static u32 buf_alloc_height;
+-static u32 dynamic_buf_num_margin = 7;
++static u32 dynamic_buf_num_margin = 8;
+ #endif
+ static u32 buf_alloc_size;
+ static u32 re_config_pic_flag;
+@@ -236,7 +236,7 @@ bit[3]: 1, if blackout is not 1, do not release current
+ /* set to 1 for fast play;
+ 	set to 8 for other case of "keep last frame"
+ */
+-static u32 buffer_mode = 1;
++static u32 buffer_mode = 5;
+ /* buffer_mode_dbg: debug only*/
+ static u32 buffer_mode_dbg = 0xffff0000;
+ /**/

@@ -1,0 +1,33 @@
+From 6d6d01db99ef8de6c8f560d8d6a0d28ecfb3d18f Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Fri, 9 Sep 2016 00:38:49 +0800
+Subject: [PATCH] HEVC: optimise vh265.c
+
+---
+ drivers/amlogic/amports/vh265.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/amlogic/amports/vh265.c b/drivers/amlogic/amports/vh265.c
+index 6344b86..60b5e0c 100644
+--- a/drivers/amlogic/amports/vh265.c
++++ b/drivers/amlogic/amports/vh265.c
+@@ -186,7 +186,7 @@ static u32 dynamic_buf_num_margin;
+ #else
+ static u32 buf_alloc_width;
+ static u32 buf_alloc_height;
+-static u32 dynamic_buf_num_margin = 7;
++static u32 dynamic_buf_num_margin = 8;
+ #endif
+ static u32 buf_alloc_size;
+ static u32 re_config_pic_flag;
+@@ -207,7 +207,7 @@ bit[3]: 1, if blackout is not 1, do not release current
+ /* set to 1 for fast play;
+ 	set to 8 for other case of "keep last frame"
+ */
+-static u32 buffer_mode = 1;
++static u32 buffer_mode = 5;
+ /* buffer_mode_dbg: debug only*/
+ static u32 buffer_mode_dbg = 0xffff0000;
+ /**/
+-- 
+1.9.1

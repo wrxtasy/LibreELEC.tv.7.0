@@ -1,0 +1,536 @@
+From d6edbad59ac4f74121fccde23886ea79fab1cdd3 Mon Sep 17 00:00:00 2001
+From: Luke Go <luke.go@hardkernel.com>
+Date: Fri, 12 Aug 2016 11:41:56 +0900
+Subject: [PATCH] ODROID-C2: Expanded Cache partition size.
+
+Change-Id: I4f9f2cadb880216e5545bc48c90faa4f01b375d0
+---
+ board/hardkernel/odroidc2/odroidc2-fastboot.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/board/hardkernel/odroidc2/odroidc2-fastboot.c b/board/hardkernel/odroidc2/odroidc2-fastboot.c
+index 4774288..d4d0d38 100644
+--- a/board/hardkernel/odroidc2/odroidc2-fastboot.c
++++ b/board/hardkernel/odroidc2/odroidc2-fastboot.c
+@@ -64,7 +64,7 @@ static struct dos_partition {
+ 		.name = "cache",
+ 		.part = 3,
+ 		.type = 0x83,
+-		.lba = bytes_to_lba(512 * SZ_1M),
++		.lba = bytes_to_lba(1024 * SZ_1M),
+ 	}, {
+ 		.name = "system",
+ 		.part = 2,
+From 4e8f8a7075a63f40862ecb016de0bf4900b2f17e Mon Sep 17 00:00:00 2001
+From: Joy Cho <joy.cho@hardkernel.com>
+Date: Wed, 17 Aug 2016 16:44:51 +0900
+Subject: [PATCH] ODROID-C2: set USB rst port as a default state at power off
+
+Change-Id: I900ff948a63b84cd7f43b4bc350f0decb25590e0
+---
+ board/hardkernel/odroidc2/firmware/scp_task/pwr_ctrl.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/board/hardkernel/odroidc2/firmware/scp_task/pwr_ctrl.c b/board/hardkernel/odroidc2/firmware/scp_task/pwr_ctrl.c
+index 2edd149..7b025d0 100644
+--- a/board/hardkernel/odroidc2/firmware/scp_task/pwr_ctrl.c
++++ b/board/hardkernel/odroidc2/firmware/scp_task/pwr_ctrl.c
+@@ -60,6 +60,13 @@ void pwm_set_voltage(unsigned int id, unsigned int voltage)
+ 	_udelay(200);
+ }
+ 
++static void power_off_ports(void)
++{
++	/* GPIOAO.BIT4 - USB HUB RST_N */
++	aml_update_bits(AO_GPIO_O_EN_N, 1<<4, 0);
++	aml_update_bits(AO_GPIO_O_EN_N, 1<<20, 0);
++}
++
+ static void power_off_3v3(void)
+ {
+ 	//aml_update_bits(AO_GPIO_O_EN_N, 1<<2, 0);
+@@ -85,6 +92,7 @@ static void power_on_vcck(void)
+ 
+ static void power_off_at_clk81(void)
+ {
++	power_off_ports();
+ 	power_off_3v3();
+ 	power_off_vcck();
+ 	pwm_set_voltage(pwm_d, CONFIG_VDDEE_SLEEP_VOLTAGE);	// reduce power
+From 147fd16cd8d6189a9282e6e105b4b19bbcdae468 Mon Sep 17 00:00:00 2001
+From: Joy Cho <joy.cho@hardkernel.com>
+Date: Thu, 18 Aug 2016 17:20:03 +0900
+Subject: [PATCH] ODROID-C2: Deactivate the hdmi cec debug msg option of
+ firmware
+
+Change-Id: Ie794b1f5392b5cc4f71fe90d207c7820f47e885f
+---
+ arch/arm/cpu/armv8/gxb/firmware/scp_task/hdmi_cec_arc.c | 7 ++++++-
+ board/hardkernel/odroidc2/firmware/scp_task/pwr_ctrl.c  | 1 +
+ 2 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm/cpu/armv8/gxb/firmware/scp_task/hdmi_cec_arc.c b/arch/arm/cpu/armv8/gxb/firmware/scp_task/hdmi_cec_arc.c
+index 3101a75..969777f 100644
+--- a/arch/arm/cpu/armv8/gxb/firmware/scp_task/hdmi_cec_arc.c
++++ b/arch/arm/cpu/armv8/gxb/firmware/scp_task/hdmi_cec_arc.c
+@@ -8,7 +8,8 @@
+ #ifndef NULL
+ #define NULL ((void *)0)
+ #endif
+-#define CEC_DBG_PRINT
++/* #define CEC_DBG_PRINT */
++#undef CEC_DBG_PRINT
+ #ifdef CEC_DBG_PRINT
+ 	#define cec_dbg_print(s,v) {uart_puts(s);uart_put_hex(v,8);}
+ 	#define cec_dbg_printx(s,v,x) {uart_puts(s);uart_put_hex(v,x);}
+@@ -413,8 +414,10 @@ static unsigned int cec_handle_message(void)
+ static unsigned int cec_tx_irq_handler(void)
+ {
+ 	unsigned int cnt = 0;
++#ifdef CEC_DBG_PRINT
+ 	unsigned int tx_msg_status = cec_rd_reg(CEC_TX_MSG_STATUS);
+ 	unsigned int tx_num_msg = cec_rd_reg(CEC_TX_NUM_MSG);
++#endif
+ 	cec_dbg_printx("cec_tx_irq_handler tx_msg_status:0x", tx_msg_status, 4);
+ 	cec_dbg_printx(", tx_num_msg:0x", tx_num_msg, 4);
+ 	cec_dbg_prints("\n");
+@@ -436,7 +439,9 @@ static unsigned int cec_tx_irq_handler(void)
+ static unsigned int cec_rx_irq_handler(void)
+ {
+ 	unsigned int cnt = 0;
++#ifdef CEC_DBG_PRINT
+ 	unsigned int rx_msg_status = cec_rd_reg(CEC_RX_MSG_STATUS);
++#endif
+ 	unsigned int rx_num_msg = cec_rd_reg(CEC_RX_NUM_MSG);
+ 	cec_dbg_printx("cec_rx_irq_handler rx_msg_status:0x", rx_msg_status, 4);
+ 	cec_dbg_printx(", rx_num_msg:0x", rx_num_msg, 4);
+diff --git a/board/hardkernel/odroidc2/firmware/scp_task/pwr_ctrl.c b/board/hardkernel/odroidc2/firmware/scp_task/pwr_ctrl.c
+index b366a05..c2fb4fa 100644
+--- a/board/hardkernel/odroidc2/firmware/scp_task/pwr_ctrl.c
++++ b/board/hardkernel/odroidc2/firmware/scp_task/pwr_ctrl.c
+@@ -250,6 +250,7 @@ unsigned int detect_key(unsigned int suspend_from)
+ 			if (cec_msg.log_addr) {
+ 				cec_handler();
+ 				if (cec_msg.cec_power == 0x1) {  //cec power key
++					uart_puts("CEC wakeup event!\n");
+ 					exit_reason = CEC_WAKEUP;
+ 					break;
+ 				}
+From a3ea880ad11bfbe79a940fe40a1f47132aee4167 Mon Sep 17 00:00:00 2001
+From: Joy Cho <joy.cho@hardkernel.com>
+Date: Fri, 26 Aug 2016 11:16:16 +0900
+Subject: [PATCH] ODROID-C2: Update dvfs table
+
+- New frequency sets
+  : 1656MHz / 1680MHz / 1752MHz / 1896MHz
+  / 1920MHz / 1944MHz / 2016MHz
+
+Change-Id: I006403c72a0c53032f90149f4e5ee3b0aa646b5d
+---
+ board/hardkernel/odroidc2/firmware/scp_task/dvfs_board.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/board/hardkernel/odroidc2/firmware/scp_task/dvfs_board.c b/board/hardkernel/odroidc2/firmware/scp_task/dvfs_board.c
+index ed5528f..9fe3ac7 100644
+--- a/board/hardkernel/odroidc2/firmware/scp_task/dvfs_board.c
++++ b/board/hardkernel/odroidc2/firmware/scp_task/dvfs_board.c
+@@ -38,7 +38,12 @@ struct scpi_opp_entry cpu_dvfs_tbl[] = {
+ 	DVFS(1000000000,  990),
+ 	DVFS(1296000000, 1100),
+ 	DVFS(1536000000, 1100),
++	DVFS(1656000000, 1100),
++	DVFS(1680000000, 1100),
+ 	DVFS(1752000000, 1100),
++	DVFS(1896000000, 1100),
++	DVFS(1920000000, 1100),
++	DVFS(1944000000, 1100),
+ 	DVFS(2016000000, 1100),
+ };
+ 
+From 3d1cc8d534cf138eecd2b70771cb684b5030bd45 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?G=CE=9BV=C4=AAN?= <gavin@scurr.me>
+Date: Wed, 7 Sep 2016 13:17:51 +0100
+Subject: [PATCH] Patchset merged from
+ http://git.denx.de/?p=u-boot.git;a=commit;h=78757d52c8b27f7f33ab4035706796a414c81128
+
+---
+ api/api.c             | 58 +++++++++++++++++++++++++--------------------------
+ examples/api/Makefile |  7 +++++++
+ examples/api/crt0.S   | 27 +++++++++++++++++++++++-
+ examples/api/glue.c   | 18 ++++++++--------
+ 4 files changed, 71 insertions(+), 39 deletions(-)
+
+diff --git a/api/api.c b/api/api.c
+index c5f6edb..ae1160c 100644
+--- a/api/api.c
++++ b/api/api.c
+@@ -52,7 +52,7 @@ static int API_getc(va_list ap)
+ {
+ 	int *c;
+ 
+-	if ((c = (int *)va_arg(ap, u_int32_t)) == NULL)
++	if ((c = (int *)va_arg(ap, uintptr_t)) == NULL)
+ 		return API_EINVAL;
+ 
+ 	*c = getc();
+@@ -68,7 +68,7 @@ static int API_tstc(va_list ap)
+ {
+ 	int *t;
+ 
+-	if ((t = (int *)va_arg(ap, u_int32_t)) == NULL)
++	if ((t = (int *)va_arg(ap, uintptr_t)) == NULL)
+ 		return API_EINVAL;
+ 
+ 	*t = tstc();
+@@ -84,7 +84,7 @@ static int API_putc(va_list ap)
+ {
+ 	char *c;
+ 
+-	if ((c = (char *)va_arg(ap, u_int32_t)) == NULL)
++	if ((c = (char *)va_arg(ap, uintptr_t)) == NULL)
+ 		return API_EINVAL;
+ 
+ 	putc(*c);
+@@ -100,7 +100,7 @@ static int API_puts(va_list ap)
+ {
+ 	char *s;
+ 
+-	if ((s = (char *)va_arg(ap, u_int32_t)) == NULL)
++	if ((s = (char *)va_arg(ap, uintptr_t)) == NULL)
+ 		return API_EINVAL;
+ 
+ 	puts(s);
+@@ -132,7 +132,7 @@ static int API_get_sys_info(va_list ap)
+ {
+ 	struct sys_info *si;
+ 
+-	si = (struct sys_info *)va_arg(ap, u_int32_t);
++	si = (struct sys_info *)va_arg(ap, uintptr_t);
+ 	if (si == NULL)
+ 		return API_ENOMEM;
+ 
+@@ -148,7 +148,7 @@ static int API_udelay(va_list ap)
+ {
+ 	unsigned long *d;
+ 
+-	if ((d = (unsigned long *)va_arg(ap, u_int32_t)) == NULL)
++	if ((d = (unsigned long *)va_arg(ap, unsigned long)) == NULL)
+ 		return API_EINVAL;
+ 
+ 	udelay(*d);
+@@ -164,11 +164,11 @@ static int API_get_timer(va_list ap)
+ {
+ 	unsigned long *base, *cur;
+ 
+-	cur = (unsigned long *)va_arg(ap, u_int32_t);
++	cur = (unsigned long *)va_arg(ap, unsigned long);
+ 	if (cur == NULL)
+ 		return API_EINVAL;
+ 
+-	base = (unsigned long *)va_arg(ap, u_int32_t);
++	base = (unsigned long *)va_arg(ap, unsigned long);
+ 	if (base == NULL)
+ 		return API_EINVAL;
+ 
+@@ -199,7 +199,7 @@ static int API_dev_enum(va_list ap)
+ 	struct device_info *di;
+ 
+ 	/* arg is ptr to the device_info struct we are going to fill out */
+-	di = (struct device_info *)va_arg(ap, u_int32_t);
++	di = (struct device_info *)va_arg(ap, uintptr_t);
+ 	if (di == NULL)
+ 		return API_EINVAL;
+ 
+@@ -233,7 +233,7 @@ static int API_dev_open(va_list ap)
+ 	int err = 0;
+ 
+ 	/* arg is ptr to the device_info struct */
+-	di = (struct device_info *)va_arg(ap, u_int32_t);
++	di = (struct device_info *)va_arg(ap, uintptr_t);
+ 	if (di == NULL)
+ 		return API_EINVAL;
+ 
+@@ -265,7 +265,7 @@ static int API_dev_close(va_list ap)
+ 	int err = 0;
+ 
+ 	/* arg is ptr to the device_info struct */
+-	di = (struct device_info *)va_arg(ap, u_int32_t);
++	di = (struct device_info *)va_arg(ap, uintptr_t);
+ 	if (di == NULL)
+ 		return API_EINVAL;
+ 
+@@ -319,7 +319,7 @@ static int API_dev_write(va_list ap)
+ 	int err = 0;
+ 
+ 	/* 1. arg is ptr to the device_info struct */
+-	di = (struct device_info *)va_arg(ap, u_int32_t);
++	di = (struct device_info *)va_arg(ap, uintptr_t);
+ 	if (di == NULL)
+ 		return API_EINVAL;
+ 
+@@ -329,12 +329,12 @@ static int API_dev_write(va_list ap)
+ 		return API_ENODEV;
+ 
+ 	/* 2. arg is ptr to buffer from where to get data to write */
+-	buf = (void *)va_arg(ap, u_int32_t);
++	buf = (void *)va_arg(ap, uintptr_t);
+ 	if (buf == NULL)
+ 		return API_EINVAL;
+ 
+ 	/* 3. arg is length of buffer */
+-	len = (int *)va_arg(ap, u_int32_t);
++	len = (int *)va_arg(ap, uintptr_t);
+ 	if (len == NULL)
+ 		return API_EINVAL;
+ 	if (*len <= 0)
+@@ -387,7 +387,7 @@ static int API_dev_read(va_list ap)
+ 	int *len_net, *act_len_net;
+ 
+ 	/* 1. arg is ptr to the device_info struct */
+-	di = (struct device_info *)va_arg(ap, u_int32_t);
++	di = (struct device_info *)va_arg(ap, uintptr_t);
+ 	if (di == NULL)
+ 		return API_EINVAL;
+ 
+@@ -397,23 +397,23 @@ static int API_dev_read(va_list ap)
+ 		return API_ENODEV;
+ 
+ 	/* 2. arg is ptr to buffer from where to put the read data */
+-	buf = (void *)va_arg(ap, u_int32_t);
++	buf = (void *)va_arg(ap, uintptr_t);
+ 	if (buf == NULL)
+ 		return API_EINVAL;
+ 
+ 	if (di->type & DEV_TYP_STOR) {
+ 		/* 3. arg - ptr to var with # of blocks to read */
+-		len_stor = (lbasize_t *)va_arg(ap, u_int32_t);
++		len_stor = (lbasize_t *)va_arg(ap, uintptr_t);
+ 		if (!len_stor)
+ 			return API_EINVAL;
+ 		if (*len_stor <= 0)
+ 			return API_EINVAL;
+ 
+ 		/* 4. arg - ptr to var with start block */
+-		start = (lbastart_t *)va_arg(ap, u_int32_t);
++		start = (lbastart_t *)va_arg(ap, uintptr_t);
+ 
+ 		/* 5. arg - ptr to var where to put the len actually read */
+-		act_len_stor = (lbasize_t *)va_arg(ap, u_int32_t);
++		act_len_stor = (lbasize_t *)va_arg(ap, uintptr_t);
+ 		if (!act_len_stor)
+ 			return API_EINVAL;
+ 
+@@ -422,14 +422,14 @@ static int API_dev_read(va_list ap)
+ 	} else if (di->type & DEV_TYP_NET) {
+ 
+ 		/* 3. arg points to the var with length of packet to read */
+-		len_net = (int *)va_arg(ap, u_int32_t);
++		len_net = (int *)va_arg(ap, uintptr_t);
+ 		if (!len_net)
+ 			return API_EINVAL;
+ 		if (*len_net <= 0)
+ 			return API_EINVAL;
+ 
+ 		/* 4. - ptr to var where to put the len actually read */
+-		act_len_net = (int *)va_arg(ap, u_int32_t);
++		act_len_net = (int *)va_arg(ap, uintptr_t);
+ 		if (!act_len_net)
+ 			return API_EINVAL;
+ 
+@@ -453,9 +453,9 @@ static int API_env_get(va_list ap)
+ {
+ 	char *name, **value;
+ 
+-	if ((name = (char *)va_arg(ap, u_int32_t)) == NULL)
++	if ((name = (char *)va_arg(ap, uintptr_t)) == NULL)
+ 		return API_EINVAL;
+-	if ((value = (char **)va_arg(ap, u_int32_t)) == NULL)
++	if ((value = (char **)va_arg(ap, uintptr_t)) == NULL)
+ 		return API_EINVAL;
+ 
+ 	*value = getenv(name);
+@@ -476,9 +476,9 @@ static int API_env_set(va_list ap)
+ {
+ 	char *name, *value;
+ 
+-	if ((name = (char *)va_arg(ap, u_int32_t)) == NULL)
++	if ((name = (char *)va_arg(ap, uintptr_t)) == NULL)
+ 		return API_EINVAL;
+-	if ((value = (char *)va_arg(ap, u_int32_t)) == NULL)
++	if ((value = (char *)va_arg(ap, uintptr_t)) == NULL)
+ 		return API_EINVAL;
+ 
+ 	setenv(name, value);
+@@ -498,9 +498,9 @@ static int API_env_enum(va_list ap)
+ 	int i, n;
+ 	char *last, **next;
+ 
+-	last = (char *)va_arg(ap, u_int32_t);
++	last = (char *)va_arg(ap, unsigned long);
+ 
+-	if ((next = (char **)va_arg(ap, u_int32_t)) == NULL)
++	if ((next = (char **)va_arg(ap, uintptr_t)) == NULL)
+ 		return API_EINVAL;
+ 
+ 	if (last == NULL)
+@@ -661,14 +661,14 @@ void api_init(void)
+ 		return;
+ 	}
+ 
+-	debugf("API sig @ 0x%08x\n", sig);
++	debugf("API sig @ 0x%lX\n", (unsigned long)sig);
+ 	memcpy(sig->magic, API_SIG_MAGIC, 8);
+ 	sig->version = API_SIG_VERSION;
+ 	sig->syscall = &syscall;
+ 	sig->checksum = 0;
+ 	sig->checksum = crc32(0, (unsigned char *)sig,
+ 			      sizeof(struct api_signature));
+-	debugf("syscall entry: 0x%08x\n", sig->syscall);
++	debugf("syscall entry: 0x%lX\n", (unsigned long)sig->syscall);
+ }
+ 
+ void platform_set_mr(struct sys_info *si, unsigned long start, unsigned long size,
+diff --git a/examples/api/Makefile b/examples/api/Makefile
+index 6cf23d1..6cffee7 100644
+--- a/examples/api/Makefile
++++ b/examples/api/Makefile
+@@ -10,6 +10,13 @@ endif
+ ifeq ($(ARCH),arm)
+ LOAD_ADDR = 0x1000000
+ endif
++ifeq ($(ARCH),mips)
++ifdef CONFIG_64BIT
++LOAD_ADDR = 0xffffffff80200000
++else
++LOAD_ADDR = 0x80200000
++endif
++endif
+ 
+ # Resulting ELF and binary exectuables will be named demo and demo.bin
+ extra-y = demo
+diff --git a/examples/api/crt0.S b/examples/api/crt0.S
+index 78d35a2..df2b542 100644
+--- a/examples/api/crt0.S
++++ b/examples/api/crt0.S
+@@ -40,13 +40,38 @@ syscall:
+ 	ldr	ip, =syscall_ptr
+ 	ldr	pc, [ip]
+ 
++#elif defined(CONFIG_MIPS)
++#include <asm/asm.h>
++        .text
++        .globl __start
++        .ent __start
++__start:
++        PTR_S   $sp, search_hint
++        b       main
++        .end __start
++
++        .globl syscall
++        .ent syscall
++syscall:
++        PTR_S   $ra, return_addr
++        PTR_L   $t9, syscall_ptr
++        jalr    $t9
++        nop
++        PTR_L   $ra, return_addr
++        jr      $ra
++        nop
++        .end syscall
++
++return_addr:
++        .align 8
++        .long 0
+ #else
+ #error No support for this arch!
+ #endif
+ 
+ 	.globl syscall_ptr
+ syscall_ptr:
+-	.align	4
++	.align	8
+ 	.long	0
+ 
+ 	.globl search_hint
+diff --git a/examples/api/glue.c b/examples/api/glue.c
+index d619518..8aabf32 100644
+--- a/examples/api/glue.c
++++ b/examples/api/glue.c
+@@ -77,7 +77,7 @@ int ub_getc(void)
+ {
+ 	int c;
+ 
+-	if (!syscall(API_GETC, NULL, (uint32_t)&c))
++	if (!syscall(API_GETC, NULL, &c))
+ 		return -1;
+ 
+ 	return c;
+@@ -87,7 +87,7 @@ int ub_tstc(void)
+ {
+ 	int t;
+ 
+-	if (!syscall(API_TSTC, NULL, (uint32_t)&t))
++	if (!syscall(API_TSTC, NULL, &t))
+ 		return -1;
+ 
+ 	return t;
+@@ -95,12 +95,12 @@ int ub_tstc(void)
+ 
+ void ub_putc(char c)
+ {
+-	syscall(API_PUTC, NULL, (uint32_t)&c);
++	syscall(API_PUTC, NULL, &c);
+ }
+ 
+ void ub_puts(const char *s)
+ {
+-	syscall(API_PUTS, NULL, (uint32_t)s);
++	syscall(API_PUTS, NULL, s);
+ }
+ 
+ /****************************************
+@@ -126,7 +126,7 @@ struct sys_info * ub_get_sys_info(void)
+ 	si.mr_no = UB_MAX_MR;
+ 	memset(&mr, 0, sizeof(mr));
+ 
+-	if (!syscall(API_GET_SYS_INFO, &err, (u_int32_t)&si))
++	if (!syscall(API_GET_SYS_INFO, &err, &si))
+ 		return NULL;
+ 
+ 	return ((err) ? NULL : &si);
+@@ -344,7 +344,7 @@ char * ub_env_get(const char *name)
+ {
+ 	char *value;
+ 
+-	if (!syscall(API_ENV_GET, NULL, (uint32_t)name, (uint32_t)&value))
++	if (!syscall(API_ENV_GET, NULL, name, &value))
+ 		return NULL;
+ 
+ 	return value;
+@@ -352,7 +352,7 @@ char * ub_env_get(const char *name)
+ 
+ void ub_env_set(const char *name, char *value)
+ {
+-	syscall(API_ENV_SET, NULL, (uint32_t)name, (uint32_t)value);
++	syscall(API_ENV_SET, NULL, name, value);
+ }
+ 
+ static char env_name[256];
+@@ -369,7 +369,7 @@ const char * ub_env_enum(const char *last)
+ 	 * 'name=val' string), since the API_ENUM_ENV call uses envmatch()
+ 	 * internally, which handles such case
+ 	 */
+-	if (!syscall(API_ENV_ENUM, NULL, (uint32_t)last, (uint32_t)&env))
++	if (!syscall(API_ENV_ENUM, NULL, last, &env))
+ 		return NULL;
+ 
+ 	if (!env)
+@@ -396,7 +396,7 @@ int ub_display_get_info(int type, struct display_info *di)
+ {
+ 	int err = 0;
+ 
+-	if (!syscall(API_DISPLAY_GET_INFO, &err, (uint32_t)type, (uint32_t)di))
++	if (!syscall(API_DISPLAY_GET_INFO, &err, type, di))
+ 		return API_ESYSC;
+ 
+ 	return err;);

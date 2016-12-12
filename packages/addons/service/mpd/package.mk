@@ -39,7 +39,7 @@ PKG_ADDON_PROVIDES=""
 PKG_ADDON_REPOVERSION="7.0"
 
 pre_configure_target() {
-  export LIBS="$LIBS -logg -lFLAC"
+  export LDFLAGS="$LDFLAGS -ldl -logg"
 }
 
 PKG_CONFIGURE_OPTS_TARGET="--enable-alsa \

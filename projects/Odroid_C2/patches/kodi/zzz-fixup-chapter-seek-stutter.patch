@@ -1,0 +1,21 @@
+From 9938a536ce78fbfb60b51734476fbc26d488f947 Mon Sep 17 00:00:00 2001
+From: "S. Davilla" <davilla@4pi.com>
+Date: Fri, 14 Oct 2016 14:51:52 -0400
+Subject: [PATCH] fixed, big seek is like a chapter, also do a
+ m_callback.OnPlayBackSeek there too
+
+---
+ xbmc/cores/dvdplayer/DVDPlayer.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/xbmc/cores/dvdplayer/DVDPlayer.cpp b/xbmc/cores/dvdplayer/DVDPlayer.cpp
+index 6211205..b5a3164 100644
+--- a/xbmc/cores/dvdplayer/DVDPlayer.cpp
++++ b/xbmc/cores/dvdplayer/DVDPlayer.cpp
+@@ -2442,6 +2442,7 @@ void CDVDPlayer::HandleMessages()
+         {
+           FlushBuffers(false, start, true);
+           offset = DVD_TIME_TO_MSEC(start) - beforeSeek;
++          m_callback.OnPlayBackSeek(beforeSeek, offset);
+           m_callback.OnPlayBackSeekChapter(msg.GetChapter());
+         }

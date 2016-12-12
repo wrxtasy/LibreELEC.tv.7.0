@@ -1,0 +1,24 @@
+From cfadb4d77aa1518f3c2817ea18eb895239b6fce1 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Wed, 7 Sep 2016 02:18:01 +0800
+Subject: [PATCH] CEC: fix ao_cec devnode dmesg spam
+
+---
+ drivers/amlogic/cec/hdmi_ao_cec.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/amlogic/cec/hdmi_ao_cec.c b/drivers/amlogic/cec/hdmi_ao_cec.c
+index 21ca8bb..1dd6fc4 100644
+--- a/drivers/amlogic/cec/hdmi_ao_cec.c
++++ b/drivers/amlogic/cec/hdmi_ao_cec.c
+@@ -1736,7 +1736,6 @@ static char *aml_cec_class_devnode(struct device *dev, umode_t *mode)
+ {
+     if (mode)
+         *mode = 0666;
+-    CEC_INFO("mode is %x\n", *mode);
+     return NULL;
+ }
+ 
+-- 
+1.9.1
+

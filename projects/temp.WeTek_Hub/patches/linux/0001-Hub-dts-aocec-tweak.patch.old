@@ -1,0 +1,24 @@
+From a071bf2dcc2107d17a20044bdeb060b36c0b7b69 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Thu, 6 Oct 2016 23:08:31 +0800
+Subject: [PATCH] Hub dts aocec tweak
+
+---
+ arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts b/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
+index 8dcbbee..5b66020 100644
+--- a/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
++++ b/arch/arm64/boot/dts/amlogic/gxbb_p200_1G_wetek_hub.dts
+@@ -752,6 +752,7 @@
+ 	};
+ 	aocec: aocec{
+ 		compatible = "amlogic, amlogic-aocec";
++		device_name = "aocec";
+ 		status = "okay";
+ 		vendor_name = "WeTek"; /* Max Chars: 8     */
+ 		vendor_id = <0x000000>; /* Refer to http://standards.ieee.org/develop/regauth/oui/oui.txt   */
+-- 
+1.9.1
+

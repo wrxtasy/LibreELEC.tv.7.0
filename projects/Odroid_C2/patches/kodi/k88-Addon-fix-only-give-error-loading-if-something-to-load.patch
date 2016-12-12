@@ -1,0 +1,24 @@
+From e5d425b86cb3c8a442da27ff842c028821d63725 Mon Sep 17 00:00:00 2001
+From: Chris Koying Browet <cbro@semperpax.com>
+Date: Thu, 4 Aug 2016 13:10:49 +0200
+Subject: [PATCH] FIX: Only give error loading addon settings if there actually
+ are some to load
+
+---
+ xbmc/addons/Addon.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/xbmc/addons/Addon.cpp b/xbmc/addons/Addon.cpp
+index 6ab21da..efff139 100644
+--- a/xbmc/addons/Addon.cpp
++++ b/xbmc/addons/Addon.cpp
+@@ -519,6 +519,9 @@ bool CAddon::ReloadSettings()
+ 
+ bool CAddon::LoadUserSettings()
+ {
++  if (!CFile::Exists(m_userSettingsPath))
++    return false;
++
+   m_userSettingsLoaded = false;
+   CXBMCTinyXML doc;
+   if (doc.LoadFile(m_userSettingsPath))

@@ -1,0 +1,24 @@
+From 09f6356695a71fbe8f84842915b279759f913329 Mon Sep 17 00:00:00 2001
+From: OtherCrashOverride <OtherCrashOverride@github.com>
+Date: Thu, 31 Mar 2016 06:17:43 -0400
+Subject: [PATCH] aml_thermal: Do not rename device.
+
+Renaming the device to a null string causes the associated sysfs entry
+to become invalid.
+---
+ drivers/amlogic/thermal/aml_thermal_hw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/amlogic/thermal/aml_thermal_hw.c b/drivers/amlogic/thermal/aml_thermal_hw.c
+index d9c551a..2155f41 100644
+--- a/drivers/amlogic/thermal/aml_thermal_hw.c
++++ b/drivers/amlogic/thermal/aml_thermal_hw.c
+@@ -128,7 +128,7 @@ static int aml_thermal_probe(struct platform_device *pdev)
+ 	struct thermal_instance *ins;
+ 
+ 	memset(&soc_sensor, 0, sizeof(struct aml_thermal_sensor));
+-	device_rename(&pdev->dev, "");
++	//device_rename(&pdev->dev, "");
+ 	if (!cpufreq_frequency_get_table(0)) {
+ 		dev_info(&pdev->dev,
+ 			"Frequency table not initialized. Deferring probe...\n");

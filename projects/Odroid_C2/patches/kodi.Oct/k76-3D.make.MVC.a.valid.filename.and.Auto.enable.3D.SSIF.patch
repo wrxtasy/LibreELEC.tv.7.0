@@ -1,0 +1,88 @@
+From 28cdbd602a22cc930339fddac3cfe1e25a733752 Mon Sep 17 00:00:00 2001
+From: popcornmix <popcornmix@gmail.com>
+Date: Wed, 16 Sep 2015 19:05:12 +0100
+Subject: [PATCH] [3d] Make MVC a valid 3D filename tag
+
+---
+ xbmc/guilib/StereoscopicsManager.cpp | 9 +++++++++
+ xbmc/settings/AdvancedSettings.cpp   | 2 ++
+ xbmc/settings/AdvancedSettings.h     | 1 +
+ 3 files changed, 12 insertions(+)
+
+diff --git a/xbmc/guilib/StereoscopicsManager.cpp b/xbmc/guilib/StereoscopicsManager.cpp
+index d9e0fa4..bdf2fb0 100644
+--- a/xbmc/guilib/StereoscopicsManager.cpp
++++ b/xbmc/guilib/StereoscopicsManager.cpp
+@@ -202,6 +202,15 @@ std::string CStereoscopicsManager::DetectStereoModeByString(const std::string &n
+   if (re.RegFind(searchString) > -1)
+     stereoMode = "top_bottom";
+ 
++  if (!re.RegComp(g_advancedSettings.m_stereoscopicregex_mvc.c_str()))
++  {
++    CLog::Log(LOGERROR, "%s: Invalid RegExp for matching 3d MVC content:'%s'", __FUNCTION__, g_advancedSettings.m_stereoscopicregex_mvc.c_str());
++    return stereoMode;
++  }
++
++  if (re.RegFind(searchString) > -1)
++    stereoMode = "left_right";
++
+   return stereoMode;
+ }
+ 
+diff --git a/xbmc/settings/AdvancedSettings.cpp b/xbmc/settings/AdvancedSettings.cpp
+index 76ee204..5b00749 100755
+--- a/xbmc/settings/AdvancedSettings.cpp
++++ b/xbmc/settings/AdvancedSettings.cpp
+@@ -386,6 +386,7 @@ void CAdvancedSettings::Initialize()
+   m_stereoscopicregex_3d = "[-. _]3d[-. _]";
+   m_stereoscopicregex_sbs = "[-. _]h?sbs[-. _]";
+   m_stereoscopicregex_tab = "[-. _]h?tab[-. _]";
++  m_stereoscopicregex_mvc = "[-. _]h?mvc[-. _]";
+ 
+   m_videoAssFixedWorks = false;
+ 
+@@ -509,6 +510,7 @@ void CAdvancedSettings::ParseSettingsFile(const std::string &file)
+     XMLUtils::GetString(pElement, "stereoscopicregex3d", m_stereoscopicregex_3d);
+     XMLUtils::GetString(pElement, "stereoscopicregexsbs", m_stereoscopicregex_sbs);
+     XMLUtils::GetString(pElement, "stereoscopicregextab", m_stereoscopicregex_tab);
++    XMLUtils::GetString(pElement, "stereoscopicregexmvc", m_stereoscopicregex_mvc);
+     XMLUtils::GetFloat(pElement, "subsdelayrange", m_videoSubsDelayRange, 10, 600);
+     XMLUtils::GetFloat(pElement, "audiodelayrange", m_videoAudioDelayRange, 10, 600);
+     XMLUtils::GetInt(pElement, "blackbarcolour", m_videoBlackBarColour, 0, 255);
+diff --git a/xbmc/settings/AdvancedSettings.h b/xbmc/settings/AdvancedSettings.h
+index bd5a400..1f3b5d7 100644
+--- a/xbmc/settings/AdvancedSettings.h
++++ b/xbmc/settings/AdvancedSettings.h
+@@ -392,6 +392,7 @@ class CAdvancedSettings : public ISettingCallback, public ISettingsHandler
+     std::string m_stereoscopicregex_3d;
+     std::string m_stereoscopicregex_sbs;
+     std::string m_stereoscopicregex_tab;
++    std::string m_stereoscopicregex_mvc;
+ 
+     /*!< @brief position behavior of ass subtitiles when setting "subtitle position on screen" set to "fixed"
+     True to show at the fixed position set in video calibration
+diff --git a/xbmc/guilib/StereoscopicsManager.cpp b/xbmc/guilib/StereoscopicsManager.cpp
+index bdf2fb0..1ad4add 100644
+--- a/xbmc/guilib/StereoscopicsManager.cpp
++++ b/xbmc/guilib/StereoscopicsManager.cpp
+@@ -45,6 +45,7 @@
+ #include "utils/Variant.h"
+ #include "windowing/WindowingFactory.h"
+ #include "guiinfo/GUIInfoLabels.h"
++#include "utils/URIUtils.h"
+ 
+ using namespace KODI::MESSAGING;
+ 
+@@ -172,6 +173,12 @@ std::string CStereoscopicsManager::DetectStereoModeByString(const std::string &n
+   std::string searchString(needle);
+   CRegExp re(true);
+ 
++  if (URIUtils::HasExtension(needle, ".ssif"))
++  {
++    stereoMode = "left_right";
++    return stereoMode;
++  }
++
+   if (!re.RegComp(g_advancedSettings.m_stereoscopicregex_3d.c_str()))
+   {
+     CLog::Log(LOGERROR, "%s: Invalid RegExp for matching 3d content:'%s'", __FUNCTION__, g_advancedSettings.m_stereoscopicregex_3d.c_str());

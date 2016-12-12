@@ -1,0 +1,44 @@
+From 279a8847944b2cf227694b2ed125b952ffb8c008 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Thu, 1 Dec 2016 14:35:53 +0800
+Subject: [PATCH] Revert "sound/soc/aml/m8: update channel map"
+
+This reverts commit 1619cf2a264dbce5de1635b74600f0c18399ab33.
+---
+ sound/soc/aml/m8/aml_i2s_dai.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/sound/soc/aml/m8/aml_i2s_dai.c b/sound/soc/aml/m8/aml_i2s_dai.c
+index 2e6a3a2..32c4e5a 100644
+--- a/sound/soc/aml/m8/aml_i2s_dai.c
++++ b/sound/soc/aml/m8/aml_i2s_dai.c
+@@ -78,19 +78,19 @@ static struct channel_speaker_allocation channel_allocations[] = {
+ /*      	       channel:   7     6    5    4    3     2    1    0  */
+ { .channels = 2,  .speakers = {  NA,   NA,  NA,  NA,  NA,   NA,  FR,  FL } },
+                                  /* 2.1 */
+-{ .channels = 3,  .speakers = {  NA,   NA,  NA,  NA,  NA,  LFE,  FR,  FL } },
++{ .channels = 3,  .speakers = {  NA,   NA,  NA,  NA,  LFE,  NA,  FR,  FL } },
+                                  /* surround40 */
+-{ .channels = 4,  .speakers = {  NA,   NA,  RR,  RL,  NA,   NA,  FR,  FL } },
++{ .channels = 4,  .speakers = {  NA,   NA,  RR,  RL,   NA,  NA,  FR,  FL } },
+                                  /* surround41 */
+-{ .channels = 5,  .speakers = {  NA,   NA,  RR,  RL,  NA,  LFE,  FR,  FL } },
++{ .channels = 5,  .speakers = {  NA,   NA,  RR,  RL,  LFE,  NA,  FR,  FL } },
+                                  /* surround50 */
+-{ .channels = 5,  .speakers = {  NA,   NA,  RR,  RL,  FC,   NA,  FR,  FL } },
++{ .channels = 5,  .speakers = {  NA,   NA,  RR,  RL,   NA,  FC,  FR,  FL } },
+                                  /* surround51 */
+-{ .channels = 6,  .speakers = {  NA,   NA,  RR,  RL,  FC,  LFE,  FR,  FL } },
++{ .channels = 6,  .speakers = {  NA,   NA,  RR,  RL,  LFE,  FC,  FR,  FL } },
+                                  /* 6.1 */
+-{ .channels = 7,  .speakers = {  NA,   RC,  RR,  RL,  FC,  LFE,  FR,  FL } },
++{ .channels = 7,  .speakers = {  NA,   RC,  RR,  RL,  LFE,  FC,  FR,  FL } },
+                                  /* surround71 */
+-{ .channels = 8,  .speakers = { RRC,  RLC,  RR,  RL,  FC,  LFE,  FR,  FL } },
++{ .channels = 8,  .speakers = { RRC,  RLC,  RR,  RL,  LFE,  FC,  FR,  FL } },
+ };
+ 
+ 
+-- 
+2.7.4
+

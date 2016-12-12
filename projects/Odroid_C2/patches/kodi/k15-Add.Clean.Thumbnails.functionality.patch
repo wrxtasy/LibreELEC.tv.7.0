@@ -1,0 +1,288 @@
+commit 4487aa7b0ec75138c8e54f55695fee38b73ed76b
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Sun May 1 14:51:46 2016 +0800
+
+    Koying's addition to Clean Thumbnails funtionality
+    Removes from FS the thumbnails not present in the Texture db
+    https://github.com/koying/SPMC/commit/3f255975618e697d018d74feb2e19e9624c72be2
+
+diff --git a/addons/resource.language.en_gb/resources/strings.po b/addons/resource.language.en_gb/resources/strings.po
+index a697a61..753ebaa 100644
+--- a/addons/resource.language.en_gb/resources/strings.po
++++ b/addons/resource.language.en_gb/resources/strings.po
+@@ -4523,7 +4523,12 @@ msgctxt "#1450"
+ msgid "Put display to sleep when idle"
+ msgstr ""
+ 
+-#empty strings from id 1451 to 2049
++#: system/settings/settings.xml
++msgctxt "#1451"
++msgid "Clean Thumbnails..."
++msgstr ""
++
++#empty strings from id 1452 to 2049
+ #strings through to 1470 reserved for power-saving
+ 
+ msgctxt "#2050"
+@@ -18031,7 +18036,12 @@ msgctxt "#37045"
+ msgid "Extract chapter thumbnails for presentation in the chapters / bookmarks dialogue. This might increase CPU load."
+ msgstr ""
+ 
+-#empty strings from id 37046 to 38009
++#: system/settings/settings.xml
++msgctxt "#37046"
++msgid "Remove dangling thumbnails."
++msgstr ""
++
++#empty strings from id 37047 to 38009
+ 
+ #: system/settings/rbp.xml
+ msgctxt "#38010"
+diff --git a/system/settings/settings.xml b/system/settings/settings.xml
+index 76c9a33..5293187 100644
+--- a/system/settings/settings.xml
++++ b/system/settings/settings.xml
+@@ -512,6 +512,10 @@
+           <level>2</level>
+           <control type="button" format="action" />
+         </setting>
++        <setting id="thumbnails.cleanup" type="action" label="1451" help="37046">
++          <level>2</level>
++          <control type="button" format="action" />
++        </setting>
+       </group>
+     </category>
+     <category id="videoplayer" label="14086" help="36151">
+diff --git a/xbmc/Application.cpp b/xbmc/Application.cpp
+index cb10ffa..281cbd8 100644
+--- a/xbmc/Application.cpp
++++ b/xbmc/Application.cpp
+@@ -5081,6 +5081,11 @@ void CApplication::StartVideoScan(const std::string &strDirectory, bool userInit
+   CVideoLibraryQueue::GetInstance().ScanLibrary(strDirectory, scanAll, userInitiated);
+ }
+ 
++void CApplication::StartThumbnailsCleanup(bool userInitiated /* = true */)
++{
++  CTextureCache::GetInstance().AddJob(new CTextureCleanupJob());
++}
++
+ void CApplication::StartMusicCleanup(bool userInitiated /* = true */)
+ {
+   if (m_musicInfoScanner->IsScanning())
+diff --git a/xbmc/Application.h b/xbmc/Application.h
+index d7e5eee..9f4d0a6 100644
+--- a/xbmc/Application.h
++++ b/xbmc/Application.h
+@@ -264,6 +264,12 @@ public:
+    */
+   void StartVideoScan(const std::string &path, bool userInitiated = true, bool scanAll = false);
+ 
++   /*!
++   \brief Starts a thumbnail cleanup.
++   \param userInitiated Whether the action was initiated by the user (either via GUI or any other method) or not.  It is meant to hide or show dialogs.
++   */
++  void StartThumbnailsCleanup(bool userInitiated = true);
++
+   /*!
+   \brief Starts a music library cleanup.
+   \param userInitiated Whether the action was initiated by the user (either via GUI or any other method) or not.  It is meant to hide or show dialogs.
+diff --git a/xbmc/TextureCacheJob.cpp b/xbmc/TextureCacheJob.cpp
+index edf8f25..f698b43 100644
+--- a/xbmc/TextureCacheJob.cpp
++++ b/xbmc/TextureCacheJob.cpp
+@@ -26,6 +26,7 @@
+ #include "settings/Settings.h"
+ #include "utils/log.h"
+ #include "filesystem/File.h"
++#include "filesystem/SpecialProtocolDirectory.h"
+ #include "pictures/Picture.h"
+ #include "utils/URIUtils.h"
+ #include "utils/StringUtils.h"
+@@ -308,3 +309,69 @@ bool CTextureUseCountJob::DoWork()
+   }
+   return true;
+ }
++
++CTextureCleanupJob::CTextureCleanupJob()
++{
++}
++
++bool CTextureCleanupJob::operator==(const CJob* job) const
++{
++  if (strcmp(job->GetType(),GetType()) == 0)
++  {
++    const CTextureCleanupJob* useJob = dynamic_cast<const CTextureCleanupJob*>(job);
++    if (useJob)
++      return true;
++  }
++  return false;
++}
++
++bool CTextureCleanupJob::DoWork()
++{
++  CTextureDatabase db;
++  if (db.Open())
++  {
++    std::string path;
++    std::string fn;
++    std::string prevPath = "";
++    std::vector<std::string> pathContent;
++
++    XFILE::CSpecialProtocolDirectory thumbDir;
++    CFileItemList files;
++    int fileIdx = 0;
++    int totdel = 0;
++
++    auto deleteFile = [&]()
++    {
++      std::string todel = files.Get(fileIdx)->GetPath();
++      CLog::Log(LOGDEBUG, "CTextureCleanupJob: deleting %s", todel.c_str());
++      XFILE::CFile::Delete(todel);
++      totdel++;
++      fileIdx++;
++    };
++
++    std::vector<std::string> urls = db.GetCachedTextureUrls();
++    for (const auto &url : urls)
++    {
++      URIUtils::Split(url, path, fn);
++      std::string cmpurl = "special://thumbnails/" + url;
++      if (path != prevPath)
++      {
++        while (fileIdx < files.Size())
++          deleteFile();
++        files.Clear();
++        thumbDir.GetDirectory(CURL("special://thumbnails/" + path), files);
++        files.Sort(SortByPath, SortOrderAscending);
++        prevPath = path;
++        fileIdx = 0;
++      }
++      while (fileIdx < files.Size() && files.Get(fileIdx)->GetPath() < cmpurl)
++        deleteFile();
++      if (fileIdx < files.Size() && files.Get(fileIdx)->GetPath() == cmpurl)
++        fileIdx++;
++    }
++    while (fileIdx < files.Size())
++      deleteFile();
++    CLog::Log(LOGDEBUG, "CTextureCleanupJob: %d thumbnails deleted", totdel);
++  }
++  return true;
++}
+diff --git a/xbmc/TextureCacheJob.h b/xbmc/TextureCacheJob.h
+index a806a9d..5867fae 100644
+--- a/xbmc/TextureCacheJob.h
++++ b/xbmc/TextureCacheJob.h
+@@ -155,3 +155,15 @@ public:
+ private:
+   std::vector<CTextureDetails> m_textures;
+ };
++
++/* \brief Job class for storing the use count of textures
++ */
++class CTextureCleanupJob : public CJob
++{
++public:
++  CTextureCleanupJob();
++
++  virtual const char* GetType() const { return "cleanup"; };
++  virtual bool operator==(const CJob *job) const;
++  virtual bool DoWork();
++};
+diff --git a/xbmc/TextureDatabase.cpp b/xbmc/TextureDatabase.cpp
+index db372e9..df6fb46 100644
+--- a/xbmc/TextureDatabase.cpp
++++ b/xbmc/TextureDatabase.cpp
+@@ -282,6 +282,31 @@ bool CTextureDatabase::GetCachedTexture(const std::string &url, CTextureDetails
+   return false;
+ }
+ 
++std::vector<std::string> CTextureDatabase::GetCachedTextureUrls()
++{
++  std::vector<std::string>  urls;
++
++  try
++  {
++    if (NULL == m_pDB.get()) return urls;
++    if (NULL == m_pDS.get()) return urls;
++
++    std::string sql = PrepareSQL("SELECT cachedurl FROM texture ORDER BY cachedurl");
++    m_pDS->query(sql);
++    while (!m_pDS->eof())
++    {
++      urls.push_back(m_pDS->fv(0).get_asString());
++      m_pDS->next();
++    }
++    m_pDS->close();
++  }
++  catch (...)
++  {
++    CLog::Log(LOGERROR, "%s, failed", __FUNCTION__);
++  }
++  return urls;
++}
++
+ bool CTextureDatabase::GetTextures(CVariant &items, const Filter &filter)
+ {
+   try
+diff --git a/xbmc/TextureDatabase.h b/xbmc/TextureDatabase.h
+index 75676e4..7aeaa85 100644
+--- a/xbmc/TextureDatabase.h
++++ b/xbmc/TextureDatabase.h
+@@ -72,6 +72,7 @@ public:
+   virtual bool Open();
+ 
+   bool GetCachedTexture(const std::string &originalURL, CTextureDetails &details);
++  std::vector<std::string> GetCachedTextureUrls();
+   bool AddCachedTexture(const std::string &originalURL, const CTextureDetails &details);
+   bool SetCachedTextureValid(const std::string &originalURL, bool updateable);
+   bool ClearCachedTexture(const std::string &originalURL, std::string &cacheFile);
+diff --git a/xbmc/settings/MediaSettings.cpp b/xbmc/settings/MediaSettings.cpp
+index 4b17ef6..14b1dc9 100644
+--- a/xbmc/settings/MediaSettings.cpp
++++ b/xbmc/settings/MediaSettings.cpp
+@@ -364,6 +364,11 @@ void CMediaSettings::OnSettingAction(const CSetting *setting)
+       videodatabase.Close();
+     }
+   }
++ else if (settingId == CSettings::SETTING_THUMBNAILS_CLEANUP)
++  {
++    if (HELPERS::ShowYesNoDialogText(CVariant{313}, CVariant{333}) == DialogResponse::YES)
++      g_application.StartThumbnailsCleanup(true);
++  }
+ }
+ 
+ int CMediaSettings::GetWatchedMode(const std::string &content) const
+diff --git a/xbmc/settings/Settings.cpp b/xbmc/settings/Settings.cpp
+index f50355b..b315ddc 100644
+--- a/xbmc/settings/Settings.cpp
++++ b/xbmc/settings/Settings.cpp
+@@ -408,6 +408,7 @@ const std::string CSettings::SETTING_GENERAL_ADDONUPDATES = "general.addonupdate
+ const std::string CSettings::SETTING_GENERAL_ADDONNOTIFICATIONS = "general.addonnotifications";
+ const std::string CSettings::SETTING_GENERAL_ADDONFOREIGNFILTER = "general.addonforeignfilter";
+ const std::string CSettings::SETTING_GENERAL_ADDONBROKENFILTER = "general.addonbrokenfilter";
++const std::string CSettings::SETTING_THUMBNAILS_CLEANUP = "thumbnails.cleanup";
+ 
+ CSettings::CSettings()
+   : m_initialized(false)
+@@ -1024,6 +1025,7 @@ void CSettings::InitializeISettingCallbacks()
+   settingSet.insert(CSettings::SETTING_VIDEOLIBRARY_CLEANUP);
+   settingSet.insert(CSettings::SETTING_VIDEOLIBRARY_IMPORT);
+   settingSet.insert(CSettings::SETTING_VIDEOLIBRARY_EXPORT);
++  settingSet.insert(CSettings::SETTING_THUMBNAILS_CLEANUP);
+   m_settingsManager->RegisterCallback(&CMediaSettings::GetInstance(), settingSet);
+ 
+   settingSet.clear();
+diff --git a/xbmc/settings/Settings.h b/xbmc/settings/Settings.h
+index 55e150d..0266332 100644
+--- a/xbmc/settings/Settings.h
++++ b/xbmc/settings/Settings.h
+@@ -364,6 +366,8 @@ public:
+   static const std::string SETTING_GENERAL_ADDONNOTIFICATIONS;
+   static const std::string SETTING_GENERAL_ADDONFOREIGNFILTER;
+   static const std::string SETTING_GENERAL_ADDONBROKENFILTER;
++  static const std::string SETTING_THUMBNAILS_CLEANUP;
++
+ 
+   /*!
+    \brief Creates a new settings wrapper around a new settings manager.
+

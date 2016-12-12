@@ -20,23 +20,24 @@
 . /etc/profile
 oe_setup_addon service.system.inadyn
 
-if [ "$inadyn_S" == "inadyn.conf" ]; then
-    config="$ADDON_HOME/inadyn.conf"
+config="$ADDON_HOME/inadyn.conf"
+
+options="-b"
+if [ "$inadyn_S" == "inadyn.conf" ]
+then
+   if [ -f "$config" ] && [ -s "$config" ]
+   then
+      options="$options -F $config"
+   else
+      exit 0
+   fi
 else
-    config="$ADDON_HOME/inadyn.temp"
-    if [ -z "$inadyn_a" -o -z "$inadyn_p" -o -z "$inadyn_u" ]; then
-        rm -fr "$config"
-    else
-        echo "\
-provider $inadyn_S {
-   ssl      = $inadyn_s
-   username = $inadyn_u
-   password = $inadyn_p
-   hostname = $inadyn_a
-}" > "$config"
-    fi
+   options="$options -S $inadyn_S -u $inadyn_u -p $inadyn_p -a $inadyn_a"
+   if [ "$inadyn_s" == "true" ]
+   then
+      options="$options -s"
+   fi
 fi
 
-if [ -f "$config" ]; then
-    inadyn -f "$config" -l info
-fi
+inadyn $options
+

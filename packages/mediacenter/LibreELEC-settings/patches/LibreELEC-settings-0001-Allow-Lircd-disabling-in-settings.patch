@@ -1,0 +1,135 @@
+From cc2c50003ea5eb323d2ce425bd53906bb2f5b155 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Fri, 9 Dec 2016 14:05:34 +0800
+Subject: [PATCH] Allow Lircd disabling in settings
+
+---
+ language/English/strings.po           | 14 +++++++++-
+ src/defaults.py                       |  1 +
+ src/resources/lib/modules/services.py | 48 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 62 insertions(+), 1 deletion(-)
+
+diff --git a/language/English/strings.po b/language/English/strings.po
+index 51ec46d..5cd4bd3 100644
+--- a/language/English/strings.po
++++ b/language/English/strings.po
+@@ -224,7 +224,11 @@ msgctxt "#745"
+ msgid "Set to ON to enable the cron daemon"
+ msgstr ""
+ 
+-#empty strings from id 746 to 749
++msgctxt "#746"
++msgid "Set to ON to enable the lirc daemon"
++msgstr ""
++
++#empty strings from id 747 to 749
+ 
+ msgctxt "#750"
+ msgid "750"
+@@ -849,3 +853,11 @@ msgstr ""
+ msgctxt "#32391"
+ msgid "Enable LCD Driver Support"
+ msgstr ""
++
++msgctxt "#32392"
++msgid "Lirc"
++msgstr ""
++
++msgctxt "#32393"
++msgid "Enable Lirc"
++msgstr ""
+diff --git a/src/defaults.py b/src/defaults.py
+index 79588a7..eb0ede2 100644
+--- a/src/defaults.py
++++ b/src/defaults.py
+@@ -76,6 +76,7 @@ services = {
+     'CRON_DAEMON': '/sbin/crond',
+     'LCD_DRIVER_DIR': '/usr/lib/lcdproc/',
+     'D_LCD_DRIVER': 'none',
++    'LIRCD_UEVENT_FILE': '/sys/class/lirc/lirc0/uevent',
+     }
+ 
+ system = {
+diff --git a/src/resources/lib/modules/services.py b/src/resources/lib/modules/services.py
+index 6a47c78..3fc3c46 100644
+--- a/src/resources/lib/modules/services.py
++++ b/src/resources/lib/modules/services.py
+@@ -239,6 +239,21 @@ class services:
+                             },
+                         },
+                     },
++                'lircd': {
++                    'order': 7,
++                    'name': 32392,
++                    'not_supported': [],
++                    'settings': {
++                        'lircd_autostart': {
++                            'order': 1,
++                            'name': 32393,
++                            'value': 1,
++                            'action': 'initialize_lircd',
++                            'type': 'bool',
++                            'InfoText': 746,
++                            },
++                        },
++                    },
+                 }
+ 
+             self.oe = oeMain
+@@ -255,6 +270,7 @@ class services:
+             self.initialize_avahi(service=1)
+             self.initialize_cron(service=1)
+             self.init_bluetooth(service=1)
++            self.initialize_lircd(service=1)
+             self.oe.dbg_log('services::start_service', 'exit_function', 0)
+         except Exception, e:
+             self.oe.dbg_log('services::start_service', 'ERROR: (%s)' % repr(e))
+@@ -363,6 +379,14 @@ class services:
+                         self.struct['bluez']['settings']['obex_root']['hidden'] = True
+                 else:
+                     self.struct['bluez']['hidden'] = 'true'
++
++            # LIRCD
++
++            if os.path.isfile(self.LIRCD_UEVENT_FILE):
++                self.struct['lircd']['settings']['lircd_autostart']['value'] = self.oe.get_service_state('lircd')
++            else:
++                self.struct['lircd']['hidden'] = 'true'
++
+             self.oe.dbg_log('services::load_values', 'exit_function', 0)
+         except Exception, e:
+             self.oe.dbg_log('services::load_values', 'ERROR: (%s)' % repr(e))
+@@ -486,6 +510,30 @@ class services:
+             self.oe.set_busy(0)
+             self.oe.dbg_log('services::init_bluetooth', 'ERROR: (' + repr(e) + ')', 4)
+ 
++    def initialize_lircd(self, **kwargs):
++        try:
++            self.oe.dbg_log('services::inititialize_lircd', 'enter_function', 0)
++            self.oe.set_busy(1)
++            if 'listItem' in kwargs:
++                self.set_value(kwargs['listItem'])
++            state = 1
++            options = {}
++            if self.struct['lircd']['settings']['lircd_autostart']['value'] == '1':
++                if os.path.exists(self.LIRCD_UEVENT_FILE):
++                    with open(self.LIRCD_UEVENT_FILE, 'w') as f:
++                        f.write('add')
++            else:
++                if os.path.exists(self.LIRCD_UEVENT_FILE):
++                    with open(self.LIRCD_UEVENT_FILE, 'w') as f:
++                        f.write('remove')
++                state = 0
++            self.oe.set_service('lircd', options, state)
++            self.oe.set_busy(0)
++            self.oe.dbg_log('services::inititialize_lircd', 'exit_function', 0)
++        except Exception, e:
++            self.oe.set_busy(0)
++            self.oe.dbg_log('services::inititialize_lircd', 'ERROR: (' + repr(e) + ')', 4)
++
+     def init_obex(self, **kwargs):
+         try:
+             self.oe.dbg_log('services::init_obex', 'enter_function', 0)
+-- 
+2.7.4
+

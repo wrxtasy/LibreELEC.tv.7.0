@@ -1,0 +1,422 @@
+From 8d588720f4d5325d6e4d40f45f1307f5f29c7104 Mon Sep 17 00:00:00 2001
+From: "S. Davilla" <davilla@4pi.com>
+Date: Fri, 7 Oct 2016 12:39:47 -0400
+Subject: [PATCH] upstream sync, fixed: Low readrate error toast could show
+ when performing e.g. small stepping
+
+---
+ .../resource.language.en_gb/resources/strings.po   |  4 +-
+ .../DVDInputStreams/DVDInputStreamFile.cpp         |  4 +-
+ xbmc/cores/dvdplayer/DVDPlayer.cpp                 | 34 ++++----
+ xbmc/filesystem/FileCache.cpp                      | 97 +++++++++++++---------
+ xbmc/filesystem/FileCache.h                        |  2 +-
+ xbmc/filesystem/IFile.h                            |  1 +
+ xbmc/filesystem/IFileTypes.h                       | 45 ++++++++--
+ 7 files changed, 124 insertions(+), 63 deletions(-)
+
+diff --git a/addons/resource.language.en_gb/resources/strings.po b/addons/resource.language.en_gb/resources/strings.po
+index a0d85ba..826963e 100644
+--- a/addons/resource.language.en_gb/resources/strings.po
++++ b/addons/resource.language.en_gb/resources/strings.po
+@@ -12556,11 +12556,11 @@ msgid "Root filesystem"
+ msgstr ""
+ 
+ msgctxt "#21454"
+-msgid "Cache full"
++msgid "Source too slow"
+ msgstr ""
+ 
+ msgctxt "#21455"
+-msgid "Cache filled before reaching required amount for continuous playback"
++msgid "Read rate too low for continuous playback"
+ msgstr ""
+ 
+ #: xbmc/playlists/SmartPlaylist.cpp
+diff --git a/xbmc/cores/dvdplayer/DVDInputStreams/DVDInputStreamFile.cpp b/xbmc/cores/dvdplayer/DVDInputStreams/DVDInputStreamFile.cpp
+index 613857f..e089d9a 100644
+--- a/xbmc/cores/dvdplayer/DVDInputStreams/DVDInputStreamFile.cpp
++++ b/xbmc/cores/dvdplayer/DVDInputStreams/DVDInputStreamFile.cpp
+@@ -186,7 +186,9 @@ int CDVDInputStreamFile::GetBlockSize()
+ 
+ void CDVDInputStreamFile::SetReadRate(unsigned rate)
+ {
+-  unsigned maxrate = rate + 1024 * 1024 / 8;
++  // Increase requested rate by 10%:
++  unsigned maxrate = (unsigned) (1.1 * rate);
++
+   if(m_pFile->IoControl(IOCTRL_CACHE_SETRATE, &maxrate) >= 0)
+     CLog::Log(LOGDEBUG, "CDVDInputStreamFile::SetReadRate - set cache throttle rate to %u bytes per second", maxrate);
+ }
+diff --git a/xbmc/cores/dvdplayer/DVDPlayer.cpp b/xbmc/cores/dvdplayer/DVDPlayer.cpp
+index 8502b29..6211205 100644
+--- a/xbmc/cores/dvdplayer/DVDPlayer.cpp
++++ b/xbmc/cores/dvdplayer/DVDPlayer.cpp
+@@ -1694,18 +1694,18 @@ bool CDVDPlayer::GetCachingTimes(double& level, double& delay, double& offset)
+   if (!m_pInputStream->GetCacheStatus(&status))
+     return false;
+ 
+-  int64_t cached   = status.forward;
+-  unsigned currate = status.currate;
+-  unsigned maxrate = status.maxrate;
+-  bool full        = status.full;
++  uint64_t &cached = status.forward;
++  unsigned &currate = status.currate;
++  unsigned &maxrate = status.maxrate;
++  float &cache_level = status.level;
+ 
+-  int64_t length  = m_pInputStream->GetLength();
+-  int64_t remain  = length - m_pInputStream->Seek(0, SEEK_CUR);
++  int64_t length = m_pInputStream->GetLength();
++  int64_t remain = length - m_pInputStream->Seek(0, SEEK_CUR);
+ 
+-  if(cached < 0 || length <= 0 || remain < 0)
++  if (length <= 0 || remain < 0)
+     return false;
+ 
+-  double play_sbp  = DVD_MSEC_TO_TIME(m_pDemuxer->GetStreamLength()) / length;
++  double play_sbp = DVD_MSEC_TO_TIME(m_pDemuxer->GetStreamLength()) / length;
+   double queued = 1000.0 * GetQueueTime() / play_sbp;
+ 
+   delay  = 0.0;
+@@ -1715,14 +1715,20 @@ bool CDVDPlayer::GetCachingTimes(double& level, double& delay, double& offset)
+   if (currate == 0)
+     return true;
+ 
+-  double cache_sbp   = 1.1 * (double)DVD_TIME_BASE / currate;         /* underestimate by 10 % */
+-  double play_left   = play_sbp  * (remain + queued);                 /* time to play out all remaining bytes */
+-  double cache_left  = cache_sbp * (remain - cached);                 /* time to cache the remaining bytes */
+-  double cache_need  = std::max(0.0, remain - play_left / cache_sbp); /* bytes needed until play_left == cache_left */
++  double cache_sbp = 1.1 * (double)DVD_TIME_BASE / currate;          /* underestimate by 10 % */
++  double play_left = play_sbp  * (remain + queued);                  /* time to play out all remaining bytes */
++  double cache_left = cache_sbp * (remain - cached);                 /* time to cache the remaining bytes */
++  double cache_need = std::max(0.0, remain - play_left / cache_sbp); /* bytes needed until play_left == cache_left */
+ 
+-  delay = cache_left - play_left;
++   delay = cache_left - play_left;
+ 
+-  if (full && (currate < maxrate) )
++  /* NOTE: We can only reliably test for low readrate, when the cache is not
++   * already *near* full. This is because as soon as it's full the average-
++   * rate will become approximately the current-rate which can flag false
++   * low read-rate conditions. To work around this we don't check the currate at 100%
++   * but between 80% and 90%
++   */
++  if (cache_level > 0.8 && cache_level < 0.9 && currate < maxrate)
+   {
+     CLog::Log(LOGDEBUG, "Readrate %u is too low with %u required", currate, maxrate);
+     level = -1.0;                          /* buffer is full & our read rate is too low  */
+diff --git a/xbmc/filesystem/FileCache.cpp b/xbmc/filesystem/FileCache.cpp
+index 2d76b65..6726b40 100644
+--- a/xbmc/filesystem/FileCache.cpp
++++ b/xbmc/filesystem/FileCache.cpp
+@@ -48,7 +48,6 @@ class CWriteRate
+   {
+     m_stamp = XbmcThreads::SystemClockMillis();
+     m_pos   = 0;
+-    m_pause = 0;
+     m_size = 0;
+     m_time = 0;
+   }
+@@ -80,21 +79,9 @@ class CWriteRate
+     return (unsigned)(1000 * (m_size / (m_time + time_bias)));
+   }
+ 
+-  void Pause()
+-  {
+-    m_pause = XbmcThreads::SystemClockMillis();
+-  }
+-
+-  void Resume()
+-  {
+-    m_stamp += XbmcThreads::SystemClockMillis() - m_pause;
+-    m_pause  = 0;
+-  }
+-
+ private:
+   unsigned m_stamp;
+   int64_t  m_pos;
+-  unsigned m_pause;
+   unsigned m_time;
+   int64_t  m_size;
+ };
+@@ -112,7 +99,7 @@ CFileCache::CFileCache(const unsigned int flags)
+   , m_chunkSize(0)
+   , m_writeRate(0)
+   , m_writeRateActual(0)
+-  , m_cacheFull(false)
++  , m_forwardCacheSize(0)
+   , m_fileSize(0)
+   , m_flags(flags)
+ {
+@@ -124,7 +111,7 @@ CFileCache::CFileCache(CCacheStrategy *pCache, bool bDeleteCache /* = true */)
+   , m_chunkSize(0)
+   , m_writeRate(0)
+   , m_writeRateActual(0)
+-  , m_cacheFull(false)
++  , m_forwardCacheSize(0)
+ {
+   m_pCache = pCache;
+   m_bDeleteCache = bDeleteCache;
+@@ -176,7 +163,10 @@ bool CFileCache::Open(const CURL& url)
+     return false;
+   }
+ 
+-  m_source.IoControl(IOCTRL_SET_CACHE,this);
++  m_source.IoControl(IOCTRL_SET_CACHE, this);
++
++  bool retry = false;
++  m_source.IoControl(IOCTRL_SET_RETRY, &retry); // We already handle retrying ourselves
+ 
+   // check if source can seek
+   m_seekPossible = m_source.IoControl(IOCTRL_SEEK_POSSIBLE, NULL);
+@@ -189,6 +179,7 @@ bool CFileCache::Open(const CURL& url)
+     {
+       // Use cache on disk
+       m_pCache = new CSimpleFileCache();
++      m_forwardCacheSize = 0;
+     }
+     else
+     {
+@@ -213,6 +204,7 @@ bool CFileCache::Open(const CURL& url)
+         back /= 2;
+       }
+       m_pCache = new CCircularCache(front, back);
++      m_forwardCacheSize = front;
+     }
+ 
+     if (m_flags & READ_MULTI_STREAM)
+@@ -234,7 +226,6 @@ bool CFileCache::Open(const CURL& url)
+   m_writePos = 0;
+   m_writeRate = 1024 * 1024;
+   m_writeRateActual = 0;
+-  m_cacheFull = false;
+   m_seekEvent.Reset();
+   m_seekEnded.Reset();
+ 
+@@ -293,7 +284,6 @@ void CFileCache::Process()
+         assert(m_writePos == cacheMaxPos);
+         average.Reset(m_writePos, bCompleteReset); // Can only recalculate new average from scratch after a full reset (empty cache)
+         limiter.Reset(m_writePos);
+-        m_cacheFull = (m_pCache->GetMaxWriteSize(m_chunkSize) == 0);
+         m_nSeekResult = m_seekPos;
+       }
+ 
+@@ -313,22 +303,20 @@ void CFileCache::Process()
+ 
+       if (m_seekEvent.WaitMSec(100))
+       {
+-        m_seekEvent.Set();
++        if (!m_bStop)
++          m_seekEvent.Set();
+         break;
+       }
+     }
+ 
+     size_t maxWrite = m_pCache->GetMaxWriteSize(m_chunkSize);
+-    m_cacheFull = (maxWrite == 0);
+ 
+     /* Only read from source if there's enough write space in the cache
+      * else we may keep disposing data and seeking back on (slow) source
+      */
+-    if (m_cacheFull && !cacheReachEOF)
++    if (maxWrite == 0 && !cacheReachEOF)
+     {
+-      average.Pause();
+       m_pCache->m_space.WaitMSec(5);
+-      average.Resume();
+       continue;
+     }
+ 
+@@ -337,26 +325,58 @@ void CFileCache::Process()
+       iRead = m_source.Read(buffer.get(), maxWrite);
+     if (iRead == 0)
+     {
+-      CLog::Log(LOGINFO, "CFileCache::Process - Hit eof.");
+-      m_pCache->EndOfInput();
+-
+-      // The thread event will now also cause the wait of an event to return a false.
+-      if (AbortableWait(m_seekEvent) == WAIT_SIGNALED)
++      // Check for actual EOF and retry as long as we still have data in our cache
++      if (m_writePos < m_fileSize && m_pCache->WaitForData(0, 0) > 0)
+       {
+-        m_pCache->ClearEndOfInput();
+-        m_seekEvent.Set(); // hack so that later we realize seek is needed
++        //CLog::Log(LOGDEBUG, "CFileCache::Process - Source read didn't return any data! Will retry.");
++
++        // Wait a bit:
++        if (m_seekEvent.WaitMSec(5000))
++        {
++          if (!m_bStop)
++            m_seekEvent.Set(); // hack so that later we realize seek is needed
++        }
++
++        // and retry:
++        continue; // while (!m_bStop)
+       }
+       else
+-        break;
++      {
++        //CLog::Log(LOGINFO, "CFileCache::Process - Source read didn't return any data! Hit eof(?)");
++
++        m_pCache->EndOfInput();
++
++        // The thread event will now also cause the wait of an event to return a false.
++        if (AbortableWait(m_seekEvent) == WAIT_SIGNALED)
++        {
++          m_pCache->ClearEndOfInput();
++          if (!m_bStop)
++            m_seekEvent.Set(); // hack so that later we realize seek is needed
++        }
++        else
++          break; // while (!m_bStop)
++      }
++    }
++    else if (iRead < 0) // Fatal error
++    {
++      //CLog::Log(LOGDEBUG, "CFileCache::Process - Source read returned a fatal error! Will wait for buffer to empty.");
++
++      while (m_pCache->WaitForData(0, 0) > 0)
++      {
++        if (m_seekEvent.WaitMSec(100))
++        {
++          break;
++        }
++      }
++
++      break; // while (!m_bStop)
+     }
+-    else if (iRead < 0)
+-      m_bStop = true;
+ 
+-    int iTotalWrite=0;
++    int iTotalWrite = 0;
+     while (!m_bStop && (iTotalWrite < iRead))
+     {
+       int iWrite = 0;
+-      iWrite = m_pCache->WriteToCache(buffer.get()+iTotalWrite, iRead - iTotalWrite);
++      iWrite = m_pCache->WriteToCache(buffer.get() + iTotalWrite, iRead - iTotalWrite);
+ 
+       // write should always work. all handling of buffering and errors should be
+       // done inside the cache strategy. only if unrecoverable error happened, WriteToCache would return error and we break.
+@@ -368,9 +388,7 @@ void CFileCache::Process()
+       }
+       else if (iWrite == 0)
+       {
+-        average.Pause();
+         m_pCache->m_space.WaitMSec(5);
+-        average.Resume();
+       }
+ 
+       iTotalWrite += iWrite;
+@@ -378,7 +396,8 @@ void CFileCache::Process()
+       // check if seek was asked. otherwise if cache is full we'll freeze.
+       if (m_seekEvent.WaitMSec(0))
+       {
+-        m_seekEvent.Set(); // make sure we get the seek event later.
++        if (!m_bStop)
++          m_seekEvent.Set(); // make sure we get the seek event later.
+         break;
+       }
+     }
+@@ -566,9 +585,9 @@ int CFileCache::IoControl(EIoControl request, void* param)
+   {
+     SCacheStatus* status = (SCacheStatus*)param;
+     status->forward = m_pCache->WaitForData(0, 0);
++    status->level   = (m_forwardCacheSize == 0) ? 0.0 : (float) status->forward / m_forwardCacheSize;
+     status->maxrate = m_writeRate;
+     status->currate = m_writeRateActual;
+-    status->full    = m_cacheFull;
+     return 0;
+   }
+ 
+diff --git a/xbmc/filesystem/FileCache.h b/xbmc/filesystem/FileCache.h
+index 46d4079..cd3b5c2 100644
+--- a/xbmc/filesystem/FileCache.h
++++ b/xbmc/filesystem/FileCache.h
+@@ -77,7 +77,7 @@ namespace XFILE
+     unsigned     m_chunkSize;
+     unsigned     m_writeRate;
+     unsigned     m_writeRateActual;
+-    bool         m_cacheFull;
++    int64_t      m_forwardCacheSize;
+     std::atomic<int64_t> m_fileSize;
+     unsigned int m_flags;
+     CCriticalSection m_sync;
+diff --git a/xbmc/filesystem/IFile.h b/xbmc/filesystem/IFile.h
+index 88ef6af..172d3df 100644
+--- a/xbmc/filesystem/IFile.h
++++ b/xbmc/filesystem/IFile.h
+@@ -120,6 +120,7 @@ class IFile
+    * It can also be used to indicate a file system is non buffered *
+    * but accepts any read size, have it return the value 1         */
+   virtual int  GetChunkSize() {return 0;}
++  virtual double GetDownloadSpeed(){ return 0.0f; };
+ 
+   virtual bool SkipNext(){return false;}
+ 
+diff --git a/xbmc/filesystem/IFileTypes.h b/xbmc/filesystem/IFileTypes.h
+index 8bb1e79..4c6dd98 100644
+--- a/xbmc/filesystem/IFileTypes.h
++++ b/xbmc/filesystem/IFileTypes.h
+@@ -25,6 +25,30 @@
+ namespace XFILE
+ {
+ 
++/* indicate that caller can handle truncated reads, where function returns before entire buffer has been filled */
++  static const unsigned int READ_TRUNCATED = 0x01;
++
++/* indicate that that caller support read in the minimum defined chunk size, this disables internal cache then */
++  static const unsigned int READ_CHUNKED = 0x02;
++
++/* use cache to access this file */
++  static const unsigned int READ_CACHED = 0x04;
++
++/* open without caching. regardless to file type. */
++  static const unsigned int READ_NO_CACHE = 0x08;
++
++/* calcuate bitrate for file while reading */
++  static const unsigned int READ_BITRATE = 0x10;
++
++/* indicate to the caller we will seek between multiple streams in the file frequently */
++  static const unsigned int READ_MULTI_STREAM = 0x20;
++
++/* indicate to the caller file is audio and/or video (and e.g. may grow) */
++  static const unsigned int READ_AUDIO_VIDEO = 0x40;
++
++/* indicate that caller will do write operations before reading  */
++  static const unsigned int READ_AFTER_WRITE = 0x80;
++
+ struct SNativeIoControl
+ {
+   unsigned long int   request;
+@@ -36,15 +60,24 @@ struct SCacheStatus
+   uint64_t forward;  /**< number of bytes cached forward of current position */
+   unsigned maxrate;  /**< maximum number of bytes per second cache is allowed to fill */
+   unsigned currate;  /**< average read rate from source file since last position change */
+-  bool     full;     /**< is the cache full */
++  float    level;    /**< cache level (0.0 - 1.0) */
+ };
+ 
+ typedef enum {
+-  IOCTRL_NATIVE        = 1, /**< SNativeIoControl structure, containing what should be passed to native ioctrl */
+-  IOCTRL_SEEK_POSSIBLE = 2, /**< return 0 if known not to work, 1 if it should work */
+-  IOCTRL_CACHE_STATUS  = 3, /**< SCacheStatus structure */
+-  IOCTRL_CACHE_SETRATE = 4, /**< unsigned int with speed limit for caching in bytes per second */
+-  IOCTRL_SET_CACHE    = 8, /** <CFileCache */
++  IOCTRL_NATIVE        = 1,  /**< SNativeIoControl structure, containing what should be passed to native ioctrl */
++  IOCTRL_SEEK_POSSIBLE = 2,  /**< return 0 if known not to work, 1 if it should work */
++  IOCTRL_CACHE_STATUS  = 3,  /**< SCacheStatus structure */
++  IOCTRL_CACHE_SETRATE = 4,  /**< unsigned int with speed limit for caching in bytes per second */
++  IOCTRL_SET_CACHE     = 8,  /**< CFileCache */
++  IOCTRL_SET_RETRY     = 16, /**< Enable/disable retry within the protocol handler (if supported) */
+ } EIoControl;
+ 
++enum CURLOPTIONTYPE
++{
++  CURL_OPTION_OPTION,     /**< Set a general option   */
++  CURL_OPTION_PROTOCOL,   /**< Set a protocol option  */
++  CURL_OPTION_CREDENTIALS,/**< Set User and password  */
++  CURL_OPTION_HEADER      /**< Add a Header           */
++};
++
+ }

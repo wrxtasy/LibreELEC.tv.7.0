@@ -1,0 +1,39 @@
+From a2c0e81ac6f52276453bb4687377ee30ce010348 Mon Sep 17 00:00:00 2001
+From: mlinuxguy <markham.thomas@gmail.com>
+Date: Thu, 24 Mar 2016 16:01:09 -0500
+Subject: [PATCH] mm,vmacache: optimize overflow system-wide flushing
+
+For single threaded workloads, we can avoid flushing and iterating through
+the entire list of tasks, making the whole function a lot faster,
+requiring only a single atomic read for the mm_users.
+
+Signed-off-by: Davidlohr Bueso <davidlohr@hp.com>
+Suggested-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Aswin Chandramouleeswaran <aswin@hp.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ mm/vmacache.c | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/mm/vmacache.c b/mm/vmacache.c
+index 1037a3ba..39c2831 100644
+--- a/mm/vmacache.c
++++ b/mm/vmacache.c
+@@ -17,6 +17,16 @@ void vmacache_flush_all(struct mm_struct *mm)
+ {
+ 	struct task_struct *g, *p;
+ 
++	/*
++	 * Single threaded tasks need not iterate the entire
++	 * list of process. We can avoid the flushing as well
++	 * since the mm's seqnum was increased and don't have
++	 * to worry about other threads' seqnum. Current's
++	 * flush will occur upon the next lookup.
++	 */
++	if (atomic_read(&mm->mm_users) == 1)
++		return;
++
+ 	rcu_read_lock();
+ 	for_each_process_thread(g, p) {
+ 		/*

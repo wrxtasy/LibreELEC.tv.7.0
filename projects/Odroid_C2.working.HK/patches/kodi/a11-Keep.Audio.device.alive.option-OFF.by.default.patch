@@ -1,0 +1,20 @@
+commit 39cc0cc900cdb60d7b08ead5f1763fcc5ab9b083
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Sat Jun 11 06:31:52 2016 +0800
+
+    Audio: Keep Audio device alive option - OFF by default.
+    Fixes black screens when video playback commences on ODROID C2
+
+diff --git a/system/settings/settings.xml b/system/settings/settings.xml
+index 76c9a33..d51c5bd 100644
+--- a/system/settings/settings.xml
++++ b/system/settings/settings.xml
+@@ -2550,7 +2550,7 @@
+         </setting>
+         <setting id="audiooutput.streamsilence" type="integer" label="421" help="34111">
+           <level>1</level>
+-          <default>1</default>
++          <default>0</default>
+           <constraints>
+             <options>audiostreamsilence</options>
+           </constraints>

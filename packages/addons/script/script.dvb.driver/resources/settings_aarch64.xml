@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings>
+    <category>
+        <setting label="Different Cards" type="lsep"/>
+        <setting label="Media_Build (DVB drivers from latest kernel)" type="action" action="RunScript(script.dvb.driver, mediabuild)"/>
+    </category>
+</settings>

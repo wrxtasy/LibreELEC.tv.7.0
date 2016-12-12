@@ -1,0 +1,33 @@
+From 52ced11e0d4ef0d3fd3fdabb676103782916ac8c Mon Sep 17 00:00:00 2001
+From: Carlo Caione <carlo@endlessm.com>
+Date: Tue, 23 Jun 2015 15:50:02 +0200
+Subject: [PATCH] mm: Fix OOPS when swapping
+
+Compiling chromium with swapping enabled causes OOPS. This is caused by
+an Amlogic patch to the swap management code. Avoid the codepath causing
+the OOPS.
+
+Change-Id: I72d02306f8025ab4b7fb6b20a0b09d6d22fb02c1
+Signed-off-by: Carlo Caione <carlo@endlessm.com>
+---
+ mm/swap_state.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/mm/swap_state.c b/mm/swap_state.c
+index 25d4240..e7ec344 100644
+--- a/mm/swap_state.c
++++ b/mm/swap_state.c
+@@ -119,11 +119,12 @@ int __add_to_swap_cache(struct page *page, swp_entry_t entry)
+ 	return error;
+ }
+ 
+-#define COMPRESS_PREV_USE 1
++#define COMPRESS_PREV_USE 0
+ struct prev_use {
+ 	unsigned long cmpr_len;
+ 	struct page *page;
+ };
++
+ int add_to_swap_cache(struct page *page, swp_entry_t entry, gfp_t gfp_mask)
+ {
+ 	int error;

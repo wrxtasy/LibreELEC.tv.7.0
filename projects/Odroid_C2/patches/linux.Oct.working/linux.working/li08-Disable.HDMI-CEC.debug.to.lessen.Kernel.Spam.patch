@@ -1,0 +1,19 @@
+commit a548c313b76aec050a041a1b622063f41232b67c
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Wed Apr 27 14:15:45 2016 +0800
+
+    Disable HDMI-CEC debug to lessen Kernal Spam
+
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_20/amlogic_cec.c b/drivers/amlogic/hdmi/hdmi_tx_20/amlogic_cec.c
+index f920358..39fa98a 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_20/amlogic_cec.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_20/amlogic_cec.c
+@@ -44,7 +44,7 @@
+ #include <linux/amlogic/hdmi_tx/hdmi_tx_cec.h>
+ 
+ #define CONFIG_TV_DEBUG // for verbose output
+-unsigned long amlogic_cec_debug_flag = 1;
++unsigned long amlogic_cec_debug_flag = 0;
+ 
+ MODULE_AUTHOR("Gerald Dachs");
+ MODULE_DESCRIPTION("Amlogic CEC driver");

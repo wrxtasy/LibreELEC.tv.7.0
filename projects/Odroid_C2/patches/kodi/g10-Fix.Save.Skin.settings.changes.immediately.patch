@@ -1,0 +1,39 @@
+commit 04c8caa27480c87cc0722c251a75711555b35a01
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Thu Apr 28 15:52:08 2016 +0800
+
+    FIX: save skin setting changes immediately
+    https://github.com/koying/SPMC/commit/91f3550cf7d88f647c9679d99a45d71789ff2687
+
+diff --git a/xbmc/settings/SkinSettings.cpp b/xbmc/settings/SkinSettings.cpp
+index b53e4a2..bec45a3 100644
+--- a/xbmc/settings/SkinSettings.cpp
++++ b/xbmc/settings/SkinSettings.cpp
+@@ -59,6 +59,7 @@ const std::string& CSkinSettings::GetString(int setting) const
+ void CSkinSettings::SetString(int setting, const std::string &label)
+ {
+   g_SkinInfo->SetString(setting, label);
++  g_SkinInfo->SaveSettings();
+ }
+ 
+ int CSkinSettings::TranslateBool(const std::string &setting)
+@@ -74,16 +75,19 @@ bool CSkinSettings::GetBool(int setting) const
+ void CSkinSettings::SetBool(int setting, bool set)
+ {
+   g_SkinInfo->SetBool(setting, set);
++  g_SkinInfo->SaveSettings();
+ }
+ 
+ void CSkinSettings::Reset(const std::string &setting)
+ {
+   g_SkinInfo->Reset(setting);
++  g_SkinInfo->SaveSettings();
+ }
+ 
+ void CSkinSettings::Reset()
+ {
+   g_SkinInfo->Reset();
++  g_SkinInfo->SaveSettings();
+ 
+   g_infoManager.ResetCache();
+ }

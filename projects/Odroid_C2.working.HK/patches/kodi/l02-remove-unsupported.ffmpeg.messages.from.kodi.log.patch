@@ -1,0 +1,30 @@
+From 267c2e02c78c39c398de823b59421d77d7c8381b Mon Sep 17 00:00:00 2001
+From: Stefan Saraev <stefan@saraev.ca>
+Date: Sun, 13 Dec 2015 12:25:29 +0200
+Subject: [PATCH 10/25] [tb] our ffmpeg is doing well
+
+---
+ xbmc/Application.cpp | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/xbmc/Application.cpp b/xbmc/Application.cpp
+index c1bd3f7..f3f01fc 100644
+--- a/xbmc/Application.cpp
++++ b/xbmc/Application.cpp
+@@ -527,13 +527,6 @@ bool CApplication::Create()
+ #else  // !USE_STATIC_FFMPEG
+   CLog::Log(LOGNOTICE, "FFmpeg version: %s", FFMPEG_VERSION);
+ #endif // !USE_STATIC_FFMPEG
+-  if (!strstr(FFMPEG_VERSION, FFMPEG_VER_SHA))
+-  {
+-    if (strstr(FFMPEG_VERSION, "kodi"))
+-      CLog::Log(LOGNOTICE, "WARNING: unknown ffmpeg-kodi version detected");
+-    else
+-      CLog::Log(LOGNOTICE, "WARNING: unsupported ffmpeg version detected");
+-  }
+ #endif
+   
+   std::string cpuModel(g_cpuInfo.getCPUModel());
+-- 
+2.7.0.rc3
+

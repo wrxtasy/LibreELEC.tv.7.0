@@ -17,13 +17,13 @@
 ################################################################################
 
 PKG_NAME="alsa-utils"
-PKG_VERSION="1.1.1"
+PKG_VERSION="1.1.2"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.alsa-project.org/"
 PKG_URL="ftp://ftp.alsa-project.org/pub/utils/$PKG_NAME-$PKG_VERSION.tar.bz2"
-PKG_DEPENDS_TARGET="toolchain alsa-lib ncurses"
+PKG_DEPENDS_TARGET="toolchain alsa-lib"
 PKG_PRIORITY="optional"
 PKG_SECTION="audio"
 PKG_SHORTDESC="alsa-utils: Advanced Linux Sound Architecture utilities"

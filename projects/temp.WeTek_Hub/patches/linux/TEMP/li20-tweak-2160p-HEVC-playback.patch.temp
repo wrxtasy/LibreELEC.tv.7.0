@@ -1,0 +1,52 @@
+From 460ce5ba13eb0de4e84b48065b0c8fae0fe2d022 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Tue, 6 Sep 2016 00:25:13 +0800
+Subject: [PATCH] tweak-2160p-HEVC-playback
+
+---
+ drivers/amlogic/amports/vh265.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/amlogic/amports/vh265.c b/drivers/amlogic/amports/vh265.c
+index e962733..8123944 100644
+--- a/drivers/amlogic/amports/vh265.c
++++ b/drivers/amlogic/amports/vh265.c
+@@ -181,7 +181,7 @@ static u32 force_fps;
+ #define H265_DEBUG_IGNORE_CONFORMANCE_WINDOW	0x2000000
+ #define H265_DEBUG_NOWAIT_DECODE_DONE_WHEN_STOP   0x4000000
+ 
+-#define MAX_BUF_NUM 24
++#define MAX_BUF_NUM 16
+ #define MAX_REF_PIC_NUM 24
+ #define MAX_REF_ACTIVE  16
+ 
+@@ -215,7 +215,7 @@ static u32 dynamic_buf_num_margin;
+ #else
+ static u32 buf_alloc_width;
+ static u32 buf_alloc_height;
+-static u32 dynamic_buf_num_margin = 7;
++static u32 dynamic_buf_num_margin = 16;
+ #endif
+ static u32 buf_alloc_size;
+ static u32 re_config_pic_flag;
+@@ -236,7 +236,7 @@ bit[3]: 1, if blackout is not 1, do not release current
+ /* set to 1 for fast play;
+ 	set to 8 for other case of "keep last frame"
+ */
+-static u32 buffer_mode = 1;
++static u32 buffer_mode = 5;
+ /* buffer_mode_dbg: debug only*/
+ static u32 buffer_mode_dbg = 0xffff0000;
+ /**/
+@@ -260,7 +260,7 @@ static u32 i_only_flag;
+ use_cma: 1, use both reserver memory and cma for buffers
+ 2, only use cma for buffers
+ */
+-static u32 use_cma = 2;
++static u32 use_cma = 1;
+ 
+ static u32 max_decoding_time;
+ /*
+-- 
+1.9.1
+

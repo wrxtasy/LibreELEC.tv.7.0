@@ -1,0 +1,79 @@
+From 2fc6526dfdb554994ea70c1c8c50695354079871 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Mon, 24 Oct 2016 12:53:19 +0800
+Subject: [PATCH] rework-aml-video-scaling
+
+---
+ xbmc/cores/dvdplayer/DVDCodecs/Video/AMLCodec.cpp | 10 +++++++++-
+ xbmc/cores/dvdplayer/DVDCodecs/Video/AMLCodec.h   |  1 +
+ xbmc/utils/AMLUtils.cpp                           |  2 +-
+ xbmc/windowing/egl/EGLNativeTypeAmlogic.cpp       |  2 +-
+ 4 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/xbmc/cores/dvdplayer/DVDCodecs/Video/AMLCodec.cpp b/xbmc/cores/dvdplayer/DVDCodecs/Video/AMLCodec.cpp
+index d530164..f6f5c9a 100644
+--- a/xbmc/cores/dvdplayer/DVDCodecs/Video/AMLCodec.cpp
++++ b/xbmc/cores/dvdplayer/DVDCodecs/Video/AMLCodec.cpp
+@@ -2197,6 +2197,13 @@ void CAMLCodec::SetVideoRect(const CRect &SrcRect, const CRect &DestRect)
+     update = true;
+   }
+ 
++  RESOLUTION video_res = g_graphicsContext.GetVideoResolution();
++  if (m_video_res != video_res)
++  {
++    m_video_res = video_res;
++    update = true;
++  }
++
+   if (!update)
+     return;
+ 
+@@ -2208,7 +2215,8 @@ void CAMLCodec::SetVideoRect(const CRect &SrcRect, const CRect &DestRect)
+ #ifdef TARGET_ANDROID
+   display = m_display_rect;
+ #else
+-  display = gui;
++  const RESOLUTION_INFO& video_res_info = CDisplaySettings::GetInstance().GetResolutionInfo(video_res);
++  display = m_display_rect = CRect(0, 0, video_res_info.iScreenWidth, video_res_info.iScreenHeight);
+ #endif
+   if (gui != display)
+   {
+diff --git a/xbmc/cores/dvdplayer/DVDCodecs/Video/AMLCodec.h b/xbmc/cores/dvdplayer/DVDCodecs/Video/AMLCodec.h
+index 3aa025d..1a77991 100644
+--- a/xbmc/cores/dvdplayer/DVDCodecs/Video/AMLCodec.h
++++ b/xbmc/cores/dvdplayer/DVDCodecs/Video/AMLCodec.h
+@@ -89,4 +89,5 @@ private:
+   float            m_zoom;
+   int              m_contrast;
+   int              m_brightness;
++  RESOLUTION       m_video_res;
+ };
+diff --git a/xbmc/utils/AMLUtils.cpp b/xbmc/utils/AMLUtils.cpp
+index dad4603..78f0151 100644
+--- a/xbmc/utils/AMLUtils.cpp
++++ b/xbmc/utils/AMLUtils.cpp
+@@ -562,7 +562,7 @@ bool aml_mode_to_resolution(const char *mode, RESOLUTION_INFO *res)
+   {
+     res->iWidth = 1920;
+     res->iHeight= 1080;
+-    res->iScreenWidth = 4096;
++    res->iScreenWidth = 3840;
+     res->iScreenHeight= 2160;
+     res->fRefreshRate = 24;
+     res->dwFlags = D3DPRESENTFLAG_PROGRESSIVE;
+diff --git a/xbmc/windowing/egl/EGLNativeTypeAmlogic.cpp b/xbmc/windowing/egl/EGLNativeTypeAmlogic.cpp
+index b81e7c5..4f32375 100644
+--- a/xbmc/windowing/egl/EGLNativeTypeAmlogic.cpp
++++ b/xbmc/windowing/egl/EGLNativeTypeAmlogic.cpp
+@@ -181,7 +181,7 @@ bool CEGLNativeTypeAmlogic::GetPreferredResolution(RESOLUTION_INFO *res) const
+   if (!GetNativeResolution(res))
+   {
+     // punt to 720p if we get nothing
+-    aml_mode_to_resolution("720p", res);
++    aml_mode_to_resolution("720p60hz", res);
+   }
+ 
+   return true;
+-- 
+1.9.1
+

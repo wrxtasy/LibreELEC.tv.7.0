@@ -17,7 +17,7 @@
 ################################################################################
 
 PKG_NAME="containerd"
-PKG_VERSION="0366d7e"
+PKG_VERSION="9dc2b32"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="APL"
@@ -66,6 +66,7 @@ pre_make_target() {
 
 make_target() {
   mkdir -p bin
+  $GOLANG build -v -o bin/ctr             -a -tags "static_build" -ldflags "$LDFLAGS" ./ctr
   $GOLANG build -v -o bin/containerd      -a -tags "static_build" -ldflags "$LDFLAGS" ./containerd
   $GOLANG build -v -o bin/containerd-shim -a -tags "static_build" -ldflags "$LDFLAGS" ./containerd-shim
 }

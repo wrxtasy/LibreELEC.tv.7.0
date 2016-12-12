@@ -1,0 +1,26 @@
+From 3a4b81886334cf141e521a53ec208dbe1c48b381 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Tue, 6 Dec 2016 19:24:06 +0800
+Subject: [PATCH] switch to aml_remote
+
+---
+ arch/arm64/boot/dts/meson64_odroidc2.dts | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/meson64_odroidc2.dts b/arch/arm64/boot/dts/meson64_odroidc2.dts
+index 77ee90d..72fb0ca 100644
+--- a/arch/arm64/boot/dts/meson64_odroidc2.dts
++++ b/arch/arm64/boot/dts/meson64_odroidc2.dts
+@@ -881,6 +881,7 @@
+ &audio_data{
+ 	status = "okay";
+ };
+-&meson_ir {
+-	status = "okay";
++/*&meson_ir {*/
++&aml_remote {
++        status = "okay";
+ };
+-- 
+2.7.4
+

@@ -1,0 +1,33 @@
+commit b5c3996695afeb560cbeee447102dde24436e3ab
+Author: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date:   Mon May 9 23:33:13 2016 +0800
+
+    Fixup Hyperion headers for AML S905 Kernel compatibility
+
+diff --git a/libsrc/grabber/amlogic/AmlogicGrabber.cpp b/libsrc/grabber/amlogic/AmlogicGrabber.cpp
+index 11cd280..01136e4 100644
+--- a/libsrc/grabber/amlogic/AmlogicGrabber.cpp
++++ b/libsrc/grabber/amlogic/AmlogicGrabber.cpp
+@@ -15,14 +15,14 @@
+ // Local includes
+ #include <grabber/AmlogicGrabber.h>
+ 
+-// Flags copied from 'include/linux/amlogic/amports/amvideocap.h' at https://github.com/codesnake/linux-amlogic
+-#define AMVIDEOCAP_IOC_MAGIC 'V'
+-#define AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH  _IOW(AMVIDEOCAP_IOC_MAGIC, 0x02, int)
+-#define AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT _IOW(AMVIDEOCAP_IOC_MAGIC, 0x03, int)
+-
+-// Flags copied from 'include/linux/amlogic/amports/amvstream.h' at https://github.com/codesnake/linux-amlogic
+-#define AMSTREAM_IOC_MAGIC   'S'
+-#define AMSTREAM_IOC_GET_VIDEO_DISABLE      _IOR(AMSTREAM_IOC_MAGIC,   0x48, unsigned long)
++// Flags copied from 'include/linux/amlogic/amports/amstream.h' at https://github.com/hardkernel/linux/blob/odroidc2-3.14.y/
++#define AC_MAGIC  'V'
++#define AMVIDEOCAP_IOW_SET_WANTFRAME_WIDTH  _IOW((AC_MAGIC), 0x02, int)
++#define AMVIDEOCAP_IOW_SET_WANTFRAME_HEIGHT _IOW((AC_MAGIC), 0x03, int)
++
++// Flags copied from 'include/linux/amlogic/amports/amstream.h' at https://github.com/hardkernel/linux/blob/odroidc2-3.14.y/
++#define _A_M  'S'
++#define AMSTREAM_IOC_GET_VIDEO_DISABLE  _IOR((_A_M), 0x48, int)
+ 
+ AmlogicGrabber::AmlogicGrabber(const unsigned width, const unsigned height) :
+ 	// Minimum required width or height is 160

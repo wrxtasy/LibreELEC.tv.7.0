@@ -1,0 +1,192 @@
+From 97b760bd774ab5f6babe9bcbd38341d1b36953c5 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Wed, 7 Sep 2016 03:47:42 +0800
+Subject: [PATCH] Audio: AML Audio adjust from WeTek
+
+---
+ sound/soc/aml/m8/aml_i2s.c     | 81 +++++++++++++++++++++---------------------
+ sound/soc/aml/m8/aml_i2s_dai.c | 24 ++-----------
+ 2 files changed, 44 insertions(+), 61 deletions(-)
+
+diff --git a/sound/soc/aml/m8/aml_i2s.c b/sound/soc/aml/m8/aml_i2s.c
+index 95ca2e5..c345d4d 100644
+--- a/sound/soc/aml/m8/aml_i2s.c
++++ b/sound/soc/aml/m8/aml_i2s.c
+@@ -93,17 +93,17 @@ static const struct snd_pcm_hardware aml_i2s_hardware = {
+ 	    SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S24_LE |
+ 	    SNDRV_PCM_FMTBIT_S32_LE,
+ 
+-	.period_bytes_min = 32,
++	.period_bytes_min = 64,
+ 	.period_bytes_max = 32 * 1024 * 2,
+ 	.periods_min = 2,
+-	.periods_max = 256,
+-	.buffer_bytes_max = 32 * 1024 * 2,
++	.periods_max = 1024,
++	.buffer_bytes_max = 128 * 1024 * 2 * 2,
+ 
+ 	.rate_min = 8000,
+ 	.rate_max = 384000,
+-	.channels_min = 1,
++	.channels_min = 2,
+ 	.channels_max = 8,
+-	.fifo_size = 32,
++	.fifo_size = 0,
+ };
+ 
+ static const struct snd_pcm_hardware aml_i2s_capture = {
+@@ -116,7 +116,7 @@ static const struct snd_pcm_hardware aml_i2s_capture = {
+ 	.period_bytes_min = 64,
+ 	.period_bytes_max = 32 * 1024,
+ 	.periods_min = 2,
+-	.periods_max = 256,
++	.periods_max = 1024,
+ 	.buffer_bytes_max = 64 * 1024,
+ 
+ 	.rate_min = 8000,
+@@ -582,23 +582,6 @@ static int aml_i2s_close(struct snd_pcm_substream *substream)
+ /* extern void audio_hw_958_enable(unsigned flag); */
+ /* extern int kernel_android_50; */
+ 
+-static char *get_hw_buf_ptr(struct snd_pcm_runtime *runtime,
+-				snd_pcm_uframes_t cur_pos, int align)
+-{
+-	unsigned int tot_bytes_per_channel =
+-		frames_to_bytes(runtime, cur_pos) / runtime->channels;
+-	unsigned int bytes_aligned_per_channel =
+-		frames_to_bytes(runtime, align / runtime->channels);
+-	unsigned int hw_base_off =
+-		tot_bytes_per_channel / bytes_aligned_per_channel;
+-	unsigned int block_off =
+-		tot_bytes_per_channel % bytes_aligned_per_channel;
+-
+-	return runtime->dma_area +
+-		(frames_to_bytes(runtime, align) * hw_base_off) +
+-		block_off;
+-}
+-
+ static int aml_i2s_copy_playback(struct snd_pcm_runtime *runtime, int channel,
+ 				 snd_pcm_uframes_t pos,
+ 				 void __user *buf, snd_pcm_uframes_t count,
+@@ -629,32 +612,48 @@ static int aml_i2s_copy_playback(struct snd_pcm_runtime *runtime, int channel,
+ 		return -EFAULT;
+ 	if (access_ok(VERIFY_READ, buf, frames_to_bytes(runtime, count))) {
+ 		if (runtime->format == SNDRV_PCM_FORMAT_S16_LE) {
++
+ 			int16_t *tfrom, *to, *left, *right;
+ 			tfrom = (int16_t *) ubuf;
++			to = (int16_t *) hwbuf;
+ 
+-			for (j = 0; j < count; j++) {
+-				to = (int16_t *) get_hw_buf_ptr(runtime,
+-								pos + j,
+-								align);
+-				left = to;
+-				right = to + align;
+-				*left = (*tfrom++);
+-				*right = (*tfrom++);
++			left = to;
++			right = to + 16;
++			if (pos % align) {
++				pr_info("audio data unligned: pos=%d, n=%d, align=%d\n",
++				     (int)pos, n, align);
++			}
++
++			for (j = 0; j < n; j += 64) {
++				for (i = 0; i < 16; i++) {
++					*left++ = (*tfrom++);
++					*right++ = (*tfrom++);
++				}
++				left += 16;
++				right += 16;
+ 			}
+-		} else if (runtime->format == SNDRV_PCM_FORMAT_S24_LE) {
++		} else if (runtime->format == SNDRV_PCM_FORMAT_S24_LE
++			   && I2S_MODE == AIU_I2S_MODE_PCM24) {
+ 			int32_t *tfrom, *to, *left, *right;
+ 			tfrom = (int32_t *) ubuf;
++			to = (int32_t *) hwbuf;
+ 
+-			for (j = 0; j < count; j++) {
+-				to = (int32_t *) get_hw_buf_ptr(runtime,
+-								pos + j,
+-								align);
+-				left = to;
+-				right = to + align;
++			left = to;
++			right = to + 8;
+ 
+-				*left = (*tfrom++);
+-				*right = (*tfrom++);
++			if (pos % align) {
++				pr_info("audio data unaligned: pos=%d, n=%d, align=%d\n",
++				     (int)pos, n, align);
+ 			}
++			for (j = 0; j < n; j += 64) {
++				for (i = 0; i < 8; i++) {
++					*left++ = (*tfrom++);
++					*right++ = (*tfrom++);
++				}
++				left += 8;
++				right += 8;
++			}
++
+ 		} else if (runtime->format == SNDRV_PCM_FORMAT_S32_LE) {
+ 			int32_t *tfrom, *to, *left, *right;
+ 			tfrom = (int32_t *) ubuf;
+@@ -779,6 +778,8 @@ static int aml_i2s_copy_capture(struct snd_pcm_runtime *runtime, int channel,
+ 				left += 8;
+ 				right += 8;
+ 			}
++			/* clean hw buffer */
++			memset(hwbuf, 0, n * 2);
+ 		}
+ 	}
+ 	res = copy_to_user(buf, ubuf, n);
+diff --git a/sound/soc/aml/m8/aml_i2s_dai.c b/sound/soc/aml/m8/aml_i2s_dai.c
+index 7f86c32..46e1c07 100644
+--- a/sound/soc/aml/m8/aml_i2s_dai.c
++++ b/sound/soc/aml/m8/aml_i2s_dai.c
+@@ -219,19 +219,8 @@ static int aml_dai_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
+ 			       struct snd_soc_dai *dai)
+ {
+ 	struct snd_pcm_runtime *rtd = substream->runtime;
+-	struct snd_soc_pcm_runtime *prtd = substream->private_data;
+-	struct snd_soc_dai *codec_dai = prtd->codec_dai;
+ 	int *ppp = NULL;
+-	bool hdmi_out = false;
+-
+ 	ALSA_TRACE();
+-
+-	if (!strncmp(codec_dai->name, "dit-hifi", strlen("dit-hifi"))) {
+-		hdmi_out = true;
+-	} else {
+-		hdmi_out = false;
+-	}
+-
+ 	switch (cmd) {
+ 	case SNDRV_PCM_TRIGGER_START:
+ 	case SNDRV_PCM_TRIGGER_RESUME:
+@@ -240,16 +229,9 @@ static int aml_dai_i2s_trigger(struct snd_pcm_substream *substream, int cmd,
+ 		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+ 			pr_info("aiu i2s playback enable\n");
+ 			audio_out_i2s_enable(1);
+-			if (hdmi_out) {
+-				aml_audio_i2s_mute();
+-				hdmitx_audio_mute_op(1);
+-				if (IEC958_mode_codec == 0) {
+-					pr_info("audio_hw_958_enable 1\n");
+-					audio_hw_958_enable(1);
+-				}
+-			} else {
+-				aml_audio_i2s_unmute();
+-				hdmitx_audio_mute_op(0);
++			if (IEC958_mode_codec == 0) {
++				pr_info("audio_hw_958_enable 1\n");
++				audio_hw_958_enable(1);
+ 			}
+ 		} else {
+ 			audio_in_i2s_enable(1);
+-- 
+1.9.1
+

@@ -19,17 +19,17 @@
 ################################################################################
 
 PKG_NAME="chromium"
-PKG_VERSION="53.0.2785.92"
-PKG_REV="104"
+PKG_VERSION="50.0.2661.75"
+PKG_REV="101"
 PKG_ARCH="x86_64"
 PKG_LICENSE="Mixed"
 PKG_SITE="http://www.chromium.org/Home"
 PKG_URL="https://commondatastorage.googleapis.com/chromium-browser-official/$PKG_NAME-$PKG_VERSION.tar.xz"
-PKG_DEPENDS_TARGET="toolchain pciutils dbus libXcomposite libXcursor libXtst alsa-lib bzip2 yasm nss libXScrnSaver libexif ninja:host libpng harfbuzz atk gtk+ libva-vdpau-driver unclutter xdotool"
+PKG_DEPENDS_TARGET="toolchain pciutils dbus libXcomposite libXcursor libXtst alsa-lib bzip2 yasm nss libXScrnSaver libexif ninja:host libpng harfbuzz atk gtk+ libva-vdpau-driver"
 PKG_PRIORITY="optional"
 PKG_SECTION="browser"
 PKG_SHORTDESC="Chromium Browser: the open-source web browser from Google"
-PKG_LONGDESC="Chromium Browser ($PKG_VERSION): the open-source web browser from Google"
+PKG_LONGDESC="Chromium Browser: the open-source web browser from Google"
 PKG_AUTORECONF="no"
 
 PKG_IS_ADDON="yes"
@@ -45,8 +45,6 @@ pre_make_target() {
 
   # https://groups.google.com/a/chromium.org/d/topic/chromium-packagers/9JX1N2nf4PU/discussion
   touch chrome/test/data/webui/i18n_process_css_test.html
-
-  sed -i -e 's/@WIDEVINE_VERSION@/Pinkie Pie/' third_party/widevine/cdm/stub/widevine_cdm_version.h
 }
 
 make_target() {
@@ -173,10 +171,4 @@ addon() {
 
   # libva-vdpau-driver
   cp -PL $(get_build_dir libva-vdpau-driver)/.install_pkg/usr/lib/va/*.so $ADDON_BUILD/$PKG_ADDON_ID/lib
-
-  # unclutter
-  cp -P $(get_build_dir unclutter)/.install_pkg/usr/bin/unclutter $ADDON_BUILD/$PKG_ADDON_ID/bin
-
-  # xdotool
-  cp -P $(get_build_dir xdotool)/xdotool $ADDON_BUILD/$PKG_ADDON_ID/bin
 }

@@ -1,0 +1,24 @@
+From 3b981a50b29dd0e866d7f1334adba6de571d56dc Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Sun, 2 Oct 2016 20:22:28 +0800
+Subject: [PATCH] Update vformat.h
+
+---
+ include/linux/amlogic/amports/vformat.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/linux/amlogic/amports/vformat.h b/include/linux/amlogic/amports/vformat.h
+index 45f8092..e40117d 100644
+--- a/include/linux/amlogic/amports/vformat.h
++++ b/include/linux/amlogic/amports/vformat.h
+@@ -33,6 +33,7 @@ enum vformat_e {
+ 	VFORMAT_HEVC,
+ 	VFORMAT_H264_ENC,
+ 	VFORMAT_JPEG_ENC,
++	VFORMAT_VP9,
+ 	VFORMAT_MAX
+ };
+ 
+-- 
+1.9.1
+

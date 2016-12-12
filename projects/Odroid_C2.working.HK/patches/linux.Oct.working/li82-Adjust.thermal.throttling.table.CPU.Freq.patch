@@ -1,0 +1,58 @@
+From 98c8b5cd959d39735121fe4e5cc85807349cfe6e Mon Sep 17 00:00:00 2001
+From: Joy Cho <joy.cho@hardkernel.com>
+Date: Fri, 26 Aug 2016 10:36:54 +0900
+Subject: [PATCH] ODROID-C2: Adjust thermal throttling table based on new cpu
+ frequency sets
+
+Change-Id: If2e03c402a384e2bc137319842b732e42600b7fa
+---
+ arch/arm64/boot/dts/meson64_odroidc2.dts | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/meson64_odroidc2.dts b/arch/arm64/boot/dts/meson64_odroidc2.dts
+index 3534b4f..faa5aa3 100644
+--- a/arch/arm64/boot/dts/meson64_odroidc2.dts
++++ b/arch/arm64/boot/dts/meson64_odroidc2.dts
+@@ -670,22 +670,22 @@
+ 
+ 			trips {
+ 				warm: trip-point@0 {
+-					temperature = <90000>;
++					temperature = <85000>;
+ 					hysteresis = <1000>;
+ 					type = "passive";
+ 				};
+ 				control: trip-point@1 {
+-					temperature = <100000>;
++					temperature = <90000>;
+ 					hysteresis = <1000>;
+ 					type = "passive";
+ 				};
+ 				hot: trip-point@2 {
+-					temperature = <110000>;
++					temperature = <100000>;
+ 					hysteresis = <1000>;
+ 					type = "passive";
+ 				};
+ 				critical: trip-point@3 {
+-					temperature = <115000>;
++					temperature = <105000>;
+ 					hysteresis = <1000>;
+ 					type = "critical";
+ 				};
+@@ -698,13 +698,13 @@
+ 				};
+ 				cpufreq_cooling_map1 {
+ 					trip = <&hot>;
+-					cooling-device = <&cpus 3 5>;
++					cooling-device = <&cpus 3 4>;
+ 					contribution = <100>;
+ 				};
+ 
+ 				cpucore_cooling_map {
+ 					trip = <&control>;
+-					cooling-device = <&cpucore 0 3>;
++					cooling-device = <&cpucore 0 2>;
+ 					contribution = <1024>;
+ 				};
+ 				gpufreq_cooling_map0 {

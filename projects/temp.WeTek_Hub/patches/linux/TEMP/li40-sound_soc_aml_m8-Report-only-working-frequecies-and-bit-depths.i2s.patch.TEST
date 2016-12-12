@@ -1,0 +1,26 @@
+From 1e6294498438359c4ac39b2ab563487d750fbaaf Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Tue, 30 Aug 2016 23:31:29 +0200
+Subject: [PATCH] sound/soc/aml/m8: report only working frequencies and bit
+ depths for I2S
+
+---
+ sound/soc/aml/m8/aml_i2s_dai.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/sound/soc/aml/m8/aml_i2s_dai.c b/sound/soc/aml/m8/aml_i2s_dai.c
+index 3626676..d2ebad1 100644
+--- a/sound/soc/aml/m8/aml_i2s_dai.c
++++ b/sound/soc/aml/m8/aml_i2s_dai.c
+@@ -290,9 +290,8 @@ static int aml_dai_i2s_resume(struct snd_soc_dai *dai)
+ 	return 0;
+ }
+ 
+-#define AML_DAI_I2S_RATES		(SNDRV_PCM_RATE_8000_192000)
+-#define AML_DAI_I2S_FORMATS		(SNDRV_PCM_FMTBIT_S16_LE |\
+-		SNDRV_PCM_FMTBIT_S24_LE | SNDRV_PCM_FMTBIT_S32_LE)
++#define AML_DAI_I2S_RATES		SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 | SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 | SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000
++#define AML_DAI_I2S_FORMATS		SNDRV_PCM_FMTBIT_S16_LE | SNDRV_PCM_FMTBIT_S32_LE
+ 
+ static struct snd_soc_dai_ops aml_dai_i2s_ops = {
+ 	.startup = aml_dai_i2s_startup,

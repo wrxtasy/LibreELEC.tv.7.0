@@ -1,0 +1,1 @@
+make PROJECT=Odroid_C2 ARCH=aarch64 release -j8

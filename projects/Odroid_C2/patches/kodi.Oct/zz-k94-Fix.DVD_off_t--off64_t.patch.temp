@@ -1,0 +1,178 @@
+From 507bd0eb9eff889a35961db1b71eeed095ed3b50 Mon Sep 17 00:00:00 2001
+From: "Chris \"Koying\" Browet" <cbro@semperpax.com>
+Date: Sun, 25 Sep 2016 17:41:28 +0200
+Subject: [PATCH] FIX: [dvd] off_t -> off64_t
+
+---
+ lib/libdvd/libdvdcss/src/device.c                        | 14 +++++++-------
+ lib/libdvd/libdvdnav/src/vm/vm.c                         | 10 +++++-----
+ lib/libdvd/libdvdread/src/dvd_input.c                    |  8 ++++----
+ lib/libdvd/libdvdread/src/dvd_reader.c                   |  8 ++++----
+ lib/libdvd/libdvdread/src/dvdread/dvd_reader.h           |  4 ++--
+ xbmc/cores/dvdplayer/DVDInputStreams/dvdnav/dvd_reader.h |  4 ++--
+ 6 files changed, 24 insertions(+), 24 deletions(-)
+
+diff --git a/lib/libdvd/libdvdcss/src/device.c b/lib/libdvd/libdvdcss/src/device.c
+index 53d1fdf..9393dc4 100644
+--- a/lib/libdvd/libdvdcss/src/device.c
++++ b/lib/libdvd/libdvdcss/src/device.c
+@@ -698,7 +698,7 @@ static int os2_open ( dvdcss_t dvdcss, char const *psz_device )
+  *****************************************************************************/
+ static int libc_seek( dvdcss_t dvdcss, int i_blocks )
+ {
+-    off_t   i_seek;
++    off64_t   i_seek;
+ 
+     if( dvdcss->i_pos == i_blocks )
+     {
+@@ -706,8 +706,8 @@ static int libc_seek( dvdcss_t dvdcss, int i_blocks )
+         return i_blocks;
+     }
+ 
+-    i_seek = (off_t)i_blocks * (off_t)DVDCSS_BLOCK_SIZE;
+-    i_seek = lseek( dvdcss->i_read_fd, i_seek, SEEK_SET );
++    i_seek = (off64_t)i_blocks * (off64_t)DVDCSS_BLOCK_SIZE;
++    i_seek = lseek64( dvdcss->i_read_fd, i_seek, SEEK_SET );
+ 
+     if( i_seek < 0 )
+     {
+@@ -758,7 +758,7 @@ static int win2k_seek( dvdcss_t dvdcss, int i_blocks )
+       return dvdcss->i_pos;
+     }
+     else dvdcss->buffer_size = 0;
+-    
++
+ #endif
+ 
+     li_seek.QuadPart = (LONGLONG)i_blocks * DVDCSS_BLOCK_SIZE;
+@@ -813,13 +813,13 @@ static int aspi_seek( dvdcss_t dvdcss, int i_blocks )
+  *****************************************************************************/
+ static int libc_read ( dvdcss_t dvdcss, void *p_buffer, int i_blocks )
+ {
+-    off_t i_size, i_ret;
++    off64_t i_size, i_ret;
+ 
+-    i_size = (off_t)i_blocks * (off_t)DVDCSS_BLOCK_SIZE;
++    i_size = (off64_t)i_blocks * (off64_t)DVDCSS_BLOCK_SIZE;
+     i_ret = 0;
+     while( i_ret < i_size )
+     {
+-        off_t i_r;
++        off64_t i_r;
+         i_r = read( dvdcss->i_read_fd, ((char*)p_buffer) + i_ret, i_size - i_ret );
+         if( i_r < 0 )
+         {
+diff --git a/lib/libdvd/libdvdnav/src/vm/vm.c b/lib/libdvd/libdvdnav/src/vm/vm.c
+index 6040a6f..c5d1b43 100644
+--- a/lib/libdvd/libdvdnav/src/vm/vm.c
++++ b/lib/libdvd/libdvdnav/src/vm/vm.c
+@@ -164,19 +164,19 @@ static int os2_open(const char *name, int oflag)
+ 
+ static void dvd_read_name(char *name, char *serial, const char *device) {
+     /* Because we are compiling with _FILE_OFFSET_BITS=64
+-     * all off_t are 64bit.
++     * all off64_t are 64bit.
+      */
+-    off_t off;
++    off64_t off;
+     int fd, i;
+     uint8_t data[DVD_VIDEO_LB_LEN];
+ 
+     /* Read DVD name */
+     fd = open(device, O_RDONLY);
+     if (fd > 0) {
+-      off = lseek( fd, 32 * (off_t) DVD_VIDEO_LB_LEN, SEEK_SET );
+-      if( off == ( 32 * (off_t) DVD_VIDEO_LB_LEN ) ) {
++      off = lseek64( fd, 32 * (off64_t) DVD_VIDEO_LB_LEN, SEEK_SET );
++      if( off == ( 32 * (off64_t) DVD_VIDEO_LB_LEN ) ) {
+         off = read( fd, data, DVD_VIDEO_LB_LEN );
+-        if (off == ( (off_t) DVD_VIDEO_LB_LEN )) {
++        if (off == ( (off64_t) DVD_VIDEO_LB_LEN )) {
+           fprintf(MSG_OUT, "libdvdnav: DVD Title: ");
+           for(i=25; i < 73; i++ ) {
+             if((data[i] == 0)) break;
+diff --git a/lib/libdvd/libdvdread/src/dvd_input.c b/lib/libdvd/libdvdread/src/dvd_input.c
+index 7efff01..f86a5d5 100644
+--- a/lib/libdvd/libdvdread/src/dvd_input.c
++++ b/lib/libdvd/libdvdread/src/dvd_input.c
+@@ -192,9 +192,9 @@ static char *file_error(dvd_input_t dev)
+  */
+ static int file_seek(dvd_input_t dev, int blocks)
+ {
+-  off_t pos;
++  off64_t pos;
+ 
+-  pos = lseek(dev->fd, (off_t)blocks * (off_t)DVD_VIDEO_LB_LEN, SEEK_SET);
++  pos = lseek64(dev->fd, (off64_t)blocks * (off64_t)DVD_VIDEO_LB_LEN, SEEK_SET);
+   if(pos < 0) {
+       return pos;
+   }
+@@ -237,8 +237,8 @@ static int file_read(dvd_input_t dev, void *buffer, int blocks, int flags)
+       /* Nothing more to read.  Return all of the whole blocks, if any.
+        * Adjust the file position back to the previous block boundary. */
+       size_t bytes = (size_t)blocks * DVD_VIDEO_LB_LEN - len;
+-      off_t over_read = -(bytes % DVD_VIDEO_LB_LEN);
+-      /*off_t pos =*/ lseek(dev->fd, over_read, SEEK_CUR);
++      off64_t over_read = -(bytes % DVD_VIDEO_LB_LEN);
++      /*off64_t pos =*/ lseek64(dev->fd, over_read, SEEK_CUR);
+       /* should have pos % 2048 == 0 */
+       return (int) (bytes / DVD_VIDEO_LB_LEN);
+     }
+diff --git a/lib/libdvd/libdvdread/src/dvd_reader.c b/lib/libdvd/libdvdread/src/dvd_reader.c
+index 6d3c21e..e7a3a65 100644
+--- a/lib/libdvd/libdvdread/src/dvd_reader.c
++++ b/lib/libdvd/libdvdread/src/dvd_reader.c
+@@ -961,8 +961,8 @@ static int DVDFileStatVOBUDF( dvd_reader_t *dvd, int title,
+ {
+   char filename[ MAX_UDF_FILE_NAME_LEN ];
+   uint32_t size;
+-  off_t tot_size;
+-  off_t parts_size[ 9 ];
++  off64_t tot_size;
++  off64_t parts_size[ 9 ];
+   int nr_parts = 0;
+   int n;
+ 
+@@ -1007,8 +1007,8 @@ static int DVDFileStatVOBPath( dvd_reader_t *dvd, int title,
+   char filename[ MAX_UDF_FILE_NAME_LEN ];
+   char full_path[ PATH_MAX + 1 ];
+   struct stat fileinfo;
+-  off_t tot_size;
+-  off_t parts_size[ 9 ];
++  off64_t tot_size;
++  off64_t parts_size[ 9 ];
+   int nr_parts = 0;
+   int n;
+ 
+diff --git a/lib/libdvd/libdvdread/src/dvdread/dvd_reader.h b/lib/libdvd/libdvdread/src/dvdread/dvd_reader.h
+index 3fecdcc..038d435 100644
+--- a/lib/libdvd/libdvdread/src/dvdread/dvd_reader.h
++++ b/lib/libdvd/libdvdread/src/dvdread/dvd_reader.h
+@@ -73,9 +73,9 @@ typedef struct dvd_file_s dvd_file_t;
+  * Public type that is used to provide statistics on a handle.
+  */
+ typedef struct {
+-  off_t size;          /**< Total size of file in bytes */
++  off64_t size;          /**< Total size of file in bytes */
+   int nr_parts;        /**< Number of file parts */
+-  off_t parts_size[9]; /**< Size of each part in bytes */
++  off64_t parts_size[9]; /**< Size of each part in bytes */
+ } dvd_stat_t;
+ 
+ /**
+diff --git a/xbmc/cores/dvdplayer/DVDInputStreams/dvdnav/dvd_reader.h b/xbmc/cores/dvdplayer/DVDInputStreams/dvdnav/dvd_reader.h
+index c702a15..7a77b72 100644
+--- a/xbmc/cores/dvdplayer/DVDInputStreams/dvdnav/dvd_reader.h
++++ b/xbmc/cores/dvdplayer/DVDInputStreams/dvdnav/dvd_reader.h
+@@ -73,9 +73,9 @@ typedef struct dvd_file_s dvd_file_t;
+  * Public type that is used to provide statistics on a handle.
+  */
+ typedef struct {
+-  off_t size;          /**< Total size of file in bytes */
++  off64_t size;          /**< Total size of file in bytes */
+   int nr_parts;        /**< Number of file parts */
+-  off_t parts_size[9]; /**< Size of each part in bytes */
++  off64_t parts_size[9]; /**< Size of each part in bytes */
+ } dvd_stat_t;
+ 
+ /**

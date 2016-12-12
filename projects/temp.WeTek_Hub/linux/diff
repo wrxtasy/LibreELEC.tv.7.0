@@ -1,0 +1,67 @@
+--- linux.aarch64.conf	2016-10-06 17:01:36.943042000 +0800
++++ linux.aarch64.conf.play2	2016-10-06 17:07:11.599042000 +0800
+@@ -263,7 +263,7 @@
+ #
+ # Platform selection
+ #
+-# CONFIG_ARCH_VEXPRESS is not set
++CONFIG_ARCH_VEXPRESS=y
+ # CONFIG_ARCH_XGENE is not set
+ # CONFIG_ARCH_MESON64_ODROIDC2 is not set
+ 
+@@ -968,7 +968,7 @@
+ #
+ # key management Support
+ #
+-# CONFIG_KEY_MANAGE is not set
++CONFIG_KEY_MANAGE=y
+ 
+ #
+ # Audio Interface
+@@ -1021,7 +1021,6 @@
+ 
+ #
+ # Amlogic TVIN Drivers
+-#
+ CONFIG_TVIN=y
+ # CONFIG_TVIN_VDIN is not set
+ # CONFIG_TVIN_AFE is not set
+@@ -1055,17 +1054,9 @@
+ CONFIG_GXBB_SUSPEND=y
+ 
+ #
+-# Amlogic DVB driver
+-#
+-# CONFIG_AM_DVB is not set
+-# CONFIG_AM_ATVDEMOD is not set
+-
+-#
+-# AMLOGIC CI Driver
++# WetekPlay driver
+ #
+-# CONFIG_AM_PCMCIA is not set
+-# CONFIG_AM_IOBUS is not set
+-# CONFIG_AML_SMARTCARD is not set
++CONFIG_AM_DVB=y
+ 
+ #
+ # MESON MHU mailbox Support
+@@ -2665,8 +2656,7 @@
+ # CONFIG_SND_DESIGNWARE_I2S is not set
+ CONFIG_SND_AML_M8_SOC=y
+ CONFIG_SND_AML_M8=y
+-CONFIG_SND_AML_SPLIT_MODE=y
+-# CONFIG_SND_AML_SPLIT_MODE_MMAP is not set
++# CONFIG_SND_AML_SPLIT_MODE is not set
+ CONFIG_SND_SOC_I2C_AND_SPI=y
+ CONFIG_SND_SOC_DUMMY_CODEC=y
+ CONFIG_SND_SOC_TAS5707=y
+@@ -3534,7 +3524,7 @@
+ CONFIG_PRINTK_TIME=y
+ CONFIG_DEFAULT_MESSAGE_LOGLEVEL=4
+ # CONFIG_BOOT_PRINTK_DELAY is not set
+-# CONFIG_DYNAMIC_DEBUG is not set
++CONFIG_DYNAMIC_DEBUG=y
+ 
+ #
+ # Compile-time checks and compiler options

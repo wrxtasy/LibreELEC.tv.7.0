@@ -1,0 +1,191 @@
+From 2f7ad1642c314cba5e7817a37d41dd87564df81d Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Sat, 27 Aug 2016 18:21:47 +0200
+Subject: [PATCH] drivers/amlogic/wifi: Increase SURVEY_TO value to 150ms
+
+Reference: https://github.com/LibreELEC/LibreELEC.tv/pull/654
+---
+ drivers/amlogic/wifi/rtl8189ES/include/rtw_mlme_ext.h  | 2 +-
+ drivers/amlogic/wifi/rtl8189FS/include/rtw_mlme_ext.h  | 2 +-
+ drivers/amlogic/wifi/rtl8192ES/include/rtw_mlme_ext.h  | 2 +-
+ drivers/amlogic/wifi/rtl8192EU/include/rtw_mlme_ext.h  | 2 +-
+ drivers/amlogic/wifi/rtl8723AU/include/rtw_mlme_ext.h  | 2 +-
+ drivers/amlogic/wifi/rtl8723BS/include/rtw_mlme_ext.h  | 2 +-
+ drivers/amlogic/wifi/rtl8723BU/include/rtw_mlme_ext.h  | 2 +-
+ drivers/amlogic/wifi/rtl8811AU/include/rtw_mlme_ext.h  | 2 +-
+ drivers/amlogic/wifi/rtl8812AU/include/rtw_mlme_ext.h  | 2 +-
+ drivers/amlogic/wifi/rtl8822BU/include/rtw_mlme_ext.h  | 2 +-
+ drivers/amlogic/wifi/rtl8xxx_CU/include/rtw_mlme_ext.h | 2 +-
+ drivers/amlogic/wifi/rtl8xxx_DU/include/rtw_mlme_ext.h | 2 +-
+ drivers/amlogic/wifi/rtl8xxx_EU/include/rtw_mlme_ext.h | 2 +-
+ 13 files changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/amlogic/wifi/rtl8189ES/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8189ES/include/rtw_mlme_ext.h
+index 198d147..d21017f 100644
+--- a/drivers/amlogic/wifi/rtl8189ES/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8189ES/include/rtw_mlme_ext.h
+@@ -27,7 +27,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8189FS/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8189FS/include/rtw_mlme_ext.h
+index 85795bc..953912e 100644
+--- a/drivers/amlogic/wifi/rtl8189FS/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8189FS/include/rtw_mlme_ext.h
+@@ -27,7 +27,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8192ES/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8192ES/include/rtw_mlme_ext.h
+index aaa5e93..9ab36a3 100644
+--- a/drivers/amlogic/wifi/rtl8192ES/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8192ES/include/rtw_mlme_ext.h
+@@ -27,7 +27,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8192EU/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8192EU/include/rtw_mlme_ext.h
+index 91f9001..4359333 100644
+--- a/drivers/amlogic/wifi/rtl8192EU/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8192EU/include/rtw_mlme_ext.h
+@@ -27,7 +27,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8723AU/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8723AU/include/rtw_mlme_ext.h
+index a475773..8eb30b3 100755
+--- a/drivers/amlogic/wifi/rtl8723AU/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8723AU/include/rtw_mlme_ext.h
+@@ -32,7 +32,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8723BS/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8723BS/include/rtw_mlme_ext.h
+index f8fd112..f961080 100755
+--- a/drivers/amlogic/wifi/rtl8723BS/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8723BS/include/rtw_mlme_ext.h
+@@ -27,7 +27,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8723BU/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8723BU/include/rtw_mlme_ext.h
+index d0f0981..e90a673e 100755
+--- a/drivers/amlogic/wifi/rtl8723BU/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8723BU/include/rtw_mlme_ext.h
+@@ -27,7 +27,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8811AU/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8811AU/include/rtw_mlme_ext.h
+index d309605..eb15c95 100644
+--- a/drivers/amlogic/wifi/rtl8811AU/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8811AU/include/rtw_mlme_ext.h
+@@ -27,7 +27,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8812AU/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8812AU/include/rtw_mlme_ext.h
+index e4357a5..baaeb04 100755
+--- a/drivers/amlogic/wifi/rtl8812AU/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8812AU/include/rtw_mlme_ext.h
+@@ -27,7 +27,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8822BU/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8822BU/include/rtw_mlme_ext.h
+index 1b476775..58a7129 100755
+--- a/drivers/amlogic/wifi/rtl8822BU/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8822BU/include/rtw_mlme_ext.h
+@@ -27,7 +27,7 @@
+  *	So, this driver tried to extend the dwell time for each scanning channel.
+  *	This will increase the chance to receive the probe response from SoftAP. */
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) /* (50) */
+ #define REASSOC_TO		(300) /* (50)
+  * #define DISCONNECT_TO	(3000) */
+diff --git a/drivers/amlogic/wifi/rtl8xxx_CU/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8xxx_CU/include/rtw_mlme_ext.h
+index 5c50ae2..09bb24b 100755
+--- a/drivers/amlogic/wifi/rtl8xxx_CU/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8xxx_CU/include/rtw_mlme_ext.h
+@@ -32,7 +32,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8xxx_DU/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8xxx_DU/include/rtw_mlme_ext.h
+index d989f50..c581da1 100755
+--- a/drivers/amlogic/wifi/rtl8xxx_DU/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8xxx_DU/include/rtw_mlme_ext.h
+@@ -32,7 +32,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)
+diff --git a/drivers/amlogic/wifi/rtl8xxx_EU/include/rtw_mlme_ext.h b/drivers/amlogic/wifi/rtl8xxx_EU/include/rtw_mlme_ext.h
+index e5a48c9..a7c2f66 100755
+--- a/drivers/amlogic/wifi/rtl8xxx_EU/include/rtw_mlme_ext.h
++++ b/drivers/amlogic/wifi/rtl8xxx_EU/include/rtw_mlme_ext.h
+@@ -27,7 +27,7 @@
+ //	So, this driver tried to extend the dwell time for each scanning channel.
+ //	This will increase the chance to receive the probe response from SoftAP.
+ 
+-#define SURVEY_TO		(100)
++#define SURVEY_TO		(150)
+ #define REAUTH_TO		(300) //(50)
+ #define REASSOC_TO		(300) //(50)
+ //#define DISCONNECT_TO	(3000)

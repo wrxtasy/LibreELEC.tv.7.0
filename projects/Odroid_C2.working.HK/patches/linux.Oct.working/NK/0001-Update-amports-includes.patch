@@ -1,0 +1,300 @@
+From 23d9b5a6b884e340f81614967c2768ea2f8fc979 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Sun, 2 Oct 2016 20:59:40 +0800
+Subject: [PATCH] Update: amports includes
+
+---
+ include/linux/amlogic/amports/amstream.h        |  3 +-
+ include/linux/amlogic/amports/jpegdec.h         | 55 ++++++++++++++++----
+ include/linux/amlogic/amports/vframe.h          | 69 +++++++++++++++++++++++--
+ include/linux/amlogic/amports/vframe_provider.h |  2 +
+ include/linux/amlogic/amports/vframe_receiver.h |  2 +
+ include/linux/amlogic/amports/video.h           |  4 ++
+ 6 files changed, 122 insertions(+), 13 deletions(-)
+
+diff --git a/include/linux/amlogic/amports/amstream.h b/include/linux/amlogic/amports/amstream.h
+index 8a99ad3..be43930 100644
+--- a/include/linux/amlogic/amports/amstream.h
++++ b/include/linux/amlogic/amports/amstream.h
+@@ -103,6 +103,7 @@
+ /* VPP.3D IOCTL command list^M */
+ #define  AMSTREAM_IOC_SET_3D_TYPE  _IOW((_A_M), 0x3c, unsigned int)
+ #define  AMSTREAM_IOC_GET_3D_TYPE  _IOW((_A_M), 0x3d, unsigned int)
++#define  AMSTREAM_IOC_GET_SOURCE_VIDEO_3D_TYPE  _IOW((_A_M), 0x3e, unsigned int)
+ 
+ #define AMSTREAM_IOC_SUB_NUM	_IOR((_A_M), 0x50, int)
+ #define AMSTREAM_IOC_SUB_INFO	_IOR((_A_M), 0x51, int)
+@@ -483,7 +484,7 @@ struct am_ioctl_parm_ptr {
+ };
+ 
+ 
+-#define SUPPORT_VDEC_NUM	(10)
++#define SUPPORT_VDEC_NUM	(20)
+ int vcodec_profile_register(const struct codec_profile_t *vdec_profile);
+ ssize_t vcodec_profile_read(char *buf);
+ 
+diff --git a/include/linux/amlogic/amports/jpegdec.h b/include/linux/amlogic/amports/jpegdec.h
+index 9fe0cdb..5d1917e 100644
+--- a/include/linux/amlogic/amports/jpegdec.h
++++ b/include/linux/amlogic/amports/jpegdec.h
+@@ -18,13 +18,6 @@
+ #ifndef JPEGDEC_H
+ #define JPEGDEC_H
+ 
+-#define JPEGDEC_IOC_MAGIC  'J'
+-
+-#define JPEGDEC_IOC_INFOCONFIG	_IOW(JPEGDEC_IOC_MAGIC, 0x00, unsigned int)
+-#define JPEGDEC_IOC_DECCONFIG	_IOW(JPEGDEC_IOC_MAGIC, 0x01, unsigned int)
+-#define JPEGDEC_IOC_INFO _IOW(JPEGDEC_IOC_MAGIC, 0x02, unsigned int)
+-#define JPEGDEC_IOC_STAT _IOW(JPEGDEC_IOC_MAGIC, 0x03, unsigned int)
+-#define JPEGDEC_G_MEM_INFO _IOW(JPEGDEC_IOC_MAGIC, 0x04, unsigned int)
+ 
+ #define JPEGDEC_OPT_THUMBNAIL_ONLY		0x01
+ #define JPEGDEC_OPT_THUMBNAIL_PREFERED	0x02
+@@ -42,6 +35,7 @@
+ #define JPEGDEC_STAT_UNSUPPORT			0x10
+ #define JPEGDEC_STAT_INFO_READY			0x20
+ #define JPEGDEC_STAT_DONE				0x40
++
+ enum jpegdec_angle_e {
+ 	CLKWISE_0 = 0,
+ 	CLKWISE_90 = 1,
+@@ -77,9 +71,52 @@ struct jpegdec_config_s {
+ 
+ 	unsigned dec_h;
+ 
+-	jpegdec_angle_t angle;
++	enum jpegdec_angle_e angle;
+ };
+ 
++struct compat_jpegdec_config_s {
++
++	compat_uptr_t addr_y;
++
++	compat_uptr_t addr_u;
++
++	compat_uptr_t addr_v;
++
++	unsigned canvas_width;
++
++	unsigned opt;
++
++	unsigned src_crop_x;
++
++	unsigned src_crop_y;
++
++	unsigned src_crop_w;
++
++	unsigned src_crop_h;
++
++	unsigned dec_x;
++
++	unsigned dec_y;
++
++	unsigned dec_w;
++
++	unsigned dec_h;
++
++	enum jpegdec_angle_e angle;
++};
++
++#define JPEGDEC_IOC_MAGIC  'J'
++
++#define JPEGDEC_IOC_INFOCONFIG	_IOW(JPEGDEC_IOC_MAGIC, 0x00, unsigned int)
++#define JPEGDEC_IOC_DECCONFIG	\
++	_IOW(JPEGDEC_IOC_MAGIC, 0x01, struct jpegdec_config_s)
++#define JPEGDEC_IOC_DECCONFIG32	 \
++	_IOW(JPEGDEC_IOC_MAGIC, 0x01, struct compat_jpegdec_config_s)
++#define JPEGDEC_IOC_INFO _IOW(JPEGDEC_IOC_MAGIC, 0x02, unsigned int)
++#define JPEGDEC_IOC_STAT _IOW(JPEGDEC_IOC_MAGIC, 0x03, unsigned int)
++#define JPEGDEC_G_MEM_INFO _IOW(JPEGDEC_IOC_MAGIC, 0x04, unsigned int)
++
++
+ struct jpegdec_info_s {
+ 
+ 	unsigned width;
+@@ -93,7 +130,7 @@ struct jpegdec_info_s {
+ 
+ struct jpegdec_mem_info_s {
+ 
+-	jpegdec_angle_t angle;
++	enum jpegdec_angle_e angle;
+ 
+ 	unsigned dec_w;
+ 
+diff --git a/include/linux/amlogic/amports/vframe.h b/include/linux/amlogic/amports/vframe.h
+index a65b526..af69132 100644
+--- a/include/linux/amlogic/amports/vframe.h
++++ b/include/linux/amlogic/amports/vframe.h
+@@ -41,7 +41,7 @@
+ #define VIDTYPE_PRE_INTERLACE           0x40000
+ #define VIDTYPE_HIGHRUN                 0x80000
+ #define VIDTYPE_COMPRESS                0x100000
+-#define VIDTYPE_PIC	 	                0x200000
++#define VIDTYPE_PIC		                0x200000
+ 
+ #define DISP_RATIO_FORCECONFIG          0x80000000
+ #define DISP_RATIO_FORCE_NORMALWIDE     0x40000000
+@@ -77,6 +77,14 @@ struct vframe_hist_s {
+ 	unsigned char luma_max;
+ 	unsigned char luma_min;
+ 	unsigned short gamma[64];
++	unsigned int vpp_luma_sum;/*vpp hist info*/
++	unsigned int vpp_chroma_sum;
++	unsigned int vpp_pixel_sum;
++	unsigned int vpp_height;
++	unsigned int vpp_width;
++	unsigned char vpp_luma_max;
++	unsigned char vpp_luma_min;
++	unsigned short vpp_gamma[64];
+ #ifdef AML_LOCAL_DIMMING
+ 	unsigned int ldim_max[100];
+ #endif
+@@ -114,13 +122,37 @@ struct vframe_view_s {
+ 	unsigned int height;
+ } /*vframe_view_t */;
+ 
++struct vframe_master_display_colour_s {
++	u32 present_flag;
++	u32 primaries[3][2];
++	u32 white_point[2];
++	u32 luminance[2];
++}; /* master_display_colour_info_volume from SEI */
++
+ /* vframe properties */
+ struct vframe_prop_s {
+ 	struct vframe_hist_s hist;
+ 	struct vframe_bbar_s bbar;
+ 	struct vframe_meas_s meas;
++	struct vframe_master_display_colour_s
++		master_display_colour;
+ } /*vframe_prop_t */;
+ 
++struct vdisplay_info_s {
++	u32 frame_hd_start_lines_;
++	u32 frame_hd_end_lines_;
++	u32 frame_vd_start_lines_;
++	u32 frame_vd_end_lines_;
++	u32 display_vsc_startp;
++	u32 display_vsc_endp;
++	u32 display_hsc_startp;
++	u32 display_hsc_endp;
++	u32 screen_vd_v_start_;
++	u32 screen_vd_v_end_;
++	u32 screen_vd_h_start_;
++	u32 screen_vd_h_end_;
++};
++
+ enum vframe_source_type_e {
+ 	VFRAME_SOURCE_TYPE_OTHERS = 0,
+ 	VFRAME_SOURCE_TYPE_TUNER,
+@@ -165,11 +197,12 @@ enum vframe_secam_phase_e {
+ 
+ #define BITDEPTH_MASK (BITDEPTH_YMASK | BITDEPTH_UMASK | BITDEPTH_VMASK)
+ #define BITDEPTH_SAVING_MODE	0x1
+-
++#define FULL_PACK_422_MODE		0x2
+ struct vframe_s {
+ 	u32 index;
+ 	u32 type;
+ 	u32 type_backup;
++	u32 type_original;
+ 	u32 blend_mode;
+ 	u32 duration;
+ 	u32 duration_pulldown;
+@@ -179,13 +212,39 @@ struct vframe_s {
+ 
+ 	u32 canvas0Addr;
+ 	u32 canvas1Addr;
++	u32 compHeadAddr;
++	u32 compBodyAddr;
+ 
+ 	u32 bufWidth;
+ 	u32 width;
+ 	u32 height;
++	u32 compWidth;
++	u32 compHeight;
+ 	u32 ratio_control;
+ 	u32 bitdepth;
+-
++	u32 signal_type;
++	/*
++		bit 29: present_flag
++		bit 28-26: video_format
++			"component", "PAL", "NTSC", "SECAM",
++			"MAC", "unspecified"
++		bit 25: range "limited", "full_range"
++		bit 24: color_description_present_flag
++		bit 23-16: color_primaries
++			"unknown", "bt709", "undef", "bt601",
++			"bt470m", "bt470bg", "smpte170m", "smpte240m",
++			"film", "bt2020"
++		bit 15-8: transfer_characteristic
++			"unknown", "bt709", "undef", "bt601",
++			"bt470m", "bt470bg", "smpte170m", "smpte240m",
++			"linear", "log100", "log316", "iec61966-2-4",
++			"bt1361e", "iec61966-2-1", "bt2020-10", "bt2020-12",
++			"smpte-st-2084", "smpte-st-428"
++		bit 7-0: matrix_coefficient
++			"GBR", "bt709", "undef", "bt601",
++			"fcc", "bt470bg", "smpte170m", "smpte240m",
++			"YCgCo", "bt2020nc", "bt2020c"
++	*/
+ 	u32 orientation;
+ 	u32 video_angle;
+ 	enum vframe_source_type_e source_type;
+@@ -216,6 +275,10 @@ struct vframe_s {
+ 	u64 ready_jiffies64;	/* ready from decode on  jiffies_64 */
+ 	atomic_t use_cnt;
+ 	u32 frame_dirty;
++	/* prog_proc_config:
++	 *1: process p from decoder as filed;
++	 *0: process p from decoder as frame*/
++	u32 prog_proc_config;
+ } /*vframe_t */;
+ 
+ #if 0
+diff --git a/include/linux/amlogic/amports/vframe_provider.h b/include/linux/amlogic/amports/vframe_provider.h
+index 159bd6e..dc623a6 100644
+--- a/include/linux/amlogic/amports/vframe_provider.h
++++ b/include/linux/amlogic/amports/vframe_provider.h
+@@ -51,6 +51,8 @@ struct vframe_provider_s {
+ 	const struct vframe_operations_s *ops;
+ 	void *op_arg;
+ 	struct list_head list;
++	void *traceget;
++	void *traceput;
+ } /*vframe_provider_t */;
+ 
+ extern struct vframe_provider_s *vf_provider_alloc(void);
+diff --git a/include/linux/amlogic/amports/vframe_receiver.h b/include/linux/amlogic/amports/vframe_receiver.h
+index 478cd26..3ae3120 100644
+--- a/include/linux/amlogic/amports/vframe_receiver.h
++++ b/include/linux/amlogic/amports/vframe_receiver.h
+@@ -38,6 +38,8 @@
+ #define VFRAME_EVENT_PROVIDER_SET_3D_VFRAME_INTERLEAVE         12
+ #define VFRAME_EVENT_PROVIDER_FR_HINT                          13
+ #define VFRAME_EVENT_PROVIDER_FR_END_HINT                      14
++#define VFRAME_EVENT_PROVIDER_QUREY_DISPLAY_INFO    15
++
+ 
+ enum receviver_start_e {
+ 	RECEIVER_STATE_NULL = -1,
+diff --git a/include/linux/amlogic/amports/video.h b/include/linux/amlogic/amports/video.h
+index 0411e66..3d91272 100644
+--- a/include/linux/amlogic/amports/video.h
++++ b/include/linux/amlogic/amports/video.h
+@@ -26,6 +26,10 @@ int RDMA_SET_READ(u32 adr);
+ #endif
+ 
+ void try_free_keep_video(void);
++void vh265_free_cmabuf(void);
++void vh264_4k_free_cmabuf(void);
++void vdec_free_cmabuf(void);
++
+ 
+ #endif
+ 
+-- 
+1.9.1
+

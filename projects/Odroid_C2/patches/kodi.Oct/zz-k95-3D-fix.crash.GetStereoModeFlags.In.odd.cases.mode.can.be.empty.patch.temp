@@ -1,0 +1,66 @@
+From 767662e02d3cfb10f6aa1b9f762322a78647908d Mon Sep 17 00:00:00 2001
+From: "S. Davilla" <davilla@4pi.com>
+Date: Sat, 3 Sep 2016 12:29:36 -0400
+Subject: [PATCH] fixed crash, GetStereoModeFlags. In odd cases, mode can be
+ empty
+
+---
+ xbmc/cores/VideoRenderers/RenderFlags.cpp | 43 +++++++++++++++++--------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/xbmc/cores/VideoRenderers/RenderFlags.cpp b/xbmc/cores/VideoRenderers/RenderFlags.cpp
+index 809766a..d5da77c 100644
+--- a/xbmc/cores/VideoRenderers/RenderFlags.cpp
++++ b/xbmc/cores/VideoRenderers/RenderFlags.cpp
+@@ -85,27 +85,32 @@ namespace RenderManager {
+ 
+   unsigned int GetStereoModeFlags(const std::string& mode)
+   {
+-    static std::map<std::string, unsigned int> convert;
+-    if(convert.empty())
++    if (!mode.empty())
+     {
+-      convert["mono"]                   = 0u;
+-      convert["left_right"]             = CONF_FLAGS_STEREO_MODE_SBS | CONF_FLAGS_STEREO_CADANCE_LEFT_RIGHT;
+-      convert["bottom_top"]             = CONF_FLAGS_STEREO_MODE_TAB | CONF_FLAGS_STEREO_CADANCE_RIGHT_LEFT;
+-      convert["top_bottom"]             = CONF_FLAGS_STEREO_MODE_TAB | CONF_FLAGS_STEREO_CADANCE_LEFT_RIGHT;
+-      convert["checkerboard_rl"]        = 0u;
+-      convert["checkerboard_lr"]        = 0u;
+-      convert["row_interleaved_rl"]     = 0u;
+-      convert["row_interleaved_lr"]     = 0u;
+-      convert["col_interleaved_rl"]     = 0u;
+-      convert["col_interleaved_lr"]     = 0u;
+-      convert["anaglyph_cyan_red"]      = 0u;
+-      convert["right_left"]             = CONF_FLAGS_STEREO_MODE_SBS | CONF_FLAGS_STEREO_CADANCE_RIGHT_LEFT;
+-      convert["anaglyph_green_magenta"] = 0u;
+-      convert["anaglyph_yellow_blue"]   = 0u;
+-      convert["block_lr"]               = 0u;
+-      convert["block_rl"]               = 0u;
++      static std::map<std::string, unsigned int> convert;
++      if(convert.empty())
++      {
++        convert["mono"]                   = 0u;
++        convert["left_right"]             = CONF_FLAGS_STEREO_MODE_SBS | CONF_FLAGS_STEREO_CADANCE_LEFT_RIGHT;
++        convert["bottom_top"]             = CONF_FLAGS_STEREO_MODE_TAB | CONF_FLAGS_STEREO_CADANCE_RIGHT_LEFT;
++        convert["top_bottom"]             = CONF_FLAGS_STEREO_MODE_TAB | CONF_FLAGS_STEREO_CADANCE_LEFT_RIGHT;
++        convert["checkerboard_rl"]        = 0u;
++        convert["checkerboard_lr"]        = 0u;
++        convert["row_interleaved_rl"]     = 0u;
++        convert["row_interleaved_lr"]     = 0u;
++        convert["col_interleaved_rl"]     = 0u;
++        convert["col_interleaved_lr"]     = 0u;
++        convert["anaglyph_cyan_red"]      = 0u;
++        convert["right_left"]             = CONF_FLAGS_STEREO_MODE_SBS | CONF_FLAGS_STEREO_CADANCE_RIGHT_LEFT;
++        convert["anaglyph_green_magenta"] = 0u;
++        convert["anaglyph_yellow_blue"]   = 0u;
++        convert["block_lr"]               = 0u;
++        convert["block_rl"]               = 0u;
++      }
++      return convert[mode];
+     }
+-    return convert[mode];
++    else
++      return 0u;
+   }
+ 
+   std::string GetStereoModeInvert(const std::string& mode)

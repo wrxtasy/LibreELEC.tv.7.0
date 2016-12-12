@@ -1,0 +1,115 @@
+From 7e0aef0d72dc26708ada0e54dc89281efddd6ee8 Mon Sep 17 00:00:00 2001
+From: Joy Cho <joy.cho@hardkernel.com>
+Date: Thu, 30 Jun 2016 19:12:31 +0900
+Subject: [PATCH] ODROID-C2: Support hdmi phy control using osd blank ioctl
+
+1. control with env 'monitor_onoff' in boot.ini
+2. blank_mode
+  - FB_BLANK_POWERDOWN - hdmi phy off
+  - FB_BLANK_UNBLANK - hdmi phy on
+
+Change-Id: I025c573ef5e32615500665073a91bbd92400509c
+---
+ drivers/amlogic/display/osd/osd_fb.c           | 39 ++++++++++++++++++++++++++
+ drivers/amlogic/display/osd/osd_fb.h           |  4 +++
+ drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c | 10 +++++++
+ 3 files changed, 53 insertions(+)
+
+diff --git a/drivers/amlogic/display/osd/osd_fb.c b/drivers/amlogic/display/osd/osd_fb.c
+index 2172f1a..6d26127 100644
+--- a/drivers/amlogic/display/osd/osd_fb.c
++++ b/drivers/amlogic/display/osd/osd_fb.c
+@@ -275,6 +275,10 @@ static struct fb_fix_screeninfo fb_def_fix = {
+ 	.accel      = FB_ACCEL_NONE,
+ };
+ 
++#if defined(CONFIG_ARCH_MESON64_ODROIDC2)
++static int monitor_onoff_flag;
++#endif
++
+ #ifdef CONFIG_HAS_EARLYSUSPEND
+ #include <linux/earlysuspend.h>
+ static struct early_suspend early_suspend;
+@@ -1070,6 +1074,28 @@ static int osd_open(struct fb_info *info, int arg)
+ int osd_blank(int blank_mode, struct fb_info *info)
+ {
+ 	osd_enable_hw(info->node, (blank_mode != 0) ? 0 : 1);
++#if defined(CONFIG_ARCH_MESON64_ODROIDC2)
++	if (!monitor_onoff_flag)
++		return 0;
++
++	switch (blank_mode) {
++	/* Display: On; HSync: On, VSync: On */
++	case FB_BLANK_UNBLANK:
++		control_hdmiphy(1);
++		break;
++	/* Display: Off; HSync: Off, VSync: Off */
++	case FB_BLANK_POWERDOWN:
++		control_hdmiphy(0);
++		break;
++	/* Display: Off; HSync: On, VSync: On */
++	case FB_BLANK_NORMAL:
++	/* Display: Off; HSync: Off, VSync: On */
++	case FB_BLANK_HSYNC_SUSPEND:
++	/* Display: Off; HSync: On, VSync: Off */
++	case FB_BLANK_VSYNC_SUSPEND:
++		break;
++	}
++#endif
+ 	return 0;
+ }
+ 
+@@ -2099,6 +2125,19 @@ static inline int install_osd_reverse_info(struct osd_info_s *init_osd_info,
+ 	return 0;
+ }
+ 
++#if defined(CONFIG_ARCH_MESON64_ODROIDC2)
++static int __init osd_setup_monitor_onoff(char *str)
++{
++	if (!strcmp(str, "true") || !strcmp(str, "1"))
++		monitor_onoff_flag = 1;
++	else
++		monitor_onoff_flag = 0;
++
++	return 0;
++}
++__setup("monitor_onoff=", osd_setup_monitor_onoff);
++#endif
++
+ static int __init osd_info_setup(char *str)
+ {
+ 	char	*ptr = str;
+diff --git a/drivers/amlogic/display/osd/osd_fb.h b/drivers/amlogic/display/osd/osd_fb.h
+index f463f95..ce0e97e 100644
+--- a/drivers/amlogic/display/osd/osd_fb.h
++++ b/drivers/amlogic/display/osd/osd_fb.h
+@@ -78,4 +78,8 @@ extern int (*disp_get_ump_secure_id) (struct fb_info *info,
+ #define GET_UMP_SECURE_ID_BUF1 _IOWR('m', 311, unsigned int)
+ #define GET_UMP_SECURE_ID_BUF2 _IOWR('m', 312, unsigned int)
+ #endif
++
++#if defined(CONFIG_ARCH_MESON64_ODROIDC2)
++extern void control_hdmiphy(int on);
++#endif
+ #endif
+diff --git a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+index 57105b6..ab27895 100644
+--- a/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
++++ b/drivers/amlogic/hdmi/hdmi_tx_20/hdmi_tx_main.c
+@@ -221,6 +221,16 @@ static int hdmi_detect_when_booting = 1;
+ /* 1: error  2: important  3: normal  4: detailed */
+ static int debug_level = IMP;
+ 
++void control_hdmiphy(int on)
++{
++	if (on)
++		hdmitx_device.HWOp.CntlMisc(&hdmitx_device, MISC_TMDS_PHY_OP,
++			TMDS_PHY_ENABLE);
++	else
++		hdmitx_device.HWOp.CntlMisc(&hdmitx_device, MISC_TMDS_PHY_OP,
++			TMDS_PHY_DISABLE);
++}
++
+ /*****************************
+ *	hdmitx attr management :
+ *	enable

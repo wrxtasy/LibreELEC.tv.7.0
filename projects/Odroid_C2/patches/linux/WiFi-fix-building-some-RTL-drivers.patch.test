@@ -1,0 +1,129 @@
+From b6c95f15b8f8d1cce2e2242a3c784175b624753a Mon Sep 17 00:00:00 2001
+From: kszaq <kszaquitto@gmail.com>
+Date: Mon, 6 Jun 2016 23:15:34 +0200
+Subject: [PATCH] drivers/amlogic/wifi: fix building some Realtek drivers
+
+---
+ drivers/amlogic/wifi/rtl8723AU/core/rtw_br_ext.c  | 1 +
+ drivers/amlogic/wifi/rtl8723BU/core/rtw_br_ext.c  | 1 +
+ drivers/amlogic/wifi/rtl8723BU/core/rtw_debug.c   | 2 +-
+ drivers/amlogic/wifi/rtl8811AU/core/rtw_br_ext.c  | 1 +
+ drivers/amlogic/wifi/rtl8811AU/core/rtw_debug.c   | 2 +-
+ drivers/amlogic/wifi/rtl8xxx_CU/core/rtw_br_ext.c | 1 +
+ drivers/amlogic/wifi/rtl8xxx_CU/core/rtw_debug.c  | 2 +-
+ drivers/amlogic/wifi/rtl8xxx_DU/core/rtw_br_ext.c | 1 +
+ drivers/amlogic/wifi/rtl8xxx_DU/core/rtw_debug.c  | 2 +-
+ 9 files changed, 9 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/amlogic/wifi/rtl8723AU/core/rtw_br_ext.c b/drivers/amlogic/wifi/rtl8723AU/core/rtw_br_ext.c
+index 44ff827..d71b3ba 100755
+--- a/drivers/amlogic/wifi/rtl8723AU/core/rtw_br_ext.c
++++ b/drivers/amlogic/wifi/rtl8723AU/core/rtw_br_ext.c
+@@ -19,6 +19,7 @@
+  ******************************************************************************/
+ #define _RTW_BR_EXT_C_
+ 
++#include <net/ip6_checksum.h>
+ #ifdef __KERNEL__
+ #include <linux/if_arp.h>
+ #include <net/ip.h>
+diff --git a/drivers/amlogic/wifi/rtl8723BU/core/rtw_br_ext.c b/drivers/amlogic/wifi/rtl8723BU/core/rtw_br_ext.c
+index 88a517a..827095a 100755
+--- a/drivers/amlogic/wifi/rtl8723BU/core/rtw_br_ext.c
++++ b/drivers/amlogic/wifi/rtl8723BU/core/rtw_br_ext.c
+@@ -19,6 +19,7 @@
+  ******************************************************************************/
+ #define _RTW_BR_EXT_C_
+ 
++#include <net/ip6_checksum.h>
+ #ifdef __KERNEL__
+ #include <linux/if_arp.h>
+ #include <net/ip.h>
+diff --git a/drivers/amlogic/wifi/rtl8723BU/core/rtw_debug.c b/drivers/amlogic/wifi/rtl8723BU/core/rtw_debug.c
+index 5cc27c6..fc78a7d 100755
+--- a/drivers/amlogic/wifi/rtl8723BU/core/rtw_debug.c
++++ b/drivers/amlogic/wifi/rtl8723BU/core/rtw_debug.c
+@@ -63,7 +63,7 @@ u32 GlobalDebugLevel = _drv_err_;
+ void dump_drv_version(void *sel)
+ {
+ 	DBG_871X_SEL_NL(sel, "%s %s\n", DRV_NAME, DRIVERVERSION);
+-	DBG_871X_SEL_NL(sel, "build time: %s %s\n", __DATE__, __TIME__);
++	//DBG_871X_SEL_NL(sel, "build time: %s %s\n", __DATE__, __TIME__);
+ }
+ 
+ void dump_log_level(void *sel)
+diff --git a/drivers/amlogic/wifi/rtl8811AU/core/rtw_br_ext.c b/drivers/amlogic/wifi/rtl8811AU/core/rtw_br_ext.c
+index 88a517a..827095a 100644
+--- a/drivers/amlogic/wifi/rtl8811AU/core/rtw_br_ext.c
++++ b/drivers/amlogic/wifi/rtl8811AU/core/rtw_br_ext.c
+@@ -19,6 +19,7 @@
+  ******************************************************************************/
+ #define _RTW_BR_EXT_C_
+ 
++#include <net/ip6_checksum.h>
+ #ifdef __KERNEL__
+ #include <linux/if_arp.h>
+ #include <net/ip.h>
+diff --git a/drivers/amlogic/wifi/rtl8811AU/core/rtw_debug.c b/drivers/amlogic/wifi/rtl8811AU/core/rtw_debug.c
+index 175110c..02035e5 100644
+--- a/drivers/amlogic/wifi/rtl8811AU/core/rtw_debug.c
++++ b/drivers/amlogic/wifi/rtl8811AU/core/rtw_debug.c
+@@ -63,7 +63,7 @@ u32 GlobalDebugLevel = _drv_err_;
+ void dump_drv_version(void *sel)
+ {
+ 	DBG_871X_SEL_NL(sel, "%s %s\n", DRV_NAME, DRIVERVERSION);
+-	DBG_871X_SEL_NL(sel, "build time: %s %s\n", __DATE__, __TIME__);
++	//DBG_871X_SEL_NL(sel, "build time: %s %s\n", __DATE__, __TIME__);
+ }
+ 
+ void dump_log_level(void *sel)
+diff --git a/drivers/amlogic/wifi/rtl8xxx_CU/core/rtw_br_ext.c b/drivers/amlogic/wifi/rtl8xxx_CU/core/rtw_br_ext.c
+index 6bb924e..3d02428 100755
+--- a/drivers/amlogic/wifi/rtl8xxx_CU/core/rtw_br_ext.c
++++ b/drivers/amlogic/wifi/rtl8xxx_CU/core/rtw_br_ext.c
+@@ -19,6 +19,7 @@
+  ******************************************************************************/
+ #define _RTW_BR_EXT_C_
+ 
++#include <net/ip6_checksum.h>
+ #ifdef __KERNEL__
+ #include <linux/if_arp.h>
+ #include <net/ip.h>
+diff --git a/drivers/amlogic/wifi/rtl8xxx_CU/core/rtw_debug.c b/drivers/amlogic/wifi/rtl8xxx_CU/core/rtw_debug.c
+index a067819..8fa620d 100755
+--- a/drivers/amlogic/wifi/rtl8xxx_CU/core/rtw_debug.c
++++ b/drivers/amlogic/wifi/rtl8xxx_CU/core/rtw_debug.c
+@@ -64,7 +64,7 @@
+ void dump_drv_version(void *sel)
+ {
+ 	DBG_871X_SEL_NL(sel, "%s %s\n", DRV_NAME, DRIVERVERSION);
+-	DBG_871X_SEL_NL(sel, "build time: %s %s\n", __DATE__, __TIME__);
++	//DBG_871X_SEL_NL(sel, "build time: %s %s\n", __DATE__, __TIME__);
+ }
+ 
+ void dump_log_level(void *sel)
+diff --git a/drivers/amlogic/wifi/rtl8xxx_DU/core/rtw_br_ext.c b/drivers/amlogic/wifi/rtl8xxx_DU/core/rtw_br_ext.c
+index 6bb924e..3d02428 100755
+--- a/drivers/amlogic/wifi/rtl8xxx_DU/core/rtw_br_ext.c
++++ b/drivers/amlogic/wifi/rtl8xxx_DU/core/rtw_br_ext.c
+@@ -19,6 +19,7 @@
+  ******************************************************************************/
+ #define _RTW_BR_EXT_C_
+ 
++#include <net/ip6_checksum.h>
+ #ifdef __KERNEL__
+ #include <linux/if_arp.h>
+ #include <net/ip.h>
+diff --git a/drivers/amlogic/wifi/rtl8xxx_DU/core/rtw_debug.c b/drivers/amlogic/wifi/rtl8xxx_DU/core/rtw_debug.c
+index 677e66a..6307933 100755
+--- a/drivers/amlogic/wifi/rtl8xxx_DU/core/rtw_debug.c
++++ b/drivers/amlogic/wifi/rtl8xxx_DU/core/rtw_debug.c
+@@ -64,7 +64,7 @@
+ void dump_drv_version(void *sel)
+ {
+ 	DBG_871X_SEL_NL(sel, "%s %s\n", DRV_NAME, DRIVERVERSION);
+-	DBG_871X_SEL_NL(sel, "build time: %s %s\n", __DATE__, __TIME__);
++	//DBG_871X_SEL_NL(sel, "build time: %s %s\n", __DATE__, __TIME__);
+ }
+ 
+ void dump_log_level(void *sel)

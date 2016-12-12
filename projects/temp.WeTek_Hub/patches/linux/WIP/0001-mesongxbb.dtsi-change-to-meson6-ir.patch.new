@@ -1,0 +1,27 @@
+From fe783cdfd66be744a69c7c5ddc55e7bee0bb7987 Mon Sep 17 00:00:00 2001
+From: Jamie Coldhill <wrxtasy@amnet.net.au>
+Date: Mon, 3 Oct 2016 06:59:03 +0800
+Subject: [PATCH] mesongxbb.dtsi: change to meson6-ir
+
+---
+ arch/arm64/boot/dts/amlogic/mesongxbb.dtsi | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/boot/dts/amlogic/mesongxbb.dtsi b/arch/arm64/boot/dts/amlogic/mesongxbb.dtsi
+index 1ea64ff..54f9f62 100644
+--- a/arch/arm64/boot/dts/amlogic/mesongxbb.dtsi
++++ b/arch/arm64/boot/dts/amlogic/mesongxbb.dtsi
+@@ -603,8 +603,8 @@
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&remote_pins>;
+ 	};
+-	meson_ir:meson-ir {
+-		compatible = "amlogic,meson-gxbb-ir";
++	meson_ir:meson-ir {
++		compatible = "amlogic,meson6-ir";
+ 		status = "disabled";
+ 		reg = <0x0 0xc8100580 0x0 0x40>;
+ 		interrupts = <0 196 1>;
+-- 
+1.9.1
+
