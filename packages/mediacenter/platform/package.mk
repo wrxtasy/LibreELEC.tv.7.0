@@ -16,19 +16,18 @@
 #  along with OpenELEC.  If not, see <http://www.gnu.org/licenses/>.
 ################################################################################
 
-PKG_NAME="kodi-platform"
-PKG_VERSION="15edaf7"
-#PKG_VERSION="fed924e"
+PKG_NAME="platform"
+PKG_VERSION="081032f"
 PKG_REV="1"
 PKG_ARCH="any"
 PKG_LICENSE="GPL"
 PKG_SITE="http://www.kodi.tv"
-PKG_URL="https://github.com/xbmc/kodi-platform/archive/$PKG_VERSION.tar.gz"
-PKG_DEPENDS_TARGET="toolchain tinyxml kodi platform p8-platform"
+PKG_URL="https://github.com/Pulse-Eight/platform/archive/$PKG_VERSION.tar.gz"
+PKG_DEPENDS_TARGET="toolchain"
 PKG_PRIORITY="optional"
 PKG_SECTION="multimedia"
-PKG_SHORTDESC="kodi-platform:"
-PKG_LONGDESC="kodi-platform:"
+PKG_SHORTDESC="platform:"
+PKG_LONGDESC="platform:"
 
 PKG_IS_ADDON="no"
 PKG_AUTORECONF="no"
@@ -36,13 +35,14 @@ PKG_AUTORECONF="no"
 configure_target() {
   cmake -DCMAKE_TOOLCHAIN_FILE=$CMAKE_CONF \
         -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_INSTALL_LIBDIR=/usr/lib \
+        -DCMAKE_INSTALL_LIBDIR_NOARCH=/usr/lib \
         -DCMAKE_INSTALL_PREFIX_TOOLCHAIN=$SYSROOT_PREFIX/usr \
-        -DCMAKE_MODULE_PATH=$SYSROOT_PREFIX/usr/lib/kodi \
         -DCMAKE_PREFIX_PATH=$SYSROOT_PREFIX/usr \
         -DBUILD_SHARED_LIBS=0 \
         ..
 }
 
 post_makeinstall_target() {
-  rm -rf $INSTALL/usr/lib/kodiplatform
+  rm -rf $INSTALL/usr
 }
