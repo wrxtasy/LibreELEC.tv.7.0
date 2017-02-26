@@ -1,0 +1,70 @@
+From 240f04ad7fccb2eff5bf872af982575dae0e87d2 Mon Sep 17 00:00:00 2001
+From: Alex Deryskyba <alex@codesnake.com>
+Date: Fri, 9 Sep 2016 15:58:38 +0200
+Subject: [PATCH] meson6: Do not report 4K resolutions in display capabilities
+ even if display supports them - Meson6 is not capable of 4K
+
+---
+ arch/arm/mach-meson6/include/mach/tvregs.h  | 17 -----------------
+ drivers/amlogic/hdmi/hdmi_tx/hdmi_tx_edid.c |  2 ++
+ 2 files changed, 2 insertions(+), 17 deletions(-)
+
+diff --git a/arch/arm/mach-meson6/include/mach/tvregs.h b/arch/arm/mach-meson6/include/mach/tvregs.h
+index 2119c4f..3c0629d 100755
+--- a/arch/arm/mach-meson6/include/mach/tvregs.h
++++ b/arch/arm/mach-meson6/include/mach/tvregs.h
+@@ -1007,11 +1007,6 @@
+     {MREG_END_MARKER,            0      }
+ };
+
+-static const reg_t tvregs_4k2k_30hz[] = {{MREG_END_MARKER,   0},};
+-static const reg_t tvregs_4k2k_25hz[] = {{MREG_END_MARKER,   0},};
+-static const reg_t tvregs_4k2k_24hz[] = {{MREG_END_MARKER,   0},};
+-static const reg_t tvregs_4k2k_smpte[] = {{MREG_END_MARKER,   0},};
+-
+ static const reg_t tvregs_vga_640x480[] = { // 25.17mhz 800 *525
+     {VENC_VDAC_SETTING,          0xff,      },
+     {ENCI_VIDEO_EN,              0,         },
+@@ -1497,10 +1492,6 @@
+     tvregs_1080i_50hz,
+     tvregs_1080p_50hz,
+     tvregs_1080p_24hz,
+-    tvregs_4k2k_30hz,
+-    tvregs_4k2k_25hz,
+-    tvregs_4k2k_24hz,
+-    tvregs_4k2k_smpte,
+     tvregs_vga_640x480,
+     tvregs_svga_800x600,
+     tvregs_xga_1024x768,
+@@ -1527,10 +1518,6 @@
+     {.xres = 1920, .yres = 1080, .id = "1080i50hz"},
+     {.xres = 1920, .yres = 1080, .id = "1080p50hz"},
+     {.xres = 1920, .yres = 1080, .id = "1080p24hz"},
+-    {.xres = 3840, .yres = 2160, .id = "4k2k30hz"},
+-    {.xres = 3840, .yres = 2160, .id = "4k2k25hz"},
+-    {.xres = 3840, .yres = 2160, .id = "4k2k24hz"},
+-    {.xres = 4096, .yres = 2160, .id = "4k2ksmpte"},
+     {.xres = 640, .yres = 480, .id = "vga"},
+     {.xres = 800, .yres = 600, .id = "svga"},
+     {.xres = 1024, .yres = 768, .id = "xga"},
+ 
+diff --git a/drivers/amlogic/hdmi/hdmi_tx/hdmi_tx_edid.c b/drivers/amlogic/hdmi/hdmi_tx/hdmi_tx_edid.c
+index 6b18a15..a2d3c5b 100755
+--- a/drivers/amlogic/hdmi/hdmi_tx/hdmi_tx_edid.c
++++ b/drivers/amlogic/hdmi/hdmi_tx/hdmi_tx_edid.c
+@@ -1410,6 +1410,7 @@ static dispmode_vic_t dispmode_VIC_tab[]=
+ #ifdef CONFIG_AML_VOUT_FRAMERATE_AUTOMATION
+ 	{"1080p59hz", HDMI_1080p60},
+ #endif
++#if MESON_CPU_TYPE > MESON_CPU_TYPE_MESON6
+     {"4k2k30hz",  HDMI_4k2k_30},
+ #ifdef CONFIG_AML_VOUT_FRAMERATE_AUTOMATION
+ 	{"4k2k29hz",  HDMI_4k2k_30},
+@@ -1420,6 +1421,7 @@ static dispmode_vic_t dispmode_VIC_tab[]=
+ 	{"4k2k23hz",  HDMI_4k2k_24},
+ #endif
+     {"4k2ksmpte", HDMI_4k2k_smpte_24},
++#endif // MESON_CPU_TYPE > MESON_CPU_TYPE_MESON6
+ };
+ 
+ int hdmitx_edid_VIC_support(HDMI_Video_Codes_t vic)

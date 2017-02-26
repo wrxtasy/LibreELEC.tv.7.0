@@ -32,16 +32,11 @@ if [ -z "$BOOT_DISK" ]; then
   esac
 fi
 
-SYSTEM_TYPE=""
-if [ -f $SYSTEM_ROOT/usr/lib/librenelec/imx6-system-type ]; then
-  . $SYSTEM_ROOT/usr/lib/libreelec/imx6-system-type
-fi
-
 # mount $BOOT_ROOT r/w
   mount -o remount,rw $BOOT_ROOT
 
 # update Device Tree Blobs
-  for all_dtb in /flash/*.dtb; do
+  for all_dtb in /flash/*.dtb /flash/DTB; do
     dtb=$(basename $all_dtb)
     if [ -f $SYSTEM_ROOT/usr/share/bootloader/$dtb ]; then
       echo "*** updating Device Tree Blob: $dtb ..."
@@ -49,49 +44,21 @@ fi
     fi
   done
 
-# update bootloader files
-  if [ "$SYSTEM_TYPE" = "matrix" ]; then
-    if [ -f $SYSTEM_ROOT/usr/share/bootloader/u-boot-$SYSTEM_TYPE.imx ]; then
-      echo "*** updating u-boot image in eMMC ..."
-      # clean up u-boot parameters
-      #dd if=/dev/zero of=/dev/mmcblk0 bs=1024 seek=384 count=8
-      # access boot partition 1
-      echo 0 > /sys/block/mmcblk0boot0/force_ro
-      # write u-boot to eMMC
-      dd if=$SYSTEM_ROOT/usr/share/bootloader/u-boot-$SYSTEM_TYPE.imx of=/dev/mmcblk0boot0 bs=1k seek=1 conv=fsync &>/dev/null
-      # re-enable read-only access
-      echo 1 > /sys/block/mmcblk0boot0/force_ro
-      # enable boot partion 1 to boot
-      echo 8 > /sys/devices/soc0/soc.1/2100000.aips-bus/219c000.usdhc/mmc_host/mmc2/mmc2:0001/boot_config
-    fi
-  else
-    if [ -n "$SYSTEM_TYPE" ]; then
-      UBOOT_IMG_SRC=u-boot-$SYSTEM_TYPE.img
-      SPL_SRC=SPL-$SYSTEM_TYPE
-    else
-      UBOOT_IMG_SRC=u-boot.img
-      SPL_SRC=SPL
-    fi
-
-    if [ -f $SYSTEM_ROOT/usr/share/bootloader/$UBOOT_IMG_SRC ]; then
-      echo "*** updating u-boot image: $BOOT_ROOT/u-boot.img ..."
-      cp -p $SYSTEM_ROOT/usr/share/bootloader/$UBOOT_IMG_SRC $BOOT_ROOT/u-boot.img
-    fi
-
-    if [ -f $SYSTEM_ROOT/usr/share/bootloader/$SPL_SRC ]; then
-      echo "*** updating u-boot SPL Blob on: $BOOT_DISK ..."
-      dd if="$SYSTEM_ROOT/usr/share/bootloader/$SPL_SRC" of="$BOOT_DISK" bs=1k seek=1 conv=fsync &>/dev/null
-    fi
+# stop if on eMMC that won't accept the new bootloader
+if [ -f /sys/block/${BOOT_DISK}boot0/force_ro ]; then
+  emmc=1
+  D="eMMC"
+  device=/dev/${BOOT_DISK}boot0
+  if ! echo 0 > /sys/block/${BOOT_DISK}boot0/force_ro; then
+    msgbox "I've found a running eMMC but I couldn't get it to accept the new bootloaders."
+    exit
   fi
+fi
 
-  # prefer uEnv.txt over boot.scr
-  if [ -n "$SYSTEM_TYPE" -a -f $SYSTEM_ROOT/usr/share/bootloader/uEnv-$SYSTEM_TYPE.txt -a ! -f $BOOT_ROOT/uEnv.txt ]; then
-    cp -p $SYSTEM_ROOT/usr/share/bootloader/uEnv-$SYSTEM_TYPE.txt $BOOT_ROOT/uEnv.txt
-  elif [ -f $SYSTEM_ROOT/usr/share/bootloader/uEnv.txt -a ! -f $BOOT_ROOT/uEnv.txt ]; then
-    cp -p $SYSTEM_ROOT/usr/share/bootloader/uEnv.txt $BOOT_ROOT
-  elif [ -f $SYSTEM_ROOT/usr/share/bootloader/boot.scr -a ! -f $BOOT_ROOT/boot.scr ]; then
-    cp -p $SYSTEM_ROOT/usr/share/bootloader/boot.scr $BOOT_ROOT
-  fi
+echo "*** updating u-boot for Odroid on: $BOOT_DISK ..."
+dd bs=1 if=$SYSTEM_ROOT/usr/share/bootloader/bl1 of=$BOOT_DISK count=442
+dd bs=512 if=$SYSTEM_ROOT/usr/share/bootloader/bl1 of=$BOOT_DISK seek=1 skip=1
+dd bs=512 if=$SYSTEM_ROOT/usr/share/bootloader/u-boot of=$BOOT_DISK seek=64
 
 # mount $BOOT_ROOT r/o
   sync

@@ -28,12 +28,11 @@ fi
 mkdir -p $RELEASE_DIR/target
   mkimage -A arm -T ramdisk -n RootFS\ [$PROJECT] -C none -d $INSTALL/../initramfs.cpio \
     $RELEASE_DIR/target/INITRD
-  ( cd $RELEASE_DIR; md5sum -t target/INITRD > target/INITRD.md5; )
+#  ( cd $RELEASE_DIR; md5sum -t target/INITRD > $INSTALL/../INITRD.md5; )
 #  mkimage -A arm -T ramdisk -n RootFS\ [$PROJECT] -C none -d $INSTALL/../initramfs.cpio \
 #    $INSTALL/../INITRD
 
-
-mkdir -p $RELEASE_DIR/3rdparty/bootloader
+  mkdir -p $RELEASE_DIR/3rdparty/bootloader
   if [ -e $BUILD/u-boot-*/$UBOOT_CONFIGFILE ]; then
     cp -PR $BUILD/u-boot-*/$UBOOT_CONFIGFILE $RELEASE_DIR/3rdparty/bootloader
   fi

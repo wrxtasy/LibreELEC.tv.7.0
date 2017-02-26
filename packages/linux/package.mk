@@ -32,8 +32,8 @@ PKG_LONGDESC="This package contains a precompiled kernel image and the modules."
 case "$LINUX" in
   hardkernel)
     PKG_VERSION="C1-3.10-a465199"
+#    PKG_VERSION="C1-3.10-8489c9d"
     PKG_URL="https://dl.dropboxusercontent.com/u/27641650/ODROID/C1/$PKG_NAME-$PKG_VERSION.tar.xz"
-#    PKG_URL="https://dl.dropboxusercontent.com/u/27641650/ODROID/linux-C1-3.10-8489c9d.tar.xz"
     ;;
   amlogic)
     PKG_VERSION="amlogic-3.10-c8d5b2f"

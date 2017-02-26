@@ -325,6 +325,7 @@ fi
 
     # create md5sum's
       ( cd $RELEASE_DIR;
+	md5sum -t target/INITRD > target/INITRD.md5;
         md5sum -t target/SYSTEM > target/SYSTEM.md5;
         md5sum -t target/KERNEL > target/KERNEL.md5;
       )
@@ -509,6 +510,7 @@ fi
 
       # create md5sum's
         ( cd $RELEASE_DIR/${DISTRONAME}_${PROJECT}/System;
+	  md5sum -t INITRD > INITRD.md5;
           md5sum -t SYSTEM > SYSTEM.md5;
           md5sum -t kernel.img > kernel.img.md5;
         )

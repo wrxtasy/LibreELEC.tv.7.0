@@ -176,10 +176,6 @@ EOF
     mcopy $RELEASE_DIR/3rdparty/bootloader/fixup.dat ::
     mcopy $RELEASE_DIR/3rdparty/bootloader/start.elf ::
     mcopy $RELEASE_DIR/3rdparty/bootloader/config.txt ::
-      
-    if [ -f $RELEASE_DIR/3rdparty/bootloader/dt-blob.bin ]; then
-      mcopy $RELEASE_DIR/3rdparty/bootloader/dt-blob.bin ::
-    fi
 
     for dtb in $RELEASE_DIR/3rdparty/bootloader/*.dtb ; do
       if [ -f $dtb ] ; then
@@ -214,6 +210,7 @@ elif [ "$BOOTLOADER" = "u-boot" ]; then
     elif [ -f "$RELEASE_DIR/3rdparty/bootloader/u-boot.imx" ]; then
       dd if="$RELEASE_DIR/3rdparty/bootloader/u-boot.imx" of="$DISK" bs=512 seek=2 conv=fsync,notrunc >"$SAVE_ERROR" 2>&1 || show_error
     elif [ -f "$RELEASE_DIR/3rdparty/bootloader/u-boot-fuse" ]; then
+
      # allow custom dd script for vendor specific fusing
       . $RELEASE_DIR/3rdparty/bootloader/u-boot-fuse
     elif [ -f "$RELEASE_DIR/3rdparty/bootloader/u-boot" ]; then
@@ -227,7 +224,7 @@ elif [ "$BOOTLOADER" = "u-boot" ]; then
     mcopy $TARGET_IMG/$IMAGE_NAME.kernel "::/$KERNEL_NAME"
     mcopy $TARGET_IMG/$IMAGE_NAME.system ::/SYSTEM
     mcopy $RELEASE_DIR/target/INITRD.md5 ::/INITRD.md5
-    mcopy $RELEASE_DIR/target/KERNEL.md5 "::/$KERNEL_NAME.md5"
+    mcopy $RELEASE_DIR/target/KERNEL.md5 ::/KERNEL.md5
     mcopy $RELEASE_DIR/target/SYSTEM.md5 ::/SYSTEM.md5
 
     if [ -n "$UBOOT_SYSTEM" -a -f "$RELEASE_DIR/3rdparty/bootloader/u-boot-$UBOOT_SYSTEM.img" ]; then

@@ -35,7 +35,7 @@ fi
 # mount $BOOT_ROOT r/w
   mount -o remount,rw $BOOT_ROOT
 
-# update Device Tree Blobs
+ update Device Tree Blobs
   for all_dtb in /flash/*.dtb /flash/DTB; do
     dtb=$(basename $all_dtb)
     if [ -f $SYSTEM_ROOT/usr/share/bootloader/$dtb ]; then
@@ -44,7 +44,15 @@ fi
     fi
   done
 
-echo "*** updating u-boot for Odroid on: $BOOT_DISK ..."
+if ! [ -f $BOOT_ROOT/boot.ini.old ]; then
+  echo "*** backing up boot.ini & updating bootloader ..."
+  mv $BOOT_ROOT/boot.ini $BOOT_ROOT/boot.ini.old
+  cp -p $SYSTEM_ROOT/usr/share/bootloader/boot.ini.new $BOOT_ROOT/boot.ini
+fi
+
+sleep 8
+
+#echo "*** updating u-boot for Odroid on: $BOOT_DISK ..."
 
 dd if=$SYSTEM_ROOT/usr/share/bootloader/bl1 of=$BOOT_DISK conv=fsync bs=1 count=442
 dd if=$SYSTEM_ROOT/usr/share/bootloader/bl1 of=$BOOT_DISK conv=fsync bs=512 seek=1 skip=1
